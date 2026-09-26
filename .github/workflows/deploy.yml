@@ -93,6 +93,7 @@ jobs:
           MAIL_TRANSPORT=
           MAIL_FROM=ShiaRishta <no-reply@shiarishta.com>
           ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}
+          PROMOTE_TOKEN=${{ secrets.PROMOTE_TOKEN }}
           TZ=America/New_York
           EOF
           echo ".env generated with $(wc -l < php-api/.env) lines (values from secrets, not shown)"
