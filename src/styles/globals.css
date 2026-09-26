@@ -3996,3 +3996,18 @@ button, a, input, select, textarea {
   .hp-btn-outline-light:hover { transform: none; }
   .hp-visual:hover .hp-visual-frame img { transform: none; }
 }
+
+/* ── Fail-safe scroll reveal ──────────────────────────────────────────────
+   Content is visible by default. The hidden initial state only applies when
+   JS is running (.js on <html>) and the user has no reduced-motion
+   preference. A backstop timer in the Reveal component guarantees content
+   can never stay hidden if the observer misfires. */
+.reveal { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .js .reveal.is-visible { opacity: 1; transform: none; }
+}

@@ -2,13 +2,14 @@
 // Strategy:
 //  • /api/* — network-only, never stored (no profiles/messages on disk).
 //  • Navigations + index.html — network-first (a deploy must reach the user).
-//  • Unhashed brand files (icon.svg, favicon.svg, manifest) — network-first:
+//  • Unhashed brand files (icon.svg, favicon.svg, PNG icons, manifest) — network-first:
 //    they change without a URL change, so cache-first would pin stale art.
 //  • Hashed /assets/* bundles — cache-first, immutable by content hash.
 const SHELL = 'shiarishta-shell-v2';
 const SHELL_FILES = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
 // Unhashed files that must revalidate on every fetch (see SHELL_FILES + favicon).
-const NETWORK_FIRST_PATHS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/favicon.svg', '/sw.js'];
+const NETWORK_FIRST_PATHS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/favicon.svg', '/sw.js',
+  '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/favicon-32x32.png', '/favicon-16x16.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

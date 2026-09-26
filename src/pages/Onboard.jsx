@@ -9,6 +9,7 @@ import {
 import Layout from '../layouts/MainLayout';
 import { useAuth } from '../lib/auth/AuthContext';
 import { api } from '../lib/api/client';
+import { saveMyProfile } from '../lib/storage';
 import {
   SECTS, MARJA_OPTIONS, RELIGIOSITY_LEVELS, PRAYER_OPTIONS,
   MODESTY_OPTIONS_FEMALE, MODESTY_OPTIONS_MALE, DIET_OPTIONS, SYED_OPTIONS,
@@ -316,7 +317,11 @@ export default function Onboard() {
         completeness,
         publishedAt: new Date().toISOString()
       };
-      localStorage.setItem('shiarishta_my_profile', JSON.stringify(profile));
+      // Write the published profile to the member-scoped key that getMyProfile()
+      // reads. A bare global key here is invisible to the dashboard and leaks
+      // across accounts on shared devices.
+      saveMyProfile(profile);
+      try { localStorage.removeItem('shiarishta_my_profile'); } catch { /* legacy bare key */ }
       localStorage.removeItem(scopedDraftKey());
       navigate('/dashboard');
     } catch (e) {

@@ -8,13 +8,24 @@ import { apiUrl } from '../lib/api/transport';
 const DECISIONS_KEY = 'shiarishta_deck_decisions';
 const INTERESTS_KEY = 'shiarishta_interests';
 
+// Deck state follows the signed-in account — one member's likes/passes must
+// never leak into another member's deck on a shared device.
+function sessionUid() {
+  try {
+    const raw = localStorage.getItem('sh_session');
+    const uid = raw ? JSON.parse(raw).uid : null;
+    return uid || 'signed-out';
+  } catch { return 'signed-out'; }
+}
+const scopedKey = (base) => `${base}::${sessionUid()}`;
+
 function loadDecisions() {
-  try { return JSON.parse(localStorage.getItem(DECISIONS_KEY)) || {}; } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(scopedKey(DECISIONS_KEY))) || {}; } catch { return {}; }
 }
 function persistDecision(id, decision) {
   const all = loadDecisions();
   all[id] = decision;
-  try { localStorage.setItem(DECISIONS_KEY, JSON.stringify(all)); } catch { /* ignore */ }
+  try { localStorage.setItem(scopedKey(DECISIONS_KEY), JSON.stringify(all)); } catch { /* ignore */ }
 }
 
 /**
@@ -40,11 +51,11 @@ export default function SwipeDeck({ profiles = [], onExpressInterest }) {
     setDecisions(loadDecisions());
     if (decision === 'like') {
       try {
-        const raw = localStorage.getItem(INTERESTS_KEY);
+        const raw = localStorage.getItem(scopedKey(INTERESTS_KEY));
         const list = raw ? JSON.parse(raw) : [];
         if (!list.includes(target.id)) {
           list.push(target.id);
-          localStorage.setItem(INTERESTS_KEY, JSON.stringify(list));
+          localStorage.setItem(scopedKey(INTERESTS_KEY), JSON.stringify(list));
         }
       } catch { /* ignore */ }
       onExpressInterest?.(target);
@@ -58,12 +69,12 @@ export default function SwipeDeck({ profiles = [], onExpressInterest }) {
     const next = { ...decisions };
     delete next[last[0]];
     setDecisions(next);
-    try { localStorage.setItem(DECISIONS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    try { localStorage.setItem(scopedKey(DECISIONS_KEY), JSON.stringify(next)); } catch { /* ignore */ }
   }, [decisions]);
 
   const resetDeck = useCallback(() => {
     setDecisions({});
-    try { localStorage.removeItem(DECISIONS_KEY); } catch { /* ignore */ }
+    try { localStorage.removeItem(scopedKey(DECISIONS_KEY)); } catch { /* ignore */ }
   }, []);
 
   // Keyboard navigation: ← pass, → like, ↑ maybe, U undo

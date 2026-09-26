@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
+import Reveal from '../components/Reveal';
 import {
   ArrowRight, BadgeCheck, BookOpen, CheckCircle2, Eye, EyeOff, Heart,
   Lock, Sparkles, Users,
@@ -41,15 +42,6 @@ const PREMIUM_TOOLS = [
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80';
 
-// Scroll reveal helper — inert when the visitor prefers reduced motion.
-const reveal = (reduceMotion, delay = 0) => (reduceMotion
-  ? {}
-  : {
-      initial: { opacity: 0, y: 22 },
-      whileInView: { opacity: 1, y: 0 },
-      viewport: { once: true, margin: '-70px' },
-      transition: { delay, duration: 0.55, ease: [0.16, 1, 0.3, 1] },
-    });
 
 export default function Home() {
   const reduceMotion = useReducedMotion();
@@ -63,14 +55,7 @@ export default function Home() {
         {/* ── Elite hero ── */}
         <section className="hp-hero">
           <div className="hp-hero-inner">
-            <motion.div
-              className="hp-hero-copy"
-              {...(reduceMotion ? {} : {
-                initial: { opacity: 0, y: 26 },
-                animate: { opacity: 1, y: 0 },
-                transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-              })}
-            >
+            <Reveal className="hp-hero-copy">
               <p className="hp-eyebrow"><span aria-hidden="true" /> Private Shia matchmaking</p>
               <h1>{isLoggedIn ? `Welcome back, ${user?.displayName || "friend"}` : "ShiaRishta"}</h1>
               <p className="hp-lede">
@@ -81,15 +66,11 @@ export default function Home() {
                 {isLoggedIn ? (<Link to="/dashboard" className="hp-btn-primary">Go to your dashboard <ArrowRight className="w-4 h-4" aria-hidden="true" /></Link>) : (<Link to="/profiles" className="hp-btn-primary">Browse profiles <ArrowRight className="w-4 h-4" aria-hidden="true" /></Link>)}
                 {isLoggedIn ? (<Link to="/profiles" className="hp-btn-ghost">Continue browsing</Link>) : (<Link to="/auth/register" className="hp-btn-ghost">Create free account</Link>)}
               </div>
-            </motion.div>
+            </Reveal>
 
-            <motion.div
+            <Reveal
               className="hp-visual"
-              {...(reduceMotion ? {} : {
-                initial: { opacity: 0, y: 26, scale: 0.98 },
-                animate: { opacity: 1, y: 0, scale: 1 },
-                transition: { delay: 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-              })}
+              delay={0.12}
             >
               <div className="hp-visual-frame">
                 <img src={HERO_IMAGE} alt="Nikah celebration" loading="eager" decoding="async" />
@@ -110,7 +91,7 @@ export default function Home() {
                   <span>Limited daily matches</span>
                 </div>
               </div>
-            </motion.div>
+            </Reveal>
           </div>
           <p className="hp-visual-caption">
             <Lock className="w-3.5 h-3.5" aria-hidden="true" />
@@ -121,18 +102,18 @@ export default function Home() {
         {/* ── Quiet feature grid ── */}
         <section className="hp-features" aria-label="Platform principles">
           {QUIET_FEATURES.map(({ icon: Icon, title, desc }, i) => (
-            <motion.article key={title} className="hp-feature" {...reveal(reduceMotion, i * 0.06)}>
+            <Reveal as="article" key={title} className="hp-feature" delay={i * 0.06}>
               <span className="hp-feature-icon"><Icon className="w-5 h-5" aria-hidden="true" /></span>
               <h3>{title}</h3>
               <p>{desc}</p>
-            </motion.article>
+            </Reveal>
           ))}
         </section>
 
         {/* ── Designed for trust (split + steps) ── */}
         <section className="hp-section">
           <div className="hp-split">
-            <motion.div className="hp-split-copy" {...reveal(reduceMotion)}>
+            <Reveal className="hp-split-copy">
               <p className="hp-eyebrow"><span aria-hidden="true" /> Privacy by design</p>
               <h2>Designed for trust</h2>
               <p className="hp-lede">Attractive, simple, and protective by design.</p>
@@ -152,8 +133,8 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </motion.div>
-            <motion.ol className="hp-steps" {...reveal(reduceMotion, 0.1)}>
+            </Reveal>
+            <Reveal as="ol" className="hp-steps" delay={0.1}>
               {TRUST_STEPS.map((step, i) => (
                 <li key={step.title}>
                   <span className="hp-step-num" aria-hidden="true">{i + 1}</span>
@@ -163,23 +144,23 @@ export default function Home() {
                   </div>
                 </li>
               ))}
-            </motion.ol>
+            </Reveal>
           </div>
         </section>
 
         {/* ── Featured profiles ── */}
         <section className="hp-section">
-          <motion.div className="hp-section-head" {...reveal(reduceMotion)}>
+          <Reveal className="hp-section-head">
             <p className="hp-eyebrow"><span aria-hidden="true" /> Featured profiles</p>
             <h2>Curated profiles that feel premium at first glance</h2>
             <p className="hp-lede hp-lede-center">
               A quiet look at the member experience — privacy is the default, and members who have
               completed identity verification carry a visible badge.
             </p>
-          </motion.div>
+          </Reveal>
           <div className="profile-grid">
             {(featured.length ? featured : Array.from({ length: 6 })).map((p, i) => (
-              <motion.div key={p?.id || i} {...reveal(reduceMotion, (i % 3) * 0.06)}>
+              <Reveal key={p?.id || i} delay={(i % 3) * 0.06}>
                 {p ? (
                   <ProfileCard profile={p} actions={false} />
                 ) : (
@@ -192,7 +173,7 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-              </motion.div>
+              </Reveal>
             ))}
           </div>
           <div className="hp-featured-cta">
@@ -204,7 +185,7 @@ export default function Home() {
         {/* ── Premium experience ── */}
         <section className="hp-section">
           <div className="hp-premium">
-            <motion.div {...reveal(reduceMotion)}>
+            <Reveal>
               <p className="hp-eyebrow"><span aria-hidden="true" /> Premium experience</p>
               <h2>Serious tools for serious nikah conversations</h2>
               <p className="hp-lede">
@@ -215,20 +196,20 @@ export default function Home() {
                   {isLoggedIn ? "Go to your dashboard" : "Create free account"} <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </Link>
               </div>
-            </motion.div>
-            <motion.ul className="hp-checklist" {...reveal(reduceMotion, 0.1)}>
+            </Reveal>
+            <Reveal as="ul" className="hp-checklist" delay={0.1}>
               {PREMIUM_TOOLS.map((tool) => (
                 <li key={tool}>
                   <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> {tool}
                 </li>
               ))}
-            </motion.ul>
+            </Reveal>
           </div>
         </section>
 
         {/* ── Guidance band ── */}
         <section className="hp-section">
-          <motion.div className="hp-guidance" {...reveal(reduceMotion)}>
+          <Reveal className="hp-guidance">
             <div>
               <p className="hp-eyebrow hp-eyebrow-light"><span aria-hidden="true" /> Guidance and community</p>
               <h2>Trust beyond the profile</h2>
@@ -240,7 +221,7 @@ export default function Home() {
               </Link>
               <Link to="/community" className="hp-btn-outline-light">Visit community</Link>
             </div>
-          </motion.div>
+          </Reveal>
         </section>
       </div>
     </Layout>

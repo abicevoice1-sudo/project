@@ -50,12 +50,26 @@ export function remove(key) {
 }
 
 // Remove ALL keys for a given uid (used on logout to prevent leaks).
-// Also removes the session itself.
+// Also removes the session itself, plus legacy bare keys from before keys
+// were scoped per member (onboarding draft, deck decisions, interests,
+// published profile, waitlist) so nothing survives for the next browser user.
+const LEGACY_BARE_KEYS = [
+  'shiarishta_onboarding_draft',
+  'shiarishta_deck_decisions',
+  'shiarishta_interests',
+  'shiarishta_my_profile',
+  'shiarishta_waitlist_v1',
+  'shiarishta_events_v1',
+  'shiarishta_threads_v1',
+  'shiarishta_intros_v1',
+  'shiarishta_guardians_v1',
+];
 export function clearUserData(uid = null) {
   try {
     const targetUid = uid || sessionUid();
     // Remove session first
     localStorage.removeItem(PREFIX + SESSION_KEY);
+    LEGACY_BARE_KEYS.forEach((k) => { try { localStorage.removeItem(k); } catch { /* ignore */ } });
     if (!targetUid) return;
     const suffix = `::${targetUid}`;
     const toRemove = [];
