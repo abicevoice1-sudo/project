@@ -1,28 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- ShiaRishta brand mark — "The Nikah Knot" (v2). See src/components/BrandLogo.jsx for the design rationale. -->
   <defs>
-    <linearGradient id="srk-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#33604F"/>
-      <stop offset="1" stop-color="#1B3D31"/>
+    <linearGradient id="hg" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#5be3a0"/>
+      <stop offset="0.62" stop-color="#33c37f"/>
+      <stop offset="1" stop-color="#a4c639"/>
     </linearGradient>
-    <radialGradient id="srk-star" cx="0.5" cy="0.42" r="0.75">
-      <stop offset="0" stop-color="#DDAE54"/>
-      <stop offset="1" stop-color="#B98334"/>
-    </radialGradient>
-    <mask id="srk-under">
-      <rect width="512" height="512" fill="white"/>
-      <circle cx="314" cy="304" r="88" fill="none" stroke="black" stroke-width="78"/>
-    </mask>
   </defs>
-  <rect width="512" height="512" rx="116" fill="url(#srk-bg)"/>
-  <rect x="30" y="30" width="452" height="452" rx="100" fill="none" stroke="#B98334" stroke-opacity="0.38" stroke-width="4"/>
-  <!-- back ring (passes under) -->
-  <g mask="url(#srk-under)">
-    <circle cx="198" cy="208" r="88" fill="none" stroke="#FFFAF4" stroke-width="54"/>
-  </g>
-  <!-- front ring (passes over) -->
-  <circle cx="314" cy="304" r="88" fill="none" stroke="#FFFAF4" stroke-width="54"/>
-  <!-- Rub el Hizb star at the crossing -->
-  <polygon fill="url(#srk-star)" stroke="#8A5F22" stroke-width="3" stroke-linejoin="round"
-    points="256,220 261.7,242.1 281.5,230.5 269.9,250.3 292,256 269.9,261.7 281.5,281.5 261.7,269.9 256,292 250.3,269.9 230.5,281.5 242.1,261.7 220,256 242.1,250.3 230.5,230.5 250.3,242.1"/>
+  <rect width="512" height="512" rx="116" fill="#14181d"/>
+  <path fill="url(#hg)" d="M256 402 C170 332 92 272 92 194 C92 134 138 96 194 96 C224 96 246 112 256 136 C266 112 288 96 318 96 C374 96 420 134 420 194 C420 272 342 332 256 402 Z"/>
+  <path fill="#1d7a4d" opacity="0.94" d="M256 302 C218 268 182 234 182 192 C182 160 206 138 234 138 C248 138 256 146 256 158 C256 146 264 138 278 138 C306 138 330 160 330 192 C330 234 294 268 256 302 Z"/>
 </svg>

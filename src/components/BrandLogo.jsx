@@ -1,24 +1,9 @@
-// ShiaRishta brand mark — "The Nikah Knot" (v2, 2026-09-26).
+// ShiaRishta brand mark — the heart (2026-09-26).
 //
-// Original construction on a 512 grid: two interlocked wedding bands weave
-// over–under to form an S-curve (two lives, one bond). At the crossing sits an
-// 8-pointed Rub el Hizb star (۞) — a classical Islamic geometric motif —
-// rendered here in our own geometry, the mark's distinctive, ownable element.
-//
-// Palette is drawn from the product's light-theme tokens so the mark always
-// blends with the site: deep sage tile (#33604F → #1B3D31, the sage-dark
-// family), warm paper rings (#FFFAF4), burnished gold star (#B98334).
-//
-// `detail`: full artwork (gold keyline + standard star) for app-icon sizes.
-// Small-size variant (header, favicon) drops the keyline — it turns to mud
-// under ~40px — and enlarges the star so the mark stays crisp.
-const STAR_FULL =
-  '256,220 261.7,242.1 281.5,230.5 269.9,250.3 292,256 269.9,261.7 281.5,281.5 261.7,269.9 256,292 250.3,269.9 230.5,281.5 242.1,261.7 220,256 242.1,250.3 230.5,230.5 250.3,242.1';
-const STAR_SM =
-  '256,216 262.5,240.3 284.3,227.7 271.7,249.5 296,256 271.7,262.5 284.3,284.3 262.5,271.7 256,296 249.5,271.7 227.7,284.3 240.3,262.5 216,256 240.3,249.5 227.7,227.7 249.5,240.3';
-
-export default function BrandLogo({ size = 34, detail, className = '', style = {} }) {
-  const full = detail !== undefined ? detail : size >= 44;
+// A layered heart on a near-black tile: fresh emerald at the lobes warming to
+// a golden green at the point, with a deep-green inner heart. Reads cleanly
+// from 16px favicon up to app-icon sizes, so no detail variants are needed.
+export default function BrandLogo({ size = 34, detail: _detail, className = '', style = {} }) {
   return (
     <svg
       width={size}
@@ -30,39 +15,24 @@ export default function BrandLogo({ size = 34, detail, className = '', style = {
       role="img"
     >
       <defs>
-        <linearGradient id="srk-bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#33604F" />
-          <stop offset="1" stopColor="#1B3D31" />
+        <linearGradient id="srh-heart" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stopColor="#5be3a0" />
+          <stop offset="0.62" stopColor="#33c37f" />
+          <stop offset="1" stopColor="#a4c639" />
         </linearGradient>
-        <radialGradient id="srk-star" cx="0.5" cy="0.42" r="0.75">
-          <stop offset="0" stopColor="#DDAE54" />
-          <stop offset="1" stopColor="#B98334" />
-        </radialGradient>
-        <mask id="srk-under">
-          <rect width="512" height="512" fill="white" />
-          <circle cx="314" cy="304" r="88" fill="none" stroke="black" strokeWidth="78" />
-        </mask>
       </defs>
       {/* tile */}
-      <rect width="512" height="512" rx="116" fill="url(#srk-bg)" />
-      {/* burnished-gold keyline (large sizes only) */}
-      {full && (
-        <rect x="30" y="30" width="452" height="452" rx="100" fill="none"
-          stroke="#B98334" strokeOpacity="0.38" strokeWidth="4" />
-      )}
-      {/* back ring (passes under) */}
-      <g mask="url(#srk-under)">
-        <circle cx="198" cy="208" r="88" fill="none" stroke="#FFFAF4" strokeWidth="54" />
-      </g>
-      {/* front ring (passes over) */}
-      <circle cx="314" cy="304" r="88" fill="none" stroke="#FFFAF4" strokeWidth="54" />
-      {/* Rub el Hizb star at the crossing */}
-      <polygon
-        fill="url(#srk-star)"
-        stroke="#8A5F22"
-        strokeWidth="3"
-        strokeLinejoin="round"
-        points={full ? STAR_FULL : STAR_SM}
+      <rect width="512" height="512" rx="116" fill="#14181d" />
+      {/* outer heart */}
+      <path
+        fill="url(#srh-heart)"
+        d="M256 402 C170 332 92 272 92 194 C92 134 138 96 194 96 C224 96 246 112 256 136 C266 112 288 96 318 96 C374 96 420 134 420 194 C420 272 342 332 256 402 Z"
+      />
+      {/* inner heart */}
+      <path
+        fill="#1d7a4d"
+        opacity="0.94"
+        d="M256 302 C218 268 182 234 182 192 C182 160 206 138 234 138 C248 138 256 146 256 158 C256 146 264 138 278 138 C306 138 330 160 330 192 C330 234 294 268 256 302 Z"
       />
     </svg>
   );

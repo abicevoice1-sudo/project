@@ -1,25 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- ShiaRishta favicon — "Nikah Knot" small-size variant: same DNA as the app
-       icon, keyline removed (mud below 40px), star enlarged for crispness. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="srkf-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#33604F"/>
-      <stop offset="1" stop-color="#1B3D31"/>
+    <linearGradient id="hg" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#5be3a0"/>
+      <stop offset="0.62" stop-color="#33c37f"/>
+      <stop offset="1" stop-color="#a4c639"/>
     </linearGradient>
-    <radialGradient id="srkf-star" cx="0.5" cy="0.42" r="0.75">
-      <stop offset="0" stop-color="#DDAE54"/>
-      <stop offset="1" stop-color="#B98334"/>
-    </radialGradient>
-    <mask id="srkf-under">
-      <rect width="64" height="64" fill="white"/>
-      <circle cx="39.25" cy="38" r="11" fill="none" stroke="black" stroke-width="9.75"/>
-    </mask>
   </defs>
-  <rect width="64" height="64" rx="14.5" fill="url(#srkf-bg)"/>
-  <g mask="url(#srkf-under)">
-    <circle cx="24.75" cy="26" r="11" fill="none" stroke="#FFFAF4" stroke-width="6.75"/>
-  </g>
-  <circle cx="39.25" cy="38" r="11" fill="none" stroke="#FFFAF4" stroke-width="6.75"/>
-  <polygon fill="url(#srkf-star)" stroke="#8A5F22" stroke-width="0.5" stroke-linejoin="round"
-    points="32,27 32.8,30 35.5,28.5 34,31.2 37,32 34,32.8 35.5,35.5 32.8,34 32,37 31.2,34 28.5,35.5 30,32.8 27,32 30,31.2 28.5,28.5 31.2,30"/>
+  <rect width="512" height="512" rx="116" fill="#14181d"/>
+  <path fill="url(#hg)" d="M256 402 C170 332 92 272 92 194 C92 134 138 96 194 96 C224 96 246 112 256 136 C266 112 288 96 318 96 C374 96 420 134 420 194 C420 272 342 332 256 402 Z"/>
+  <path fill="#1d7a4d" opacity="0.94" d="M256 302 C218 268 182 234 182 192 C182 160 206 138 234 138 C248 138 256 146 256 158 C256 146 264 138 278 138 C306 138 330 160 330 192 C330 234 294 268 256 302 Z"/>
 </svg>

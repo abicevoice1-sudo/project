@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#10b981"/>
-      <stop offset="1" stop-color="#d4af69"/>
+    <linearGradient id="hg" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#5be3a0"/>
+      <stop offset="0.62" stop-color="#33c37f"/>
+      <stop offset="1" stop-color="#a4c639"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#0b0f17"/>
-  <path d="M256 152c-30-36-84-44-118-12-36 34-34 92 2 128l116 112 116-112c36-36 38-94 2-128-34-32-88-24-118 12z" fill="url(#g)"/>
-  <path d="M256 208c-14-17-40-21-56-6-17 16-16 44 1 61l55 53 55-53c17-17 18-45 1-61-16-15-42-11-56 6z" fill="#0b0f17" opacity="0.35"/>
+  <rect width="512" height="512" rx="116" fill="#14181d"/>
+  <path fill="url(#hg)" d="M256 402 C170 332 92 272 92 194 C92 134 138 96 194 96 C224 96 246 112 256 136 C266 112 288 96 318 96 C374 96 420 134 420 194 C420 272 342 332 256 402 Z"/>
+  <path fill="#1d7a4d" opacity="0.94" d="M256 302 C218 268 182 234 182 192 C182 160 206 138 234 138 C248 138 256 146 256 158 C256 146 264 138 278 138 C306 138 330 160 330 192 C330 234 294 268 256 302 Z"/>
 </svg>

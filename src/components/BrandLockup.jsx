@@ -2,7 +2,7 @@ import BrandLogo from './BrandLogo';
 
 // ShiaRishta wordmark lockup (2026-09-26).
 //
-// Silicon Valley-clean: the Nikah Knot mark paired with a single-color
+// Silicon Valley-clean: the heart mark paired with a single-color
 // geometric sans wordmark — Inter 700, tight tracking, theme-aware ink.
 // Tagline set in tracked-out uppercase. No italics, no two-tone: the mark
 // carries the brand color, the word carries the name.

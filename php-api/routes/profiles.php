@@ -401,9 +401,26 @@ function profileUpdate(): void
     if (!empty($b['gender']) && !in_array($b['gender'], ['male', 'female'], true)) {
         je('Invalid gender.', 400);
     }
+    // Visibility vocabulary: the onboarding wizard speaks the product's UX
+    // language (profile: public/limited/hidden; photos: public/request/match)
+    // while the server enforces a 3-tier model (public/members/private).
+    // Accept both, normalize to the server model — a vocabulary mismatch must
+    // never 400 an entire profile save.
+    $visibilityMap = [
+        'public' => 'public', 'members' => 'members', 'private' => 'private',
+        'limited' => 'members', 'hidden' => 'private',
+    ];
+    $photoVisibilityMap = [
+        'public' => 'public', 'members' => 'members', 'private' => 'private',
+        'request' => 'members', 'match' => 'members',
+    ];
     foreach (['visibility', 'photos_visibility', 'photosVisibility'] as $f) {
-        if (!empty($b[$f]) && !in_array($b[$f], ['public', 'members', 'private'], true)) {
-            je("Invalid {$f}.", 400);
+        if (!empty($b[$f])) {
+            $map = $f === 'visibility' ? $visibilityMap : $photoVisibilityMap;
+            if (!isset($map[$b[$f]])) {
+                je("Invalid {$f}.", 400);
+            }
+            $b[$f] = $map[$b[$f]];
         }
     }
     if (!empty($b['bio']) && strlen((string)$b['bio']) > 2000) {
