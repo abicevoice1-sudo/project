@@ -16,6 +16,7 @@ function migrateSchema(): void
     // of this function, which the early-return probe below skipped on any database
     // that already had its tables — so those columns never got created.
     migrateAddProfileColumns();
+    migrateAddContactTable();
 
     // Cheap "already migrated" probe. Must check a LATE table too: probing only
     // users.* would skip migration forever after a partial run (a lesson learned
@@ -106,5 +107,25 @@ function migrateAddProfileColumns(): void
         }
     } catch (Throwable $e) {
         error_log('[api] migration (columns) issue: ' . $e->getMessage());
+    }
+}
+
+// Contact form submissions table. Created unconditionally (idempotent) so
+// databases created before this table existed still get it.
+function migrateAddContactTable(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS contact_messages (
+          id         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          name       VARCHAR(120) NOT NULL,
+          email      VARCHAR(320) NOT NULL,
+          subject    VARCHAR(200) NOT NULL,
+          message    TEXT         NOT NULL,
+          status     VARCHAR(16)  NOT NULL DEFAULT 'new',
+          created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          KEY idx_contact_status (status, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('[api] migration (contact table) issue: ' . $e->getMessage());
     }
 }

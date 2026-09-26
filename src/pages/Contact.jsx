@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import Layout from '../layouts/LandingLayout';
-import { Mail, Phone, MapPin, Clock, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, AlertCircle, Loader2, MessageSquareHeart } from 'lucide-react';
 
 const CONTACT_METHODS = [
   { icon: Mail, title: 'Email Support', desc: 'Get help within hours', links: [
@@ -17,75 +17,144 @@ const CONTACT_METHODS = [
   { icon: Clock, title: 'Response Time', desc: 'We aim to reply fast', links: [
     { label: 'Urgent matters — 1–2 hours', href: 'mailto:support@shiarishta.com' },
     { label: 'General questions — 4–8 hours', href: 'mailto:support@shiarishta.com' },
-    { label: 'Detailed feedback — 24 hours', href: 'mailto:support@shiarishta.com' },
   ]},
 ];
 
+const inputCls = 'w-full px-4 py-3 rounded-xl border border-line/30 bg-base text-sm text-ink placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/60 transition-all';
+
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
-  const [submissionError, setSubmissionError] = useState('');
+  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [error, setError] = useState('');
 
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmissionError('Message not sent. Online contact delivery is unavailable. Your draft has been kept on this page; copy it before leaving or reloading.');
+    setStatus('sending');
+    setError('');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+      setStatus('sent');
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+    }
   };
 
-  const inputCls = 'w-full px-4 py-3 rounded-xl border border-line/30 bg-elevated text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all';
+  const resetForm = () => {
+    setFormData({ name: '', email: '', subject: '', message: '' });
+    setStatus('idle');
+    setError('');
+  };
 
   return (
     <Layout>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">We're here for you</span>
-          <h1 className="text-3xl sm:text-4xl font-bold text-ink mt-2">Get in Touch</h1>
-          <p className="text-muted mt-2 max-w-xl mx-auto">Have a question about privacy, need help with your profile, or want to share feedback? Our team listens.</p>
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 rounded-full px-4 py-1.5">
+            <MessageSquareHeart className="w-3.5 h-3.5" />
+            We're here for you
+          </span>
+          <h1 className="text-3xl sm:text-5xl font-bold text-ink mt-4 tracking-tight">Get in Touch</h1>
+          <p className="text-muted mt-3 max-w-xl mx-auto text-base">
+            Have a question about privacy, need help with your profile, or want to share feedback? Our team listens.
+          </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10">
+        <div className="grid lg:grid-cols-[1fr_1.25fr] gap-8 lg:gap-12 items-start">
           <div className="space-y-4">
             {CONTACT_METHODS.map((m, i) => (
-              <motion.div key={m.title} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
-                className="flex items-start gap-4 p-5 rounded-2xl border border-line/20 bg-elevated hover:shadow-sm transition-all">
-                <span className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><m.icon className="w-5 h-5 text-primary" /></span>
+              <motion.div key={m.title}
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
+                className="flex items-start gap-4 p-5 rounded-2xl border border-line/20 bg-elevated hover:border-primary/30 hover:shadow-md transition-all">
+                <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                  <m.icon className="w-5 h-5 text-primary" />
+                </span>
                 <div>
                   <h3 className="font-semibold text-ink text-sm">{m.title}</h3>
                   <p className="text-xs text-muted mt-0.5 mb-1.5">{m.desc}</p>
-                  {m.links.map(l => <a key={l.label} href={l.href} className="block text-xs text-primary hover:underline">{l.label}</a>)}
+                  {m.links.map(l => (
+                    <a key={l.label} href={l.href} className="block text-xs text-primary hover:underline font-medium">{l.label}</a>
+                  ))}
                 </div>
               </motion.div>
             ))}
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="bg-elevated rounded-2xl border border-line/20 shadow-sm p-6 sm:p-8">
-              <form onSubmit={handleSubmit} className="space-y-4" aria-describedby="contact-unavailable">
-                <h2 className="text-xl font-bold text-ink mb-1">Contact form unavailable</h2>
-                <p id="contact-unavailable" role="status" className="text-sm text-muted mb-4">Online message delivery is not connected. This form cannot send messages or request support. Drafts stay on this page only; copy your text before leaving or reloading.</p>
-                {submissionError && <p role="alert" className="text-sm text-ink">{submissionError}</p>}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="bg-elevated rounded-3xl border border-line/20 shadow-lg p-6 sm:p-10 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-emerald-400 to-amber-300" />
+
+            <AnimatePresence mode="wait">
+              {status === 'sent' ? (
+                <motion.div key="sent" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-10">
+                  <span className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                    <CheckCircle2 className="w-8 h-8 text-primary" />
+                  </span>
+                  <h2 className="text-2xl font-bold text-ink">Message received</h2>
+                  <p className="text-muted text-sm mt-2 max-w-sm mx-auto">
+                    Thank you, {formData.name.split(' ')[0] || 'friend'}. Our team will get back to you at {formData.email} shortly.
+                  </p>
+                  <button onClick={resetForm}
+                    className="mt-6 text-sm font-semibold text-primary hover:underline">
+                    Send another message
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.form key="form" exit={{ opacity: 0 }} onSubmit={handleSubmit} className="space-y-5">
                   <div>
-                    <label htmlFor="contactName" className="text-xs font-semibold text-muted mb-1 block">Full Name *</label>
-                    <input id="contactName" name="name" value={formData.name} onChange={handleChange} required placeholder="Your name" className={inputCls} />
+                    <h2 className="text-xl font-bold text-ink">Send us a message</h2>
+                    <p className="text-sm text-muted mt-1">We usually reply within a few hours.</p>
+                  </div>
+
+                  {status === 'error' && (
+                    <div className="flex items-start gap-2.5 bg-danger/10 border border-danger/20 text-danger rounded-xl px-4 py-3 text-sm">
+                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                      <p>{error}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="contactName" className="text-xs font-semibold text-ink mb-1.5 block">Full Name *</label>
+                      <input id="contactName" name="name" value={formData.name} onChange={handleChange} required
+                        placeholder="Your name" className={inputCls} disabled={status === 'sending'} />
+                    </div>
+                    <div>
+                      <label htmlFor="contactEmail" className="text-xs font-semibold text-ink mb-1.5 block">Email *</label>
+                      <input id="contactEmail" name="email" type="email" value={formData.email} onChange={handleChange} required
+                        placeholder="you@email.com" className={inputCls} disabled={status === 'sending'} />
+                    </div>
                   </div>
                   <div>
-                    <label htmlFor="contactEmail" className="text-xs font-semibold text-muted mb-1 block">Email *</label>
-                    <input id="contactEmail" name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="you@email.com" className={inputCls} />
+                    <label htmlFor="contactSubject" className="text-xs font-semibold text-ink mb-1.5 block">Subject *</label>
+                    <input id="contactSubject" name="subject" value={formData.subject} onChange={handleChange} required
+                      placeholder="How can we help?" className={inputCls} disabled={status === 'sending'} />
                   </div>
-                </div>
-                <div>
-                  <label htmlFor="contactSubject" className="text-xs font-semibold text-muted mb-1 block">Subject *</label>
-                  <input id="contactSubject" name="subject" value={formData.subject} onChange={handleChange} required placeholder="How can we help?" className={inputCls} />
-                </div>
-                <div>
-                  <label htmlFor="contactMessage" className="text-xs font-semibold text-muted mb-1 block">Message *</label>
-                  <textarea id="contactMessage" name="message" value={formData.message} onChange={handleChange} required rows={5} placeholder="Tell us more..." className={`${inputCls} resize-none`} />
-                </div>
-                <button type="submit" disabled aria-describedby="contact-unavailable" className="button primary px-8 py-3 font-semibold flex items-center gap-2 disabled:opacity-60">
-                  <Send className="w-4 h-4" /> Sending unavailable
-                </button>
-              </form>
+                  <div>
+                    <label htmlFor="contactMessage" className="text-xs font-semibold text-ink mb-1.5 block">Message *</label>
+                    <textarea id="contactMessage" name="message" value={formData.message} onChange={handleChange} required
+                      rows={5} placeholder="Tell us more..." className={`${inputCls} resize-none`} disabled={status === 'sending'} />
+                  </div>
+                  <button type="submit" disabled={status === 'sending'}
+                    className="w-full sm:w-auto bg-primary hover:bg-primary/90 disabled:opacity-60 text-white px-8 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition shadow-md shadow-primary/20">
+                    {status === 'sending' ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                    ) : (
+                      <><Send className="w-4 h-4" /> Send Message</>
+                    )}
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </main>

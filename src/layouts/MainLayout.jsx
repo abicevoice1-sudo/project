@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import ThemeMenu from '../components/ThemeMenu';
 import AIAssistant from '../components/AIAssistant';
+import BrandLogo from '../components/BrandLogo';
 
 // ── Command Palette — Full-text search across navigation + actions ───────────
 function CommandPalette({ open, onClose, toggleTheme, isAdmin }) {
@@ -188,12 +189,7 @@ function CommandPalette({ open, onClose, toggleTheme, isAdmin }) {
 function BrandMark() {
   return (
     <div className="flex items-center gap-2.5 px-2 mb-6">
-      <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-        style={{ background: 'linear-gradient(135deg, #10b981, #d4af69)', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)' }}
-      >
-        S
-      </div>
+      <BrandLogo size={32} />
       <span className="font-bold text-sm" style={{ color: 'var(--color-ink)' }}>ShiaRishta</span>
     </div>
   );

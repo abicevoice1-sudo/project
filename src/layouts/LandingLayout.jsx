@@ -10,6 +10,7 @@ import {
 import ThemeMenu from '../components/ThemeMenu';
 import AIAssistant, { openAIAssistant } from '../components/AIAssistant';
 import SiteFooter from '../components/SiteFooter';
+import BrandLogo from '../components/BrandLogo';
 import { applyIsDark, readIsDark } from '../lib/theme';
 
 const landingLinks = [
@@ -368,7 +369,7 @@ function LandingHeader({ dark, setDark }) {
         <div className="landing-header-inner">
           {/* Logo */}
           <Link to="/" className="landing-brand" aria-label="ShiaRishta — home">
-            <span className="landing-brand-mark">S</span>
+            <BrandLogo size={36} />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.02em' }}>SHIARISHTA</span>
               <span style={{ fontSize: '0.6rem', fontWeight: 500, letterSpacing: '0.08em', color: 'var(--color-ink-tertiary)', textTransform: 'uppercase' }}>Nikah Matchmaking</span>
@@ -472,7 +473,7 @@ function LandingHeader({ dark, setDark }) {
             {/* Mobile nav header */}
             <div className="mobile-nav-header">
               <Link to="/" className="flex items-center gap-2" onClick={() => setMobileNavOpen(false)}>
-                <span className="landing-brand-mark" style={{ fontSize: '1.25rem' }}>S</span>
+                <BrandLogo size={36} />
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
                   <span style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.02em' }}>SHIARISHTA</span>
                   <span style={{ fontSize: '0.55rem', fontWeight: 500, letterSpacing: '0.08em', color: 'var(--color-ink-tertiary)', textTransform: 'uppercase' }}>Nikah Matchmaking</span>

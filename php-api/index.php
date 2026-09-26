@@ -20,6 +20,7 @@ require __DIR__ . '/routes/verifications.php';
 require __DIR__ . '/routes/wali.php';
 require __DIR__ . '/routes/drafts.php';
 require __DIR__ . '/routes/admin.php';
+require __DIR__ . '/routes/contact.php';
 
 // ── Security headers (helmet-equivalent, zero dependencies) ─────────────────
 header('X-Content-Type-Options: nosniff');
@@ -149,6 +150,9 @@ try {
             break;
         case 'admin':
             routeAdmin($method, $rest);
+            break;
+        case 'contact':
+            routeContact($method, $rest);
             break;
         default:
             json(['error' => 'Not found'], 404);

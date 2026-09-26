@@ -207,3 +207,15 @@ CREATE TABLE IF NOT EXISTS draft_events (
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_draft_events_draft (draft_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Contact form submissions. Visible to admins in the admin panel.
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(120) NOT NULL,
+  email      VARCHAR(320) NOT NULL,
+  subject    VARCHAR(200) NOT NULL,
+  message    TEXT         NOT NULL,
+  status     VARCHAR(16)  NOT NULL DEFAULT 'new',
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_contact_status (status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
