@@ -1,0 +1,12 @@
+name: Test contact endpoint
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "--- POST /api/contact ---"
+          curl -s -X POST https://shiarishta.com/api/contact \
+            -H "Content-Type: application/json" \
+            -d '{"name":"Test User","email":"test@example.com","subject":"Test message","message":"Verifying the contact form works."}'
+          echo ""
