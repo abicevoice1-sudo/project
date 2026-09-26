@@ -4,7 +4,7 @@ import { useAuth } from '../lib/auth/AuthContext';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Menu, X, ArrowRight,
-  Bot, Bell, LayoutDashboard, Heart, ShieldCheck, UserCheck,
+  Bot, Bell, LayoutDashboard,
   Shield, User, Lock,
 } from 'lucide-react';
 import ThemeMenu from '../components/ThemeMenu';
@@ -27,16 +27,12 @@ const initialsOf = (name) => {
   return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
 };
 
-// ── Notifications — accessible popover with unread state ────────────────────
-const NOTIFICATIONS = [
-  { id: 'n1', icon: Heart, text: 'Aaliyah R. accepted your introduction request.', time: '12m ago', unread: true },
-  { id: 'n2', icon: ShieldCheck, text: 'Your ID verification was approved.', time: '2h ago', unread: true },
-  { id: 'n3', icon: UserCheck, text: 'Wali invite accepted by Hassan N. (Fatima’s father).', time: 'Yesterday', unread: false },
-];
-
+// ── Notifications — accessible popover ────────────────────────────────────────
+// There is no fake activity here: no fabricated "ID approved" or "wali accepted"
+// events. Items appear only when a real server-side notifications feed exists.
+// Until then the bell shows an honest empty state and no unread badge.
 function NotificationsMenu() {
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState(NOTIFICATIONS);
   const rootRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -59,8 +55,7 @@ function NotificationsMenu() {
     };
   }, [open]);
 
-  const unreadCount = items.filter(n => n.unread).length;
-  const markAllRead = () => setItems(prev => prev.map(n => ({ ...n, unread: false })));
+  const unreadCount = 0;
 
   return (
     <div ref={rootRef} style={{ position: 'relative', display: 'inline-flex' }}>
@@ -97,31 +92,10 @@ function NotificationsMenu() {
         >
           <div className="flex items-center justify-between" style={{ padding: '6px 8px 10px' }}>
             <span className="text-xs font-bold" style={{ color: 'var(--color-ink)' }}>Notifications</span>
-            <button
-              onClick={markAllRead}
-              className="text-xs font-semibold"
-              style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}
-            >
-              Mark all read
-            </button>
           </div>
-          {items.map(({ id, icon: Icon, text, time, unread }) => (
-            <div
-              key={id}
-              className="flex items-start gap-2.5"
-              style={{
-                padding: '10px 8px', borderRadius: 'var(--radius-md)',
-                background: unread ? 'var(--color-primary-subtle)' : 'transparent',
-                opacity: unread ? 1 : 0.72,
-              }}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs" style={{ color: 'var(--color-ink)', lineHeight: 1.45 }}>{text}</p>
-                <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-ink-tertiary)' }}>{time}</p>
-              </div>
-            </div>
-          ))}
+          <p className="text-xs" style={{ color: 'var(--color-ink-tertiary)', padding: '8px' }}>
+            You're all caught up — there are no notifications.
+          </p>
         </div>
       )}
     </div>
@@ -541,16 +515,16 @@ export default function LandingLayout({ children }) {
   return (
     <div className="landing-shell">
       <LandingHeader dark={dark} setDark={setDark} />
-      <motion.main
+      {/* NOTE: page content renders in a plain <main> — never gated behind an
+          animation's initial opacity. framer-motion is an enhancement only; if it
+          fails or stalls, the page must still be fully visible. */}
+      <main
         key={location.pathname}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
         className="landing-main flex-1"
         style={{ paddingTop: 'var(--header-height)' }}
       >
         {children}
-      </motion.main>
+      </main>
       <SiteFooter />
 
       {/* AI Assistant FAB */}

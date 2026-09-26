@@ -11,6 +11,17 @@ import { EMPTY_DRAFT } from './types';
 import { clearError, validateStep } from './validation';
 
 const DRAFT_KEY = 'shiarishta_onboarding_draft';
+
+// Scope the draft to the signed-in account — two members on one device must
+// never see each other's answers.
+function sessionUid(): string {
+  try {
+    const raw = localStorage.getItem('sh_session');
+    const uid = raw ? JSON.parse(raw).uid : null;
+    return uid || 'signed-out';
+  } catch { return 'signed-out'; }
+}
+const scopedDraftKey = () => `${DRAFT_KEY}::${sessionUid()}`;
 export const TOTAL_STEPS = 7;
 
 interface PersistedDraft {
@@ -20,7 +31,7 @@ interface PersistedDraft {
 
 function restore(): { data: Partial<ProfileDraft>; step: StepId } | null {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY);
+    const raw = localStorage.getItem(scopedDraftKey());
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedDraft;
     return {
@@ -49,7 +60,7 @@ export function useOnboardingDraft() {
   // byte-wise, so no post-restore gate is needed.
   useEffect(() => {
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ data, step }));
+      localStorage.setItem(scopedDraftKey(), JSON.stringify({ data, step }));
     } catch {
       /* storage full — non-fatal */
     }
@@ -102,7 +113,7 @@ export function useOnboardingDraft() {
 
   const reset = useCallback(() => {
     try {
-      localStorage.removeItem(DRAFT_KEY);
+      localStorage.removeItem(scopedDraftKey());
     } catch {
       /* ignore */
     }

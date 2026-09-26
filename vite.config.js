@@ -43,6 +43,17 @@ export default defineConfig({
   define: defineOptions,
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        // Split slow-moving vendor code from the app entry so repeat visits
+        // reuse the cached vendor chunk across deploys (immutable headers).
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-utils': ['swr'],
+        },
+      },
+    }
   }
 });

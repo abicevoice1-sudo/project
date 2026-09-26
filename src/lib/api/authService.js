@@ -26,9 +26,9 @@ function toSession(user) {
 }
 
 export const auth = {
-  async register({ email, password, displayName }) {
+  async register({ email, password, displayName, sect }) {
     if (useRemote) {
-      const data = await http.post('/api/auth/register', { email, password, displayName });
+      const data = await http.post('/api/auth/register', { email, password, displayName, sect });
       http.setToken(data.token);
       write(SESSION_KEY, data.user);
       return data.user;
@@ -43,6 +43,7 @@ export const auth = {
       email: cleanEmail,
       displayName: displayName?.trim() || cleanEmail.split('@')[0],
       passwordHash,
+      sect: sect ?? '',
       isAdmin: ADMIN_EMAILS.includes(cleanEmail),
       createdAt: new Date().toISOString(),
     };

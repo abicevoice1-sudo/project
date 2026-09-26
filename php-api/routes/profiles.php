@@ -20,9 +20,11 @@ function routeProfiles(string $method, array $segments): void
     if ($method === 'PUT' && $id === 'me') { profileUpdate(); return; }
     if ($method === 'POST' && $id === 'me' && $sub === 'photo') { photoUpload(); return; }
     if ($method === 'DELETE' && $id === 'me' && $sub === 'photo') { photoDelete(); return; }
+    if ($method === 'GET' && $id === 'interests' && ($segments[1] ?? '') === 'received') { interestsReceived(); return; }
     if ($method === 'GET' && $id !== null && $sub === 'photo') { photoServe($id); return; }
     if ($method === 'GET' && $id !== null) { profileById($id); return; }
     if ($method === 'POST' && $id !== null && ($segments[1] ?? '') === 'interest') { profileInterest($id); return; }
+    if ($method === 'DELETE' && $id !== null && ($segments[1] ?? '') === 'interest') { profileUninterest($id); return; }
 
     json(['error' => 'Profile endpoint not found'], 404);
 }
@@ -517,5 +519,50 @@ function profileInterest(string $id): void
     $mirrored = (bool)$mutual->fetch();
 
     json(['success' => true, 'matched' => $mirrored]);
+}
+
+// Withdraw an expressed interest. Idempotent — withdrawing twice is a no-op.
+function profileUninterest(string $id): void
+{
+    $user = requireAuthUser();
+    $stmt = db()->prepare('DELETE FROM interests WHERE from_user_id = ? AND to_user_id = ?');
+    $stmt->execute([$user['uid'], $id]);
+    json(['success' => true]);
+}
+
+// People who expressed interest in me, newest first — the honest Request Center.
+// Excludes pairs where I already withdrew/declined (no row) and pairs already
+// in a mutual conversation (those live under Chats, not Requests).
+function interestsReceived(): void
+{
+    $user = requireAuthUser();
+    $stmt = db()->prepare(
+        'SELECT u.id AS user_id, p.display_name, p.city, p.country, p.photo_url,
+                i.created_at,
+                EXISTS(SELECT 1 FROM interests m WHERE m.from_user_id = ? AND m.to_user_id = u.id) AS mutual,
+                EXISTS(SELECT 1 FROM conversations c
+                        WHERE (c.user_a = ? AND c.user_b = u.id) OR (c.user_a = u.id AND c.user_b = ?)) AS has_chat
+           FROM interests i
+           JOIN users u ON u.id = i.from_user_id
+           LEFT JOIN profiles p ON p.user_id = u.id
+          WHERE i.to_user_id = ?
+       ORDER BY i.created_at DESC
+          LIMIT 50'
+    );
+    $stmt->execute([$user['uid'], $user['uid'], $user['uid'], $user['uid']]);
+    $out = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if ((int)$row['has_chat']) continue; // mutual chats live under Chats
+        $out[] = [
+            'userId' => $row['user_id'],
+            'name' => $row['display_name'] ?: 'Member',
+            'city' => $row['city'],
+            'country' => $row['country'],
+            'photoUrl' => $row['photo_url'],
+            'mutual' => (bool)$row['mutual'],
+            'receivedAt' => $row['created_at'],
+        ];
+    }
+    json($out);
 }
 

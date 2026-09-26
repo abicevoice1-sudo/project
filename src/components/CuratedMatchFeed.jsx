@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Bookmark, MapPin, Shield, Sparkles, Check } from 'lucide-react';
+import { computeCompatibility, getMyProfile } from '../lib/compatibility';
 
 /**
  * CuratedMatchFeed — Intentional profile browsing for marriage-minded users.
@@ -17,6 +18,15 @@ export default function CuratedMatchFeed({ profiles = [], onExpressInterest }) {
 
   const current = profiles[currentIndex];
   const next = profiles[currentIndex + 1];
+
+  // Single source of truth for match scores: computed from the viewer's own
+  // onboarding answers. No hardcoded fallback — when there isn't enough data
+  // the badge is hidden rather than inventing a number.
+  const me = useMemo(() => getMyProfile(), []);
+  const matchScore = useMemo(
+    () => (current ? computeCompatibility(current, me)?.overall ?? null : null),
+    [current, me]
+  );
 
   const handleDecision = useCallback((decision) => {
     if (exiting || !current) return;
@@ -115,12 +125,14 @@ export default function CuratedMatchFeed({ profiles = [], onExpressInterest }) {
               <div className="absolute inset-x-0 bottom-0 h-2/3" style={{ background: 'linear-gradient(to top, rgba(6,20,15,0.92), transparent)' }} />
 
               {/* Match score */}
-              <div
-                className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold"
-                style={{ background: 'rgba(11,15,23,0.7)', border: '1px solid rgba(255,255,255,0.18)', color: 'var(--color-success)' }}
-              >
-                {current.matchScore || 92}% match
-              </div>
+              {matchScore !== null && (
+                <div
+                  className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold"
+                  style={{ background: 'rgba(11,15,23,0.7)', border: '1px solid rgba(255,255,255,0.18)', color: 'var(--color-success)' }}
+                >
+                  {matchScore}% match
+                </div>
+              )}
 
               {/* Verified */}
               {current.is_verified && (

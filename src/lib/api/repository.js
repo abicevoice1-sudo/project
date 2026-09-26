@@ -5,15 +5,15 @@
 // Every method is async so switching modes changes zero call sites.
 import { read, write } from './storage';
 import { http, useRemote } from './transport';
-import { SEED_PROFILES } from './mockData';
 
 const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
 function allProfiles() {
   const cached = read('profiles', null);
   if (cached) return cached;
-  write('profiles', SEED_PROFILES);
-  return SEED_PROFILES;
+  // No fake profiles: an empty directory is honest. Demo mode shows empty states.
+  write('profiles', []);
+  return [];
 }
 
 export const profilesRepo = {
@@ -124,6 +124,16 @@ export const matchesRepo = {
       write('int', [...existing, { profileId, timestamp: new Date().toISOString() }]);
     }
     return { success: true, matched: false };
+  },
+  // People who expressed interest in me (Request Center). Server is source of truth.
+  async receivedInterests() {
+    if (useRemote) return http.get('/api/profiles/interests/received');
+    return [];
+  },
+  // Withdraw an expressed interest (declining a request removes their interest row).
+  async withdrawInterest(profileId) {
+    if (useRemote) return http.del(`/api/profiles/${encodeURIComponent(profileId)}/interest`);
+    return { success: true };
   },
   // Interest-gated conversation start (server enforces mutual interest).
   async startConversation(profileId) {

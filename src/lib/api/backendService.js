@@ -2,8 +2,6 @@
 // Simulates a real REST API with persistence. Replace with a real Node.js/Express
 // adapter to point the frontend at a production server.
 
-import { SEED_PROFILES } from './mockData';
-
 // ── Tiny utilities ───────────────────────────────────────────────────────────
 const DB = {
   get(key, fallback) {
@@ -58,8 +56,9 @@ export const profiles = {
     return delay(150, 400).then(() => {
       const s = DB.get('sh_profiles', null);
       if (s) return s;
-      DB.set('sh_profiles', SEED_PROFILES);
-      return SEED_PROFILES;
+      // No fake profiles — an empty directory is honest.
+      DB.set('sh_profiles', []);
+      return [];
     });
   },
   getById(id) {

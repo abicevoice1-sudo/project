@@ -1,11 +1,11 @@
 import { usePageTitle } from '../lib/usePageTitle';
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Layout from '../layouts/LandingLayout';
 import { analytics } from '../lib/analytics';
 import {
   Send, Search, ArrowLeft, MoreVertical, ShieldCheck, Sparkles, Check, X,
-  MessageCircle, EyeOff, BadgeCheck, UserPlus, Info, Heart
+  MessageCircle, UserPlus, Info, Heart
 } from 'lucide-react';
 
 // ── Curated icebreakers — meaningful, marriage-focused conversation starters ─
@@ -19,159 +19,152 @@ const ICEBREAKERS = [
   "What is something you are grateful for lately?"
 ];
 
-// ── Conversation model ──────────────────────────────────────────────────────
-const INITIAL_CONVOS = [
-  { id: 'c1', name: 'Aaliyah R.', age: 27, city: 'Chicago, IL', online: true, verified: true, unread: 2,
-    compatibility: 87, photoAccess: 'match', guardianInvited: false,
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80' },
-  { id: 'c2', name: 'Fatima N.', age: 29, city: 'Dearborn, MI', online: true, verified: true, unread: 0,
-    compatibility: 91, photoAccess: 'public', guardianInvited: true, guardianName: 'Hassan N. (father)',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=80' },
-  { id: 'c3', name: 'Sara K.', age: 25, city: 'Toronto, ON', online: false, verified: false, unread: 1,
-    compatibility: 74, photoAccess: 'request', guardianInvited: false,
-    avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=100&q=80' },
-  { id: 'c4', name: 'Maryam S.', age: 25, city: 'London, UK', online: false, verified: true, unread: 0,
-    compatibility: 82, photoAccess: 'match', guardianInvited: false,
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80' }
-];
+// ── Real data — every conversation, request, and message comes from the API ──
+// There are no demo conversations, no seeded threads, and no scripted members.
+// An empty inbox is an honest empty inbox.
+import { api } from '../lib/api/client';
 
-const INITIAL_MESSAGES = {
-  c1: [
-    { id: 'm1', sender: 'them', text: "Assalamu alaikum! I came across your profile and we seem to share similar values.", time: '10:30 AM' },
-    { id: 'm2', sender: 'me', text: "Wa alaikum assalam! Thank you for reaching out. I'd love to learn more about you.", time: '10:32 AM' },
-    { id: 'm3', sender: 'them', text: "Of course! I'm a product designer in Chicago. Family and faith are central to my life.", time: '10:35 AM' },
-    { id: 'm4', sender: 'me', text: "That's wonderful. What are you looking for in a partner?", time: '10:38 AM' },
-    { id: 'm5', sender: 'them', text: "Someone who shares my commitment to faith, family, and building a meaningful life together.", time: '10:42 AM' }
-  ],
-  c2: [
-    { id: 'n1', sender: 'them', text: "Assalamu alaikum! My father has joined our chat to help with introductions.", time: 'Yesterday' },
-    { id: 'n2', sender: 'guardian', guardianName: 'Hassan N. (father)', text: "Wa alaikum assalam wa rahmatullah. I am Hassan, Fatima's father. Happy to facilitate respectful introductions.", time: 'Yesterday' },
-    { id: 'n3', sender: 'me', text: "Wa alaikum assalam. It is an honor to meet you. Jazak Allah khair for facilitating.", time: 'Yesterday' }
-  ],
-  c3: [
-    { id: 's1', sender: 'them', text: "Assalamu alaikum! I saw your profile and found your bio really thoughtful.", time: '3h ago' }
-  ],
-  c4: [
-    { id: 'd1', sender: 'them', text: "Looking forward to hearing from you.", time: '1d ago' }
-  ]
-};
+function initials(name) {
+  const parts = String(name || 'M').trim().split(/\s+/);
+  return ((parts[0]?.[0] || 'M') + (parts[1]?.[0] || '')).toUpperCase();
+}
 
-// ── Pending intro requests (interest received, awaiting your approval) ──────
-const INITIAL_REQUESTS = [
-  { id: 'r1', name: 'Zainab H.', age: 26, city: 'Dearborn, MI', compatibility: 87, verified: true,
-    photoAccess: 'match', time: '4h ago', note: "Assalamu alaikum — your profile resonated with my family and me. I'm a pharmacist who loves hifz circles and weekend volunteering.",
-    avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=100&q=80' },
-  { id: 'r2', name: 'Hafsa M.', age: 28, city: 'Chicago, IL', compatibility: 79, verified: true,
-    photoAccess: 'request', time: '1d ago', note: "Salaam! I appreciated how clearly you described your intentions. I'm completing my master's in education.",
-    avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=100&q=80' }
-];
-
-// ── Per-member persistence — messages/intros survive reload on shared devices ─
-// Keys follow the signed-in account (sh_session.uid), never the bare browser.
-// Demo seeds are namespaced per member, so two accounts on one browser never
-// share threads or intro decisions. Same-device drafts only: no server delivery
-// is claimed here.
-const MSG_KEY = 'shiarishta_threads_v1';
-const INTRO_KEY = 'shiarishta_intros_v1';
-function sessionUid() {
+function timeAgo(iso) {
   try {
-    const raw = localStorage.getItem('sh_session');
-    const uid = raw ? JSON.parse(raw).uid : null;
-    return uid || 'signed-out';
-  } catch { return 'signed-out'; }
+    const t = new Date(iso).getTime();
+    if (Number.isNaN(t)) return '';
+    const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.round(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(iso).toLocaleDateString();
+  } catch { return ''; }
 }
-function scopedKey(base) {
-  return base + '::' + sessionUid();
+
+function Avatar({ name, size = 'w-10 h-10' }) {
+  return (
+    <span aria-hidden
+      className={`${size} rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold`}
+      style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)', border: '2px solid var(--color-border)' }}>
+      {initials(name)}
+    </span>
+  );
 }
-function readScoped(base, fallback) {
-  try {
-    const raw = localStorage.getItem(scopedKey(base));
-    return raw ? JSON.parse(raw) : fallback;
-  } catch { return fallback; }
-}
-function writeScoped(base, value) {
-  try { localStorage.setItem(scopedKey(base), JSON.stringify(value)); } catch { /* quota — non-fatal */ }
-}
-function seedThreads() {
-  const seed = {};
-  for (const cid of Object.keys(INITIAL_MESSAGES)) seed[cid] = INITIAL_MESSAGES[cid].map(m => ({ ...m }));
-  return seed;
-}
-function loadThreads() {
-  const existing = readScoped(MSG_KEY, null);
-  if (existing && typeof existing === 'object') return existing;
-  const seed = seedThreads();
-  writeScoped(MSG_KEY, seed);
-  return seed;
-}
-function loadIntros() {
-  const existing = readScoped(INTRO_KEY, null);
-  if (Array.isArray(existing)) return existing.map(r => ({ ...r }));
-  const seed = INITIAL_REQUESTS.map(r => ({ ...r }));
-  writeScoped(INTRO_KEY, seed);
-  return seed;
-}
-function nowLabel() {
-  try { return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
-  catch { return 'now'; }
-}
+
+// ── (Removed: demo intro requests, seeded threads, and per-browser message ──
+// stores. Requests now come from GET /api/profiles/interests/received; threads
+// from GET /api/messages/:id. Nothing here is fabricated.)
 
 // ── Messages: Request Center + Chats with Chaperone mode ───────────────────
 export default function Messages() {
   usePageTitle('Messages');
-  const [convos, setConvos] = useState(INITIAL_CONVOS);
-  const [messagesByConvo, setMessagesByConvo] = useState(loadThreads);
-  const [requests, setRequests] = useState(loadIntros);
+  const [convos, setConvos] = useState([]);
+  const [convosLoading, setConvosLoading] = useState(true);
+  const [convosError, setConvosError] = useState('');
+  const [messagesByConvo, setMessagesByConvo] = useState({});
+  const [threadLoading, setThreadLoading] = useState(false);
+  const [threadError, setThreadError] = useState('');
+  const [requests, setRequests] = useState([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const [activeId, setActiveId] = useState(null);
   const [tab, setTab] = useState('chats'); // 'chats' | 'requests'
   const [search, setSearch] = useState('');
-  const [chaperoneModal] = useState(null); // retained: see note at ChatPane header
   const messagesEndRef = useRef(null);
 
-  const activeConvo = convos.find(c => c.id === activeId) || null;
+  // Load real conversations + real intro requests from the API.
+  useEffect(() => {
+    let alive = true;
+    api.getConversations()
+      .then((list) => { if (alive) setConvos(Array.isArray(list) ? list : []); })
+      .catch(() => { if (alive) setConvosError('Could not load your conversations.'); })
+      .finally(() => { if (alive) setConvosLoading(false); });
+    api.getReceivedInterests()
+      .then((list) => { if (alive) setRequests(Array.isArray(list) ? list : []); })
+      .catch(() => { if (alive) setRequests([]); })
+      .finally(() => { if (alive) setRequestsLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  // Load the thread when a conversation is opened.
+  useEffect(() => {
+    if (!activeId || messagesByConvo[activeId]) return;
+    let alive = true;
+    setThreadLoading(true);
+    setThreadError('');
+    api.getMessages(activeId)
+      .then((msgs) => {
+        if (!alive) return;
+        setMessagesByConvo((prev) => ({
+          ...prev,
+          [activeId]: (Array.isArray(msgs) ? msgs : []).map((m) => ({
+            id: m.id,
+            sender: m.senderId === 'me' ? 'me' : 'them',
+            text: m.text,
+            time: timeAgo(m.timestamp),
+          })),
+        }));
+      })
+      .catch(() => { if (alive) setThreadError('Could not load these messages.'); })
+      .finally(() => { if (alive) setThreadLoading(false); });
+    return () => { alive = false; };
+  }, [activeId]);
+
+  const activeConvo = convos.find((c) => c.id === activeId) || null;
   const messages = activeId ? (messagesByConvo[activeId] || []) : [];
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length, activeId]);
 
-  const addMessage = (convoId, msg) => {
-    // Persist first so a sent message survives reload on this device.
-    const nextThreads = { ...messagesByConvo, [convoId]: [...(messagesByConvo[convoId] || []), msg] };
-    writeScoped(MSG_KEY, nextThreads);
-    setMessagesByConvo(nextThreads);
-    // Auto-clear unread when the member opens a conversation
-    setConvos(prev => prev.map(c => (c.id === convoId ? { ...c, unread: 0 } : c)));
-  };
-
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     const t = (text || '').trim();
-    if (!t || !activeId) return;
-    addMessage(activeId, { id: `m${Date.now()}`, sender: 'me', text: t, time: 'Just now' });
-    analytics.track('message_sent', { thread: activeId, browser_local: true });
-  };
-
-  const respondToRequest = (id, accept) => {
-    const req = requests.find(r => r.id === id);
-    if (!req) return;
-    const nextIntros = requests.filter(r => r.id !== id);
-    writeScoped(INTRO_KEY, nextIntros);
-    setRequests(nextIntros);
-    if (accept) {
-      const newConvo = {
-        id: `new-${id}`, name: req.name, age: req.age, city: req.city, online: false,
-        verified: req.verified, unread: 0, compatibility: req.compatibility,
-        photoAccess: req.photoAccess, guardianInvited: false, avatar: req.avatar
-      };
-      setConvos(prev => [newConvo, ...prev]);
-      const acceptedThreads = { ...messagesByConvo, [newConvo.id]: [{ id: 'g1', sender: 'system', text: `You accepted ${req.name}'s introduction request. A respectful conversation can now begin — consider inviting a chaperone.`, time: 'Just now' }] };
-      writeScoped(MSG_KEY, acceptedThreads);
-      setMessagesByConvo(acceptedThreads);
-      setActiveId(newConvo.id);
-      setTab('chats');
+    if (!t || !activeId || sending) return;
+    setSending(true);
+    setSendError('');
+    try {
+      const saved = await api.sendMessage(activeId, t);
+      setMessagesByConvo((prev) => ({
+        ...prev,
+        [activeId]: [...(prev[activeId] || []), { id: saved.id || `m${Date.now()}`, sender: 'me', text: saved.text || t, time: 'Just now' }],
+      }));
+      setConvos((prev) => prev.map((c) => (c.id === activeId ? { ...c, lastMessage: t } : c)));
+      analytics.track('message_sent', { thread: activeId });
+    } catch {
+      setSendError('Could not send. Check your connection and try again.');
+    } finally {
+      setSending(false);
     }
   };
 
-  const filteredConvos = convos.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-  const totalUnread = convos.reduce((n, c) => n + (c.unread > 0 ? 1 : 0), 0);
+  const respondToRequest = async (userId, accept) => {
+    const req = requests.find((r) => r.userId === userId);
+    if (!req) return;
+    try {
+      if (accept) {
+        // Accepting expresses mutual interest and opens the real conversation.
+        await api.expressInterest(userId);
+        const { id: convoId } = await api.startConversation(userId);
+        setRequests((prev) => prev.filter((r) => r.userId !== userId));
+        setConvos((prev) => [
+          { id: convoId, participantId: userId, participantName: req.name, lastMessage: '', timestamp: new Date().toISOString(), unread: false },
+          ...prev.filter((c) => c.id !== convoId),
+        ]);
+        setActiveId(convoId);
+        setTab('chats');
+      } else {
+        await api.withdrawInterest(userId);
+        setRequests((prev) => prev.filter((r) => r.userId !== userId));
+      }
+    } catch {
+      // Keep the request visible so the member can retry — never silently drop it.
+    }
+  };
+
+  const filteredConvos = convos.filter((c) => (c.participantName || '').toLowerCase().includes(search.toLowerCase()));
+  const totalUnread = convos.reduce((n, c) => n + (c.unread ? 1 : 0), 0);
 
   return (
     <Layout>
@@ -204,9 +197,10 @@ export default function Messages() {
           </div>
 
           {tab === 'chats' ? (
-            <ConversationList convos={filteredConvos} activeId={activeId} onSelect={setActiveId} />
+            <ConversationList convos={filteredConvos} activeId={activeId} onSelect={setActiveId}
+              loading={convosLoading} error={convosError} />
           ) : (
-            <RequestList requests={requests} onRespond={respondToRequest} />
+            <RequestList requests={requests} onRespond={respondToRequest} loading={requestsLoading} />
           )}
         </div>
 
@@ -214,7 +208,8 @@ export default function Messages() {
         <div className={`flex-1 flex-col ${activeId ? 'flex' : 'hidden md:flex'}`}>
           {activeConvo ? (
             <ChatPane convo={activeConvo} messages={messages} onBack={() => setActiveId(null)}
-              onSend={sendMessage} messagesEndRef={messagesEndRef} />
+              onSend={sendMessage} messagesEndRef={messagesEndRef}
+              loading={threadLoading} error={threadError} sendError={sendError} sending={sending} />
           ) : (
             <EmptyState hasRequests={requests.length > 0} onOpenRequests={() => setTab('requests')} />
           )}
@@ -225,13 +220,28 @@ export default function Messages() {
 }
 
 // ── Sidebar: conversation list ──────────────────────────────────────────────
-function ConversationList({ convos, activeId, onSelect }) {
+function ConversationList({ convos, activeId, onSelect, loading, error }) {
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center" role="status">
+        <p className="text-sm text-muted">Loading conversations…</p>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center" role="alert">
+        <p className="text-sm font-semibold text-ink">Couldn't load conversations</p>
+        <p className="text-xs text-muted mt-1">{error}</p>
+      </div>
+    );
+  }
   if (convos.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <Search className="w-8 h-8 mb-3" style={{ color: 'var(--color-ink-tertiary)' }} />
-        <p className="text-sm font-semibold text-ink">No conversations found</p>
-        <p className="text-xs text-muted mt-1">Try a different name.</p>
+        <MessageCircle className="w-8 h-8 mb-3" style={{ color: 'var(--color-ink-tertiary)' }} />
+        <p className="text-sm font-semibold text-ink">No conversations yet</p>
+        <p className="text-xs text-muted mt-1">When you and another member both express interest, your conversation appears here.</p>
       </div>
     );
   }
@@ -243,31 +253,18 @@ function ConversationList({ convos, activeId, onSelect }) {
           aria-current={activeId === c.id ? 'true' : undefined}
           className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-150 hover:shadow-md ${activeId === c.id ? 'border-2 border-primary' : 'border-transparent hover:border-border'}`}
           style={{ background: activeId === c.id ? 'var(--color-primary-subtle)' : 'var(--color-surface)' }}>
-          {/* Avatar with privacy blur + presence */}
-          <span className="relative flex-shrink-0">
-            <img src={c.avatar} alt="" className={`w-10 h-10 rounded-full object-cover ${c.photoAccess === 'match' ? 'blur-[6px]' : ''}`}
-              style={{ border: '2px solid var(--color-border)' }} loading="lazy" />
-            {c.photoAccess === 'match' && (
-              <span className="absolute inset-0 flex items-center justify-center" aria-hidden>
-                <span className="w-4 h-4 rounded-full bg-black/45 flex items-center justify-center"><EyeOff className="w-2.5 h-2.5" /></span>
-              </span>
-            )}
-            {c.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-success ring-1" style={{ '--tw-ring-color': 'var(--color-bg)' }} aria-label="Online now" />}
-          </span>
+          <Avatar name={c.participantName} />
           <span className="flex-1 min-w-0">
             <span className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-ink truncate">{c.name}, {c.age}</span>
-              {c.verified && <BadgeCheck className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--color-primary)' }} aria-label="ID verified" />}
+              <span className="text-sm font-semibold text-ink truncate">{c.participantName || 'Member'}</span>
             </span>
             <span className="flex items-center gap-1.5 text-xs text-muted mt-0.5">
-              <span className="truncate">{c.city}</span>
-              <span aria-hidden>·</span>
-              <span className="font-semibold" style={{ color: 'var(--color-primary)' }}>{c.compatibility}% match</span>
+              <span className="truncate">{c.lastMessage || 'Say salaam to start the conversation'}</span>
             </span>
           </span>
-          {c.unread > 0 && (
-            <span className="badge badge-primary ml-2 flex-shrink-0">{c.unread}</span>
-          )}
+          {c.unread ? (
+            <span className="badge badge-primary ml-2 flex-shrink-0" aria-label="Unread messages">•</span>
+          ) : null}
         </motion.button>
       ))}
     </div>
@@ -275,7 +272,14 @@ function ConversationList({ convos, activeId, onSelect }) {
 }
 
 // ── Sidebar: introduction requests awaiting approval ────────────────────────
-function RequestList({ requests, onRespond }) {
+function RequestList({ requests, onRespond, loading }) {
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center" role="status">
+        <p className="text-sm text-muted">Loading requests…</p>
+      </div>
+    );
+  }
   if (requests.length === 0) {
     return (
       <div className="empty-state">
@@ -284,47 +288,53 @@ function RequestList({ requests, onRespond }) {
         </div>
         <h1 className="empty-state-title">All caught up</h1>
         <p className="empty-state-text">
-          New introduction requests will appear here for your review.
+          When someone expresses interest in your profile, their request appears here for your review.
         </p>
       </div>
     );
   }
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4" role="list" aria-label="Introduction requests">
-      {requests.map((r, i) => (
-        <motion.article key={r.id} role="listitem" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05, duration: 0.3 }}
-          className="rounded-2xl p-4 border hover:shadow-md transition-all duration-200"
-          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-          <header className="flex items-start gap-3">
-            <img src={r.avatar} alt="" className={`w-10 h-10 rounded-full object-cover flex-shrink-0 ${r.photoAccess === 'request' ? 'blur-[5px]' : ''}`}
-              style={{ border: '2px solid var(--color-border)' }} loading="lazy" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="text-sm font-semibold text-ink">{r.name}, {r.age}</h3>
-                {r.verified && <BadgeCheck className="w-3 h-3" style={{ color: 'var(--color-primary)' }} aria-label="ID verified" />}
+      {requests.map((r, i) => {
+        const location = [r.city, r.country].filter(Boolean).join(', ');
+        return (
+          <motion.article key={r.userId} role="listitem" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05, duration: 0.3 }}
+            className="rounded-2xl p-4 border hover:shadow-md transition-all duration-200"
+            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+            <header className="flex items-start gap-3">
+              <Avatar name={r.name} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h3 className="text-sm font-semibold text-ink">{r.name}</h3>
+                  {r.mutual && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>
+                      Mutual interest
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted mt-0.5">
+                  {[location, timeAgo(r.receivedAt)].filter(Boolean).join(' · ') || 'Recently'}
+                </p>
               </div>
-              <p className="text-xs text-muted mt-0.5">{r.city} · <span className="font-semibold" style={{ color: 'var(--color-primary)' }}>{r.compatibility}% match</span> · {r.time}</p>
-            </div>
-          </header>
-          <p className="text-xs text-muted leading-relaxed mt-2.5">"{r.note}"</p>
-          {r.photoAccess === 'request' && (
-            <p className="text-[11px] mt-2 flex items-center gap-1" style={{ color: 'var(--color-ink-tertiary)' }}>
-              <EyeOff className="w-2.5 h-2.5" /> Photo visible after you accept
+            </header>
+            <p className="text-xs text-muted leading-relaxed mt-2.5">
+              Expressed interest in your profile. Accept to open a conversation, or decline to pass.
             </p>
-          )}
-          <div className="flex gap-3 mt-4">
-            <button onClick={() => onRespond(r.id, true)}
-              className="btn btn-primary w-full">
-              <Heart className="w-3 h-3" /> Accept
-            </button>
-            <button onClick={() => onRespond(r.id, false)}
-              className="btn btn-ghost w-full">
-              <X className="w-3 h-3" /> Decline
-            </button>
-          </div>
-        </motion.article>
-      ))}
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => onRespond(r.userId, true)}
+                className="btn btn-primary w-full">
+                <Heart className="w-3 h-3" /> Accept
+              </button>
+              <button onClick={() => onRespond(r.userId, false)}
+                className="btn btn-ghost w-full">
+                <X className="w-3 h-3" /> Decline
+              </button>
+            </div>
+          </motion.article>
+        );
+      })}
     </div>
   );
 }
@@ -358,8 +368,9 @@ function EmptyState({ hasRequests, onOpenRequests }) {
 }
 
 // ── Chat pane: header, icebreakers, composer ────────────────────────────────
-function ChatPane({ convo, messages, onBack, onSend, messagesEndRef }) {
+function ChatPane({ convo, messages, onBack, onSend, messagesEndRef, loading, error, sendError, sending }) {
   const [draft, setDraft] = useState('');
+  const name = convo.participantName || 'Member';
 
   return (
     <div className="flex-1 flex flex-col min-w-0" style={{ background: 'var(--color-canvas)' }}>
@@ -369,17 +380,10 @@ function ChatPane({ convo, messages, onBack, onSend, messagesEndRef }) {
           className="btn btn-ghost btn-sm md:hidden">
           <ArrowLeft className="w-3 h-3" />
         </button>
-        <span className="relative flex-shrink-0">
-          <img src={convo.avatar} alt="" className={`w-9 h-9 rounded-full object-cover ${convo.photoAccess === 'match' ? 'blur-[6px]' : ''}`}
-            style={{ border: '2px solid var(--color-border)' }} loading="lazy" />
-          {convo.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-success ring-1" style={{ '--tw-ring-color': 'var(--color-bg)' }} aria-label="Online" />}
-        </span>
+        <Avatar name={name} size="w-9 h-9" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-sm font-semibold text-ink truncate">{convo.name}, {convo.age}</h2>
-            {convo.verified && <BadgeCheck className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--color-primary)' }} aria-label="ID verified" />}
-          </div>
-          <p className="text-xs text-muted truncate">{convo.online ? 'Online now' : 'Offline'} · {convo.city} · {convo.compatibility}% match</p>
+          <h2 className="text-sm font-semibold text-ink truncate">{name}</h2>
+          <p className="text-xs text-muted truncate">Private conversation</p>
         </div>
         {/* NOTE: there is deliberately no "invite chaperone" control here.
             An earlier version had one, but it only flipped local React state —
@@ -392,16 +396,13 @@ function ChatPane({ convo, messages, onBack, onSend, messagesEndRef }) {
         </button>
       </header>
 
-      {/* Privacy banner */}
-      {convo.photoAccess === 'match' && (
-        <p className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] flex-shrink-0 empty-state"
-          style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>
-          <EyeOff className="w-2.5 h-2.5" /> Photos stay blurred until you both choose to share
-        </p>
-      )}
-
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-2" role="log" aria-label={`Conversation with ${convo.name}`} aria-live="polite">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-2" role="log" aria-label={`Conversation with ${name}`} aria-live="polite">
+        {loading && <p className="text-center text-xs text-muted py-6" role="status">Loading messages…</p>}
+        {error && <p className="text-center text-xs text-muted py-6" role="alert">{error}</p>}
+        {!loading && !error && messages.length === 0 && (
+          <p className="text-center text-xs text-muted py-6">No messages yet — say salaam to begin.</p>
+        )}
         {messages.map(m => <Bubble key={m.id} msg={m} />)}
         <div ref={messagesEndRef} />
       </div>
@@ -418,18 +419,19 @@ function ChatPane({ convo, messages, onBack, onSend, messagesEndRef }) {
       </div>
 
       {/* Composer */}
-      <form onSubmit={e => { e.preventDefault(); if (draft.trim()) { onSend(draft); setDraft(''); } }}
+      <form onSubmit={e => { e.preventDefault(); if (draft.trim() && !sending) { onSend(draft); setDraft(''); } }}
         className="flex items-end gap-2 p-3 flex-shrink-0" style={{ borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
         <input type="text" name="composer" value={draft} onChange={e => setDraft(e.target.value)}
-          placeholder={`Write a respectful message to ${convo.name.split(' ')[0]}…`} aria-label="Message"
+          placeholder={`Write a respectful message to ${name.split(' ')[0]}…`} aria-label="Message"
           maxLength={2000} autoComplete="off"
           className="input w-full"
           style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-ink)' }} />
-        <button type="submit" disabled={!draft.trim()} aria-label="Send message"
+        <button type="submit" disabled={!draft.trim() || sending} aria-label="Send message"
           className="btn btn-primary">
           <Send className="w-3 h-3" />
         </button>
       </form>
+      {sendError && <p className="px-3 pb-2 text-xs" role="alert" style={{ color: 'var(--color-danger)' }}>{sendError}</p>}
     </div>
   );
 }

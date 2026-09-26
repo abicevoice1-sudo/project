@@ -21,6 +21,17 @@ import {
 
 const DRAFT_KEY = 'shiarishta_onboarding_draft';
 
+// The draft key follows the signed-in account, never the bare browser.
+// Two members sharing one device must never see each other's answers.
+function sessionUid() {
+  try {
+    const raw = localStorage.getItem('sh_session');
+    const uid = raw ? JSON.parse(raw).uid : null;
+    return uid || 'signed-out';
+  } catch { return 'signed-out'; }
+}
+const scopedDraftKey = () => `${DRAFT_KEY}::${sessionUid()}`;
+
 const EMPTY_FORM = {
   // Step 1 — About you
   displayName: '', gender: '', seekingGender: '', age: '', city: '', country: '', height: '', maritalStatus: '',
@@ -205,7 +216,7 @@ export default function Onboard() {
   // Restore an in-progress draft exactly where the member left off
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(scopedDraftKey());
       if (raw) {
         const parsed = JSON.parse(raw);
         setData(prev => ({ ...prev, ...parsed.data, languages: parsed.data?.languages || [], citizenships: parsed.data?.citizenships || [] }));
@@ -219,7 +230,7 @@ export default function Onboard() {
   // Autosave the draft on every change (post-restore only)
   useEffect(() => {
     if (!draftReady) return;
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ data, step })); } catch { /* storage full — non-fatal */ }
+    try { localStorage.setItem(scopedDraftKey(), JSON.stringify({ data, step })); } catch { /* storage full — non-fatal */ }
   }, [data, step, draftReady]);
 
   const update = useCallback((field, value) => {
@@ -306,7 +317,7 @@ export default function Onboard() {
         publishedAt: new Date().toISOString()
       };
       localStorage.setItem('shiarishta_my_profile', JSON.stringify(profile));
-      localStorage.removeItem(DRAFT_KEY);
+      localStorage.removeItem(scopedDraftKey());
       navigate('/dashboard');
     } catch (e) {
       setPublishError(e?.message || 'Could not save your profile. Please try again.');
