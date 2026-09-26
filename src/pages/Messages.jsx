@@ -23,6 +23,8 @@ const ICEBREAKERS = [
 // There are no demo conversations, no seeded threads, and no scripted members.
 // An empty inbox is an honest empty inbox.
 import { api } from '../lib/api/client';
+import { blockMember } from '../lib/api/safety';
+import { ReportFlag } from '../components/ReportFlag';
 
 function initials(name) {
   const parts = String(name || 'M').trim().split(/\s+/);
@@ -74,6 +76,7 @@ export default function Messages() {
   const [activeId, setActiveId] = useState(null);
   const [tab, setTab] = useState('chats'); // 'chats' | 'requests'
   const [search, setSearch] = useState('');
+  const [notice, setNotice] = useState(null); // { ok, text } — transient safety confirmations
   const messagesEndRef = useRef(null);
 
   // Load real conversations + real intro requests from the API.
@@ -163,12 +166,50 @@ export default function Messages() {
     }
   };
 
+  // Block the other participant from inside a conversation. The conversation is
+  // removed from the inbox immediately and the server cuts messaging both ways.
+  const handleBlock = async (convo) => {
+    const name = convo.participantName || 'this member';
+    if (!window.confirm(`Block ${name}? The conversation is removed and messaging is disabled both ways.`)) return;
+    try {
+      await blockMember(String(convo.participantId || ''));
+      setConvos((prev) => prev.filter((c) => c.id !== convo.id));
+      setMessagesByConvo((prev) => {
+        const next = { ...prev };
+        delete next[convo.id];
+        return next;
+      });
+      if (activeId === convo.id) setActiveId(null);
+      setNotice({ ok: true, text: `${name} is blocked — the conversation was removed and messaging is off.` });
+      analytics.track('member_blocked', { thread: convo.id });
+    } catch (e) {
+      setNotice({ ok: false, text: e.message || 'Could not block this member.' });
+    }
+  };
+
   const filteredConvos = convos.filter((c) => (c.participantName || '').toLowerCase().includes(search.toLowerCase()));
   const totalUnread = convos.reduce((n, c) => n + (c.unread ? 1 : 0), 0);
 
   return (
     <Layout>
-      <main className="h-[calc(100vh-64px)] flex overflow-hidden" style={{ background: 'var(--bg)' }}>
+      <main className="h-[calc(100vh-64px)] flex flex-col overflow-hidden" style={{ background: 'var(--bg)' }}>
+        {notice && (
+          <div
+            role="status"
+            className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium flex-shrink-0"
+            style={{
+              background: notice.ok ? 'var(--color-success-subtle, #eef7ee)' : 'var(--color-danger-subtle, #fdecec)',
+              color: notice.ok ? 'var(--color-success, #1e7e34)' : 'var(--color-danger, #c0392b)',
+              borderBottom: '1px solid var(--color-border)',
+            }}
+          >
+            <span>{notice.text}</span>
+            <button onClick={() => setNotice(null)} aria-label="Dismiss" className="p-1 hover:opacity-70">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        <div className="flex flex-1 overflow-hidden min-h-0">
         {/* ── Sidebar ── */}
         <div className={`w-full md:w-80 lg:w-96 flex-col ${activeId ? 'hidden md:flex' : 'flex'}`}
           style={{ borderRight: '1px solid var(--border)' }}>
@@ -208,11 +249,12 @@ export default function Messages() {
         <div className={`flex-1 flex-col ${activeId ? 'flex' : 'hidden md:flex'}`}>
           {activeConvo ? (
             <ChatPane convo={activeConvo} messages={messages} onBack={() => setActiveId(null)}
-              onSend={sendMessage} messagesEndRef={messagesEndRef}
+              onSend={sendMessage} onBlock={handleBlock} messagesEndRef={messagesEndRef}
               loading={threadLoading} error={threadError} sendError={sendError} sending={sending} />
           ) : (
             <EmptyState hasRequests={requests.length > 0} onOpenRequests={() => setTab('requests')} />
           )}
+        </div>
         </div>
       </main>
     </Layout>
@@ -368,9 +410,12 @@ function EmptyState({ hasRequests, onOpenRequests }) {
 }
 
 // ── Chat pane: header, icebreakers, composer ────────────────────────────────
-function ChatPane({ convo, messages, onBack, onSend, messagesEndRef, loading, error, sendError, sending }) {
+function ChatPane({ convo, messages, onBack, onSend, onBlock, messagesEndRef, loading, error, sendError, sending }) {
   const [draft, setDraft] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const name = convo.participantName || 'Member';
+  const firstName = name.split(' ')[0];
 
   return (
     <div className="flex-1 flex flex-col min-w-0" style={{ background: 'var(--color-canvas)' }}>
@@ -391,10 +436,52 @@ function ChatPane({ convo, messages, onBack, onSend, messagesEndRef, loading, er
             "Chaperone present". A safety affordance that silently does nothing
             is worse than no affordance at all, so it was removed rather than
             relabelled. Family involvement happens through introductions. */}
-        <button aria-label="Conversation options" className="btn btn-ghost btn-sm">
-          <MoreVertical className="w-2.5 h-2.5" />
-        </button>
+        <div className="relative">
+          <button
+            aria-label="Conversation options"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            className="btn btn-ghost btn-sm"
+          >
+            <MoreVertical className="w-2.5 h-2.5" />
+          </button>
+          {menuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg z-20 py-1"
+              style={{ background: 'var(--color-elevated)', border: '1px solid var(--color-border)' }}
+            >
+              <button
+                role="menuitem"
+                onClick={() => { setMenuOpen(false); setShowReport((v) => !v); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-black/5"
+                style={{ color: 'var(--color-ink)' }}
+              >
+                Report {firstName}
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => { setMenuOpen(false); onBlock?.(convo); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-black/5"
+                style={{ color: 'var(--color-danger, #c0392b)' }}
+              >
+                Block {firstName}
+              </button>
+            </div>
+          )}
+        </div>
       </header>
+
+      {showReport && (
+        <div className="px-4 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
+          <ReportFlag
+            targetType="profile"
+            targetId={String(convo.participantId || '')}
+            onDone={() => setShowReport(false)}
+          />
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-2" role="log" aria-label={`Conversation with ${name}`} aria-live="polite">

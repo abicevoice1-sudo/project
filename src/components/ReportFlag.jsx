@@ -13,12 +13,10 @@ export function ReportFlag({ targetType, targetId, onDone }) {
   const [state, setState] = useState({ idle: true, busy: false, ok: false, error: '' });
 
   const CATEGORIES = [
-    'Harassment or threats',
-    'Scam or financial fraud',
-    'Fake profile / impersonation',
+    'Harassment',
+    'Fake profile',
     'Inappropriate content',
-    'Soliciting contact info off-platform',
-    'Spam',
+    'Scam',
     'Other',
   ];
 

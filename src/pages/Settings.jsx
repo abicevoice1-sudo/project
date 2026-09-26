@@ -1,6 +1,6 @@
 import { usePageTitle } from '../lib/usePageTitle';
 import { useState, useEffect } from 'react';
-import { readIsDark, writeIsDark } from '../lib/theme';
+import { readIsDark, writeIsDark, applyIsDark } from '../lib/theme';
 import Layout from '../layouts/MainLayout';
 import { useAuth } from '../lib/auth/AuthContext';
 import GetVerified from '../components/GetVerified';
@@ -28,7 +28,7 @@ function settingsKey() {
 
 export default function Settings() {
   usePageTitle('Settings');
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [saved, setSaved] = useState(false);
   const [theme, setTheme] = useState(readIsDark() ? 'dark' : 'light');
@@ -41,12 +41,16 @@ export default function Settings() {
 
   const [privacy, setPrivacy] = useState({
     profileVisibility: 'members', photoVisibility: 'members',
+    contactVisibility: 'members',
     showOnlineStatus: true, allowFamilyView: true, blockUnverified: false,
     incognito: false
   });
   const [privacySaved, setPrivacySaved] = useState('');
   const [blocks, setBlocks] = useState([]);
   const [blocking, setBlocking] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const [notifications, setNotifications] = useState({
     emailMessages: true, emailMatches: true, emailWeeklyDigest: true,
@@ -73,7 +77,7 @@ export default function Settings() {
     // Appearance is global to this browser, not per member: every layout reads
     // the same versioned key through lib/theme.
     writeIsDark(theme === 'dark');
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    applyIsDark(theme === 'dark');
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -139,12 +143,16 @@ export default function Settings() {
                 {[
                   { key: 'profileVisibility', label: 'Who can see my profile', type: 'select', options: [{ v: 'public', l: 'Public — anyone' }, { v: 'members', l: 'Members only' }, { v: 'private', l: 'Private — only me' }] },
                   { key: 'photoVisibility', label: 'Who can see my photos', type: 'select', options: [{ v: 'public', l: 'Public — anyone' }, { v: 'members', l: 'Members only' }, { v: 'private', l: 'Private — only me' }] },
+                  { key: 'contactVisibility', label: 'Who can see my contact details', hint: 'Your phone number and email shown on your profile', type: 'select', options: [{ v: 'public', l: 'Public — anyone' }, { v: 'members', l: 'Members only' }, { v: 'private', l: 'Private — only me' }] },
                   { key: 'showOnlineStatus', label: 'Show online status', type: 'toggle' },
                   { key: 'allowFamilyView', label: 'Allow family members to view profile', type: 'toggle' },
                   { key: 'blockUnverified', label: 'Block unverified members', type: 'toggle' }
                 ].map(item => (
                   <div key={item.key} className="flex items-center justify-between py-3 border-b border-line/10 last:border-0">
-                    <span className="text-sm font-medium text-ink">{item.label}</span>
+                    <span className="text-sm font-medium text-ink">
+                      {item.label}
+                      {item.hint && <span className="block text-xs font-normal text-muted mt-0.5">{item.hint}</span>}
+                    </span>
                     {item.type === 'toggle' ? (
                       <button onClick={() => setPrivacy(p => ({ ...p, [item.key]: !p[item.key] }))} className={`relative h-6 w-11 flex items-center transition-all duration-200 ${privacy[item.key] ? 'btn btn-primary' : 'btn btn-ghost'} `}>
                         <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${privacy[item.key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -164,6 +172,10 @@ export default function Settings() {
                       await api.updateProfile(user?.uid || 'me', {
                         visibility: privacy.profileVisibility,
                         photos_visibility: privacy.photoVisibility,
+                        // Server normalizes these through the same visibility
+                        // vocabulary as profile/photos (public/members/private).
+                        contact_visibility: privacy.contactVisibility,
+                        contactVisibility: privacy.contactVisibility,
                       });
                       setPrivacySaved('Privacy saved — enforced for every other member.');
                     } catch (e) {
@@ -263,12 +275,12 @@ export default function Settings() {
             {activeTab === 'appearance' && (
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-ink">Appearance</h2>
-                <p className="text-sm text-muted">Applies to this browser immediately on Save.</p>
+                <p className="text-sm text-muted">Applies to this browser immediately.</p>
                 <div className="grid grid-cols-2 gap-4">
                   {[{ v: 'light', l: 'Light', icon: Sun }, { v: 'dark', l: 'Dark', icon: Moon }].map(opt => {
                     const OptIcon = opt.icon;
                     return (
-                    <button key={opt.v} onClick={() => setTheme(opt.v)} className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${theme === opt.v ? 'btn btn-primary' : 'btn btn-ghost'} `}>
+                    <button key={opt.v} onClick={() => { setTheme(opt.v); writeIsDark(opt.v === 'dark'); applyIsDark(opt.v === 'dark'); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${theme === opt.v ? 'btn btn-primary' : 'btn btn-ghost'} `}>
                       <OptIcon className={`w-6 h-6 ${theme === opt.v ? 'text-primary' : 'text-muted'}`} />
                       <span className={`text-sm font-medium ${theme === opt.v ? 'text-primary' : 'text-muted'}`}>{opt.l}</span>
                     </button>
@@ -323,23 +335,39 @@ export default function Settings() {
                   <p className="text-sm text-muted mt-1 mb-3">
                     Deleting your account permanently removes your profile, messages, interests, and all data. This cannot be undone.
                   </p>
+                  <label htmlFor="delete-confirm" className="text-sm font-medium text-ink block mb-1.5">
+                    Type <code className="px-1.5 py-0.5 rounded font-mono text-xs" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>DELETE</code> to confirm
+                  </label>
+                  <input
+                    id="delete-confirm"
+                    value={deleteConfirm}
+                    onChange={e => { setDeleteConfirm(e.target.value); setDeleteError(''); }}
+                    placeholder="DELETE"
+                    autoComplete="off"
+                    className="input w-full max-w-xs mb-3"
+                    aria-label="Type DELETE to confirm account deletion"
+                  />
+                  {deleteError && <p className="text-sm mb-3" role="alert" style={{ color: 'var(--color-danger)' }}>{deleteError}</p>}
                   <button
+                    disabled={deleteConfirm !== 'DELETE' || deleteBusy}
                     onClick={async () => {
-                      const typed = prompt('Type DELETE to permanently delete your account. This cannot be undone.');
-                      if (typed !== 'DELETE') return;
+                      setDeleteBusy(true);
+                      setDeleteError('');
                       try {
-                        const { http } = await import('../lib/api/transport');
-                        await http.del('/api/auth/account');
+                        const { deleteAccount } = await import('../lib/api/safety');
+                        await deleteAccount();
                         logout();
                         window.location.href = '/';
                       } catch (e) {
-                        alert(e.message || 'Could not delete account.');
+                        setDeleteError(e.message || 'Could not delete account.');
+                      } finally {
+                        setDeleteBusy(false);
                       }
                     }}
-                    className="px-4 py-2 text-sm font-semibold rounded-lg text-white"
+                    className="px-4 py-2 text-sm font-semibold rounded-lg text-white disabled:opacity-40"
                     style={{ background: 'var(--color-danger)' }}
                   >
-                    Delete my account
+                    {deleteBusy ? 'Deleting…' : 'Delete my account'}
                   </button>
                 </div>
               </div>

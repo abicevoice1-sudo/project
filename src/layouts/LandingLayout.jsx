@@ -11,7 +11,7 @@ import ThemeMenu from '../components/ThemeMenu';
 import AIAssistant, { openAIAssistant } from '../components/AIAssistant';
 import SiteFooter from '../components/SiteFooter';
 import BrandLockup from '../components/BrandLockup';
-import { applyIsDark, readIsDark } from '../lib/theme';
+import { applyIsDark, readIsDark, writeIsDark } from '../lib/theme';
 
 const landingLinks = [
   { href: '/profiles', label: 'Profiles' },
@@ -509,6 +509,7 @@ export default function LandingLayout({ children }) {
   const location = useLocation();
 
   useEffect(() => {
+    writeIsDark(dark);
     applyIsDark(dark);
   }, [dark]);
 

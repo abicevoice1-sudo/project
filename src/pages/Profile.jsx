@@ -8,6 +8,7 @@ import LoginGate from '../components/LoginGate';
 import { ArrowLeft, ShieldCheck, MapPin, Heart, MessageCircle, Bookmark, Lock, Users, Award, Sparkles, BadgeCheck } from 'lucide-react';
 import CompatibilityIndex from '../components/CompatibilityIndex';
 import { ReportFlag } from '../components/ReportFlag';
+import { blockMember, unblockMember } from '../lib/api/safety';
 import { computeCompatibility } from '../lib/compatibility';
 import { apiUrl } from '../lib/api/transport';
 
@@ -26,6 +27,8 @@ export default function Profile() {
   const [messageBusy, setMessageBusy] = useState(false);
   const [actionNote, setActionNote] = useState(null);
   const [showLoginGate, setShowLoginGate] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [blockBusy, setBlockBusy] = useState(false);
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
@@ -72,6 +75,30 @@ export default function Profile() {
       }
     } finally {
       setMessageBusy(false);
+    }
+  };
+
+  // Block / unblock — the server enforces the block both ways (profile hidden,
+  // messaging disabled). Blocking is immediate; unblock restores access.
+  const handleBlockToggle = async () => {
+    if (!isLoggedIn) { setShowLoginGate(true); return; }
+    if (blockBusy) return;
+    if (!blocked && !window.confirm(`Block ${profile.displayName}? You will not see each other, and messaging is disabled both ways.`)) return;
+    setBlockBusy(true);
+    try {
+      if (blocked) {
+        await unblockMember(String(profile.id || id));
+        setBlocked(false);
+        setActionNote({ ok: true, text: `You unblocked ${profile.displayName}.` });
+      } else {
+        await blockMember(String(profile.id || id));
+        setBlocked(true);
+        setActionNote({ ok: true, text: `${profile.displayName} is blocked — you won't see each other and messaging is off.` });
+      }
+    } catch (e) {
+      setActionNote({ ok: false, text: e.message || 'Could not update the block.' });
+    } finally {
+      setBlockBusy(false);
     }
   };
 
@@ -141,6 +168,19 @@ export default function Profile() {
               <Bookmark className="w-4 h-4" style={{ fill: shortlisted ? '#fff' : 'none' }} /> {shortlisted ? 'Shortlisted' : 'Shortlist'}
             </button>
             <div className="w-full rounded-xl p-3" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+              <button
+                onClick={handleBlockToggle}
+                disabled={blockBusy}
+                className="w-full text-xs font-semibold py-2 rounded-lg mb-2"
+                style={{
+                  background: blocked ? 'var(--color-elevated)' : 'var(--color-danger, #c0392b)',
+                  color: blocked ? 'var(--color-ink)' : '#fff',
+                  border: '1px solid var(--color-border)',
+                  opacity: blockBusy ? 0.6 : 1,
+                }}
+              >
+                {blockBusy ? 'Working…' : blocked ? 'Unblock this member' : 'Block this member'}
+              </button>
               <ReportFlag targetType="profile" targetId={String(profile.id || id)} onDone={null} />
             </div>
             <p className="text-[11px] text-center" style={{ color: 'var(--color-ink-faint)' }}>

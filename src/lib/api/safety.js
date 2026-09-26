@@ -29,3 +29,23 @@ export async function listBlocks() {
   if (useRemote) return [];
   return read('blocks', []);
 }
+
+const isNotFound = (err) => /\(404\)|not found/i.test(err?.message || '');
+
+// Delete the signed-in account. Tries the canonical /api/users/me first,
+// falls back to the repo's existing /api/auth/account, and surfaces a clear
+// "not available yet" when neither route exists on the server.
+export async function deleteAccount() {
+  if (!useRemote) return { ok: true, local: true };
+  try {
+    return await http.del('/api/users/me');
+  } catch (e) {
+    if (!isNotFound(e)) throw e;
+  }
+  try {
+    return await http.del('/api/auth/account');
+  } catch (e) {
+    if (isNotFound(e)) throw new Error('Account deletion is not available yet.');
+    throw e;
+  }
+}

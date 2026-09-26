@@ -41,6 +41,12 @@ function routeAdmin(string $method, array $segments): void
         adminSetRole((string)$segments[1]);
         return;
     }
+    // POST /api/admin/users/:id/unblock — reverse a moderation block set by
+    // report "action" (profiles.is_blocked = 1). Idempotent.
+    if ($method === 'POST' && $action === 'users' && ($segments[1] ?? null) !== null && ($segments[2] ?? null) === 'unblock') {
+        adminUnblockUser((string)$segments[1]);
+        return;
+    }
 
     json(['error' => 'Admin endpoint not found'], 404);
 }
@@ -289,5 +295,21 @@ function adminSetRole(string $userId): void
     db()->prepare('UPDATE users SET role = ? WHERE id = ?')->execute([$role, $userId]);
 
     json(['ok' => true, 'id' => $row['id'], 'email' => $row['email'], 'role' => $role]);
+}
+
+// POST /api/admin/users/:id/unblock — clear a moderation block so the member's
+// profile is visible again. No-op when there is no profile row.
+function adminUnblockUser(string $userId): void
+{
+    $probe = db()->prepare('SELECT id, email FROM users WHERE id = ? LIMIT 1');
+    $probe->execute([$userId]);
+    $row = $probe->fetch();
+    if (!$row) {
+        je('Member not found.', 404);
+    }
+    try {
+        db()->prepare('UPDATE profiles SET is_blocked = 0 WHERE user_id = ?')->execute([$userId]);
+    } catch (Throwable) { /* target may have no profile row */ }
+    json(['ok' => true, 'id' => $row['id'], 'email' => $row['email']]);
 }
 

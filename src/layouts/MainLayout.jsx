@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth/AuthContext';
+import { readIsDark, writeIsDark, applyIsDark } from '../lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Moon, Search, Command, X, LayoutDashboard, Users, MessageCircle,
@@ -256,27 +257,17 @@ function Nav({ isLoggedIn, isAdmin, isActive, onNavigate }) {
 export default function MainLayout({ children }) {
   const { isLoggedIn, isAdmin, user, logout } = useAuth();
   const location = useLocation();
-  const [dark, setDark] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('shiarishta_theme:v2') === 'dark';
-  });
+  // Single source of truth: lib/theme.js (versioned key, shared with
+  // LandingLayout and the Settings Appearance tab). No per-layout overrides —
+  // a stored "dark" must actually render dark.
+  const [dark, setDark] = useState(() => readIsDark());
   const [cmdOpen, setCmdOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-    document.documentElement.classList.toggle('light', !dark);
-    localStorage.setItem('shiarishta_theme:v2', dark ? 'dark' : 'light');
+    writeIsDark(dark);
+    applyIsDark(dark);
   }, [dark]);
-
-  // Per user request: force light theme on initial load to match reference site
-  useEffect(() => {
-    const stored = localStorage.getItem('shiarishta_theme:v2');
-    if (stored === 'dark') {
-      // Override stored dark preference to force light theme
-      setDark(false);
-    }
-  }, []); // Run once on initial load
 
   const isActive = useCallback(
     (path) => location.pathname === path || location.pathname.startsWith(path + '/'),

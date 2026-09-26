@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
       }
     };
     const onStorage = (e) => {
-      if (e.key !== 'sh_session') identityChanged();
+      if (e.key === 'sh_session') identityChanged();
     };
     window.addEventListener('storage', onStorage);
     // Also re-validate on window focus: catches token expiry / server-side

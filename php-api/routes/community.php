@@ -14,8 +14,57 @@ function routeCommunity(string $method, array $segments): void
     if ($method === 'POST' && $action === 'post' && ($segments[1] ?? null) !== null && ($segments[2] ?? null) === 'replies') { postReply((string)$segments[1]); return; }
     if ($method === 'GET' && $action !== null && ($segments[1] ?? null) === 'posts') { communityPosts((string)$action); return; }
     if ($method === 'POST' && $action !== null && ($segments[1] ?? null) === 'posts') { communityCreatePost((string)$action); return; }
+    // Moderation — admin-only hard delete. The button lives on CommunityPost;
+    // wiring verified: admin auth, correct ID, list refresh after delete.
+    if ($method === 'DELETE' && $action === 'post' && ($segments[1] ?? null) !== null) { communityDeletePost((string)$segments[1]); return; }
+    if ($method === 'DELETE' && $action === 'reply' && ($segments[1] ?? null) !== null) { communityDeleteReply((string)$segments[1]); return; }
 
     json(['error' => 'Community endpoint not found'], 404);
+}
+
+function requireAdminUser(): array
+{
+    $user = requireAuthUser();
+    if (empty($user['isAdmin'])) {
+        je('Admin access required', 403);
+    }
+    return $user;
+}
+
+// DELETE /api/community/post/:id — admin moderation: remove the post and its
+// replies in one transaction.
+function communityDeletePost(string $postId): void
+{
+    requireAdminUser();
+    $probe = db()->prepare('SELECT id FROM posts WHERE id = ? LIMIT 1');
+    $probe->execute([$postId]);
+    if (!$probe->fetch()) {
+        je('Post not found.', 404);
+    }
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare('DELETE FROM replies WHERE post_id = ?')->execute([$postId]);
+        $pdo->prepare('DELETE FROM posts WHERE id = ?')->execute([$postId]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+    json(['ok' => true, 'id' => $postId]);
+}
+
+// DELETE /api/community/reply/:id — admin moderation: remove one reply.
+function communityDeleteReply(string $replyId): void
+{
+    requireAdminUser();
+    $probe = db()->prepare('SELECT id FROM replies WHERE id = ? LIMIT 1');
+    $probe->execute([$replyId]);
+    if (!$probe->fetch()) {
+        je('Reply not found.', 404);
+    }
+    db()->prepare('DELETE FROM replies WHERE id = ?')->execute([$replyId]);
+    json(['ok' => true, 'id' => $replyId]);
 }
 
 function communityList(): void
