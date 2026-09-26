@@ -26,7 +26,7 @@ export async function unblockMember(userId) {
 }
 
 export async function listBlocks() {
-  if (useRemote) return [];
+  if (useRemote) return http.get('/api/reports/blocks');
   return read('blocks', []);
 }
 

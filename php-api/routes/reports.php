@@ -8,6 +8,7 @@ function routeReports(string $method, array $segments): void
     $action = $segments[0] ?? null;
 
     if ($method === 'POST' && $action === null) { createReport(); return; }
+    if ($method === 'GET' && $action === 'blocks') { listBlocks(); return; }
     if ($method === 'POST' && $action === 'block') { blockMember(); return; }
     if ($method === 'DELETE' && $action === 'block' && ($segments[1] ?? null) !== null) { unblockMember((string)$segments[1]); return; }
 
@@ -60,6 +61,20 @@ function blockMember(): void
     $stmt = db()->prepare('INSERT IGNORE INTO blocks (blocker_id, blocked_id) VALUES (?, ?)');
     $stmt->execute([$user['uid'], $blockedId]);
     json(['ok' => true]);
+}
+
+function listBlocks(): void
+{
+    $user = requireAuthUser();
+    $stmt = db()->prepare(
+        'SELECT b.blocked_id AS id, p.display_name AS displayName, b.created_at AS blockedAt
+           FROM blocks b
+           LEFT JOIN profiles p ON p.user_id = b.blocked_id
+          WHERE b.blocker_id = ?
+       ORDER BY b.created_at DESC'
+    );
+    $stmt->execute([$user['uid']]);
+    json(array_values($stmt->fetchAll()));
 }
 
 function unblockMember(string $id): void

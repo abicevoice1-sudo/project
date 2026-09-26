@@ -13,8 +13,53 @@ function routeUsers(string $method, array $segments): void
     }
     if ($method === 'DELETE') { userDeleteMe(); return; }
     if ($method === 'PUT')     { userUpdateMe(); return; }
+    if ($method === 'GET' && ($segments[1] ?? null) === 'export') { userExportMe(); return; }
 
     json(['error' => 'Users endpoint not found'], 404);
+}
+
+function userExportMe(): void
+{
+    $user = requireAuthUser();
+    $uid = (string)$user['uid'];
+    $pdo = db();
+
+    $export = ['exportedAt' => gmdate('c'), 'userId' => $uid];
+
+    $stmt = $pdo->prepare('SELECT id, email, display_name, is_admin, email_verified, created_at FROM users WHERE id = ? LIMIT 1');
+    $stmt->execute([$uid]);
+    $export['account'] = $stmt->fetch() ?: null;
+
+    $stmt = $pdo->prepare('SELECT * FROM profiles WHERE user_id = ? LIMIT 1');
+    $stmt->execute([$uid]);
+    $export['profile'] = $stmt->fetch() ?: null;
+
+    $stmt = $pdo->prepare('SELECT id, community_id, title, body, created_at FROM posts WHERE author_id = ? ORDER BY created_at DESC LIMIT 500');
+    try { $stmt->execute([$uid]); $export['communityPosts'] = $stmt->fetchAll(); }
+    catch (Throwable $e) { $export['communityPosts'] = []; }
+
+    $stmt = $pdo->prepare('SELECT id, post_id, body, created_at FROM replies WHERE author_id = ? ORDER BY created_at DESC LIMIT 500');
+    try { $stmt->execute([$uid]); $export['communityReplies'] = $stmt->fetchAll(); }
+    catch (Throwable $e) { $export['communityReplies'] = []; }
+
+    $stmt = $pdo->prepare('SELECT to_user_id AS target, created_at FROM interests WHERE from_user_id = ? ORDER BY created_at DESC LIMIT 500');
+    try { $stmt->execute([$uid]); $export['interestsSent'] = $stmt->fetchAll(); }
+    catch (Throwable $e) { $export['interestsSent'] = []; }
+
+    $stmt = $pdo->prepare('SELECT token, created_at, revoked FROM wali_links WHERE user_id = ? ORDER BY created_at DESC LIMIT 50');
+    try { $stmt->execute([$uid]); $export['waliLinks'] = $stmt->fetchAll(); }
+    catch (Throwable $e) { $export['waliLinks'] = []; }
+
+    // Messages are intentionally excluded from the portable export — they
+    // involve another member's words. Conversation metadata is included.
+    $stmt = $pdo->prepare('SELECT id, user_a, user_b, created_at FROM conversations WHERE user_a = ? OR user_b = ? ORDER BY created_at DESC LIMIT 200');
+    try { $stmt->execute([$uid, $uid]); $export['conversations'] = $stmt->fetchAll(); }
+    catch (Throwable $e) { $export['conversations'] = []; }
+
+    header('Content-Type: application/json');
+    header('Content-Disposition: attachment; filename="shiarishta-data-export.json"');
+    echo json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    exit;
 }
 
 function userDeleteMe(): void

@@ -343,22 +343,26 @@ export default function Settings() {
                   </div>
                   {blocks.length > 0 && (
                     <ul className="space-y-2">
-                      {blocks.map(id => (
-                        <li key={id} className="flex items-center justify-between text-sm p-2 rounded-lg" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                          <span style={{ color: 'var(--color-ink-secondary)' }}>{id}</span>
-                          <button
-                            onClick={async () => {
-                              const { unblockMember, listBlocks } = await import('../lib/api/safety');
-                              await unblockMember(id);
-                              setBlocks(await listBlocks().catch(() => []));
-                            }}
-                            className="text-xs hover:underline"
-                            style={{ color: 'var(--color-primary)' }}
-                          >
-                            Unblock
-                          </button>
-                        </li>
-                      ))}
+                      {blocks.map(b => {
+                        const bid = b.id || b;
+                        const bname = b.displayName || 'Member';
+                        return (
+                          <li key={bid} className="flex items-center justify-between text-sm p-2 rounded-lg" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                            <span style={{ color: 'var(--color-ink-secondary)' }}>{bname}</span>
+                            <button
+                              onClick={async () => {
+                                const { unblockMember, listBlocks } = await import('../lib/api/safety');
+                                await unblockMember(bid);
+                                setBlocks(await listBlocks().catch(() => []));
+                              }}
+                              className="text-xs hover:underline"
+                              style={{ color: 'var(--color-primary)' }}
+                            >
+                              Unblock
+                            </button>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
