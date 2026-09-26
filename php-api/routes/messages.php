@@ -121,8 +121,12 @@ function startConversation(): void
     $payload = requestJson();
     $other = (string)($payload['userId'] ?? $payload['profileId'] ?? '');
 
-    if ($other === '' || $other === (string)$user['uid']) {
-        je('Invalid recipient.', 400);
+    if ($other === '') {
+        je('Recipient is required.', 400);
+    }
+    if ($other === (string)$user['uid']) {
+        je('You cannot start a conversation with yourself.', 400);
+    }
     }
 
     $target = db()->prepare('SELECT id FROM users WHERE id = ? LIMIT 1');

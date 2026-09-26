@@ -94,7 +94,7 @@ export const RELOCATION_OPTIONS = [
 export const FAMILY_INVOLVEMENT_OPTIONS = [
   { value: 'from-start', label: 'Family involved from the start' },
   { value: 'after-match', label: 'After initial compatibility is clear' },
-  { value: 'wali-required', label: 'Wali / guardian present in all conversations' },
+  { value: 'wali-required', label: 'Wali / guardian involved via profile link' },
   { value: 'couple-first', label: 'We decide first, then families meet' }
 ];
 

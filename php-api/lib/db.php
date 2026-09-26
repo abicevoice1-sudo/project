@@ -116,6 +116,12 @@ function visibleProfile(array $row, ?array $viewer): ?array
     $isOwner = $viewer !== null && (string)$viewer['uid'] === $ownerId;
     $isAnonymous = $viewer === null;
 
+    // P0: members-only profiles are invisible to anonymous visitors entirely.
+    // Only explicitly public profiles get a teaser.
+    if ($isAnonymous && ($row['visibility'] ?? 'members') !== 'public') {
+        return null;
+    }
+
     // Anonymous visitors get a minimal teaser only — enough to encourage
     // signup, never intimate details. Full profiles require an account.
     if ($isAnonymous) {

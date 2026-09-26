@@ -317,7 +317,9 @@ function profilesList(): void
     }
 
     if ($viewer === null) {
-        $where[] = "p.visibility <> 'private'";
+        // P0: anonymous visitors see ONLY explicitly public profiles.
+        // Members-only profiles are invisible to logged-out callers.
+        $where[] = "p.visibility = 'public'";
         // Anonymous visitors see a small teaser sample, not the full roster.
         // Full browsing requires an account — this prevents enumeration.
         $limit = 6;
