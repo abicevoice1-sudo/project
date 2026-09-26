@@ -1,0 +1,14 @@
+name: One-time admin promote
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: 'Email to promote to admin'
+        required: true
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s "https://shiarishta.com/api/admin-promote.php?token=${{ secrets.PROMOTE_TOKEN }}&email=${{ inputs.email }}"
+          echo ""
