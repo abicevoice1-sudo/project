@@ -33,6 +33,110 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
   const [theme, setTheme] = useState(readIsDark() ? 'dark' : 'light');
 
+  // Account identity (display name / email) — PUT /api/users/me, defensive 404.
+  const [accountSaved, setAccountSaved] = useState('');
+  const [accountSaving, setAccountSaving] = useState(false);
+
+  // Security — active sessions list, defensive 404.
+  const [sessions, setSessions] = useState(null); // null = not loaded yet
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsNote, setSessionsNote] = useState('');
+
+  // Data export
+  const [exporting, setExporting] = useState(false);
+
+  const saveAccountIdentity = async () => {
+    setAccountSaved('');
+    setAccountSaving(true);
+    try {
+      const { http } = await import('../lib/api/transport');
+      const payload = {};
+      if (profile.displayName.trim()) payload.displayName = profile.displayName.trim();
+      if (profile.email.trim() && profile.email.trim() !== (user?.email || '')) {
+        payload.email = profile.email.trim();
+      }
+      if (!payload.displayName && !payload.email) {
+        setAccountSaved('Nothing to change.');
+        return;
+      }
+      await http.put('/api/users/me', payload);
+      if (payload.email) {
+        setAccountSaved('Saved. Verification required — check your inbox to confirm the new email address.');
+      } else {
+        setAccountSaved('Saved.');
+      }
+    } catch (e) {
+      const msg = String(e?.message || '');
+      if (/404/.test(msg)) {
+        setAccountSaved('Account changes are not available yet — the server endpoint is still being deployed.');
+      } else {
+        setAccountSaved(msg || 'Could not save your changes.');
+      }
+    } finally {
+      setAccountSaving(false);
+    }
+  };
+
+  const loadSessions = async () => {
+    setSessionsLoading(true);
+    setSessionsNote('');
+    try {
+      const { http } = await import('../lib/api/transport');
+      const data = await http.get('/api/auth/sessions');
+      setSessions(Array.isArray(data?.sessions) ? data.sessions : (Array.isArray(data) ? data : []));
+    } catch (e) {
+      const msg = String(e?.message || '');
+      if (/404/.test(msg)) {
+        setSessionsNote('Session listing is not available yet — the server endpoint is still being deployed. This session remains signed in on this device.');
+      } else {
+        setSessionsNote(msg || 'Could not load sessions.');
+      }
+      setSessions([]);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  const exportData = async () => {
+    setExporting(true);
+    try {
+      const { http } = await import('../lib/api/transport');
+      const collected = { exported_at: new Date().toISOString(), sources: {} };
+      const endpoints = {
+        profile: '/api/profiles/me',
+        interests_received: '/api/profiles/interests/received',
+        conversations: '/api/messages',
+        drafts: '/api/drafts/mine',
+        sessions: '/api/auth/sessions',
+      };
+      await Promise.all(Object.entries(endpoints).map(async ([key, path]) => {
+        try {
+          collected.sources[key] = await http.get(path);
+        } catch (e) {
+          collected.sources[key] = { unavailable: String(e?.message || 'error') };
+        }
+      }));
+      collected.sources.local_settings = (() => {
+        try {
+          const raw = localStorage.getItem(settingsKey());
+          return raw ? JSON.parse(raw) : {};
+        } catch { return {}; }
+      })();
+      // Human-readable: 2-space indentation, one line per field.
+      const blob = new Blob([JSON.stringify(collected, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `shiarishta-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const [profile, setProfile] = useState({
     displayName: user?.displayName || '',
     email: user?.email || '',
@@ -126,9 +230,20 @@ export default function Settings() {
                    <div><label htmlFor="displayName" className="text-sm font-medium text-muted mb-1.5 block">Display Name</label>
                      <input id="displayName" type="text" value={profile.displayName} onChange={e => setProfile(pp => ({ ...pp, displayName: e.target.value }))} className="input w-full" aria-label="Display name" />
                    </div>
-                   <div><label htmlFor="email" className="text-sm font-medium text-muted mb-1.5 block">Email</label>
-                     <input id="settings-email" type="email" defaultValue={user?.email || ''} className="input w-full" aria-label="Email" readOnly />
+                   <div><label htmlFor="settings-email" className="text-sm font-medium text-muted mb-1.5 block">Email</label>
+                     <input id="settings-email" type="email" value={profile.email} onChange={e => setProfile(pp => ({ ...pp, email: e.target.value }))} className="input w-full" aria-label="Email" />
                    </div>
+                </div>
+                <p className="text-xs text-muted">Changing your email requires verification — a confirmation link will be sent to the new address.</p>
+                <div>
+                  <button
+                    onClick={saveAccountIdentity}
+                    disabled={accountSaving}
+                    className="button primary px-5 py-2 font-semibold text-sm"
+                  >
+                    {accountSaving ? 'Saving…' : 'Save name & email'}
+                  </button>
+                  {accountSaved && <p className="text-sm mt-2" style={{ color: 'var(--color-ink-secondary)' }}>{accountSaved}</p>}
                 </div>
                 <div><label className="text-sm font-medium text-muted mb-1.5 block">Bio</label>
                   <textarea rows={4} defaultValue="Tell others about yourself..." className="input w-full resize-none" />
@@ -303,11 +418,41 @@ export default function Settings() {
                 </div>
 
                 <div className="pt-4 border-t border-line/10">
-                  <h3 className="text-base font-semibold text-ink mb-2">Active session</h3>
+                  <h3 className="text-base font-semibold text-ink mb-2">Active sessions</h3>
                   <p className="text-sm text-muted mb-3">
-                    Signed in as <span className="font-medium text-ink">{user?.email}</span>.
-                    Signing out clears your session and all locally cached data on this device.
+                    Every device signed in to <span className="font-medium text-ink">{user?.email}</span>.
+                    If you don't recognize one, sign it out by changing your password.
                   </p>
+                  {sessionsLoading ? (
+                    <p className="text-sm text-muted">Loading sessions…</p>
+                  ) : sessions === null ? (
+                    <button onClick={loadSessions} className="button secondary px-4 py-2 text-sm font-semibold">
+                      Load active sessions
+                    </button>
+                  ) : (
+                    <ul className="space-y-2 mb-3">
+                      {sessions.length === 0 ? (
+                        <li className="text-sm text-muted">No sessions found.</li>
+                      ) : sessions.map((s) => (
+                        <li key={s.id || s.ip} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-line/20" style={{ background: 'var(--color-surface)' }}>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-ink truncate">
+                              {(s.userAgent || 'Unknown device').slice(0, 80)}
+                              {s.current && (
+                                <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>
+                                  THIS DEVICE
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs text-muted">
+                              {[s.ip, s.lastSeen ? `Last seen ${new Date(s.lastSeen).toLocaleString()}` : (s.createdAt ? `Signed in ${new Date(s.createdAt).toLocaleString()}` : null)].filter(Boolean).join(' · ')}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {sessionsNote && <p className="text-sm text-muted mb-3">{sessionsNote}</p>}
                   <button
                     onClick={() => { logout(); window.location.href = '/'; }}
                     className="button secondary px-4 py-2 text-sm font-semibold"
@@ -330,6 +475,19 @@ export default function Settings() {
             {activeTab === 'account' && (
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-ink">Account</h2>
+                <div className="p-4 rounded-xl border border-line/20">
+                  <h3 className="font-semibold text-ink">Export your data</h3>
+                  <p className="text-sm text-muted mt-1 mb-3">
+                    Download everything your account holds — account, profile, interests, conversations, and drafts — as human-readable JSON.
+                  </p>
+                  <button
+                    onClick={exportData}
+                    disabled={exporting}
+                    className="button secondary px-4 py-2 text-sm font-semibold"
+                  >
+                    {exporting ? 'Preparing…' : 'Download my data (JSON)'}
+                  </button>
+                </div>
                 <div className="p-4 rounded-xl bg-danger/5 border border-danger/20">
                   <h3 className="font-semibold text-danger">Danger Zone</h3>
                   <p className="text-sm text-muted mt-1 mb-3">

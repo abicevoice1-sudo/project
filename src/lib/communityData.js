@@ -222,6 +222,25 @@ export async function addReply(postId, { body, author = 'You' }) {
   return reply;
 }
 
+// ── Moderation (admin only) ────────────────────────────────────────────────
+// DELETE /api/community/post/:id removes the post and its replies; the
+// server requires an admin session (403 otherwise). Returns the deleted id.
+export async function deletePost(id) {
+  if (useRemote) return http.del(`/api/community/post/${encodeURIComponent(id)}`);
+  write(POSTS_KEY, read(POSTS_KEY, []).filter(p => String(p.id) !== String(id)));
+  return { ok: true, id };
+}
+
+export async function deleteReply(id) {
+  if (useRemote) return http.del(`/api/community/reply/${encodeURIComponent(id)}`);
+  const all = read(COMMENTS_KEY, {});
+  for (const key of Object.keys(all)) {
+    all[key] = all[key].filter(r => String(r.id) !== String(id));
+  }
+  write(COMMENTS_KEY, all);
+  return { ok: true, id };
+}
+
 // Every surface links through this so the feed and the post page cannot drift.
 export function postPath(post) {
   return `/community/${post.sub}/post/${post.id}`;

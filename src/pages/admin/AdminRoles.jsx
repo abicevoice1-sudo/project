@@ -10,6 +10,8 @@ export default function AdminRoles() {
   const [uid, setUid] = useState('');
   const [role, setRole] = useState('matchmaker');
   const [busy, setBusy] = useState(false);
+  const [blockUid, setBlockUid] = useState('');
+  const [blockBusy, setBlockBusy] = useState(false);
   const { addToast } = useToast();
 
   const assign = async (e) => {
@@ -56,6 +58,45 @@ export default function AdminRoles() {
             </div>
             <button type="submit" disabled={busy} className="button primary px-5 py-2 font-semibold text-sm">
               {busy ? 'Assigning…' : 'Assign role'}
+            </button>
+          </div>
+        </form>
+
+        {/* ── Moderation: unflag / unblock a member ───────────────────────────
+            Reverses a block set by the Safety-reports "Hide + action" flow
+            (profiles.is_blocked = 1). Idempotent; 404 for unknown members. */}
+        <h2 style={{ marginTop: '36px' }}>Unblock a member</h2>
+        <p>
+          A blocked member's profile is invisible to everyone. Unblocking restores
+          their profile immediately — their data is never deleted.
+        </p>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const id = blockUid.trim();
+            if (!id) return;
+            setBlockBusy(true);
+            try {
+              if (!useRemote) throw new Error('Unblocking needs the live backend.');
+              await http.post(`/api/admin/users/${encodeURIComponent(id)}/unblock`, {});
+              addToast(`Member unblocked. Their profile is visible again.`, 'success');
+              setBlockUid('');
+            } catch (err) {
+              addToast(err.message || 'Could not unblock this member.', 'error');
+            } finally {
+              setBlockBusy(false);
+            }
+          }}
+          className="settings-list"
+          style={{ maxWidth: 640 }}
+        >
+          <div className="toggle-row" style={{ alignItems: 'flex-start' }}>
+            <div style={{ flex: 1 }}>
+              <label htmlFor="unblock-uid" className="block mb-1.5 text-sm font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Member uid</label>
+              <input id="unblock-uid" value={blockUid} onChange={(e) => setBlockUid(e.target.value)} placeholder="e.g. aa2281f5-4942-4cfa-8b79-9c0e4d1094e7" className="input w-full" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }} required />
+            </div>
+            <button type="submit" disabled={blockBusy} className="button primary px-5 py-2 font-semibold text-sm">
+              {blockBusy ? 'Unblocking…' : 'Unblock account'}
             </button>
           </div>
         </form>

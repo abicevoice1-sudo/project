@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
 import LoginGate from '../components/LoginGate';
 import { useAuth } from '../lib/auth/AuthContext';
-import { ArrowLeft, ChevronRight, Heart, MessageCircle } from 'lucide-react';
-import { addReply, getPost, listReplies } from '../lib/communityData';
+import { ArrowLeft, ChevronRight, Heart, MessageCircle, Trash2 } from 'lucide-react';
+import { addReply, getPost, listReplies, deletePost, deleteReply } from '../lib/communityData';
 import { ReportButton } from '../components/ReportButton';
 
 const initials = name => String(name || 'A').trim().charAt(0).toUpperCase();
@@ -13,13 +13,15 @@ const initials = name => String(name || 'A').trim().charAt(0).toUpperCase();
 // everyone; writing asks for an account (same rule as the feed).
 export default function CommunityPost() {
   const { postId } = useParams();
-  const { isLoggedIn, user } = useAuth();
+  const navigate = useNavigate();
+  const { isLoggedIn, isAdmin, user } = useAuth();
   const [post, setPost] = useState(null);
   const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [showLoginGate, setShowLoginGate] = useState(false);
+  const [moderating, setModerating] = useState(false);
 
   // The app sets history.scrollRestoration = 'manual', so opening a post has to
   // put the reader at the top itself.
@@ -135,6 +137,33 @@ export default function CommunityPost() {
             <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" /> {post.replies} replies</span>
             <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {post.likes} likes</span>
             <ReportButton targetType="post" targetId={String(post.id)} />
+            {isAdmin && (
+              <button
+                type="button"
+                disabled={moderating}
+                onClick={async () => {
+                  // Auth: the Bearer token rides along in transport headers.
+                  // The server requires an admin session and the exact post id.
+                  if (!window.confirm('Delete this post and all its replies? This cannot be undone.')) return;
+                  setModerating(true);
+                  try {
+                    await deletePost(post.id);
+                    // List refresh: the feed re-fetches from the server, so a
+                    // plain navigation shows the post gone.
+                    navigate(communityHref);
+                  } catch (e) {
+                    window.alert(e?.message || 'Could not delete this post.');
+                  } finally {
+                    setModerating(false);
+                  }
+                }}
+                className="flex items-center gap-1 hover:underline"
+                style={{ color: 'var(--color-danger)' }}
+                aria-label="Delete this post (moderation)"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> {moderating ? 'Deleting…' : 'Delete'}
+              </button>
+            )}
             <Link to={communityHref} className="flex items-center gap-1 ml-auto hover:underline" style={{ color: 'var(--color-primary)' }}>
               <ArrowLeft className="w-3.5 h-3.5" /> Back to /{communityLabel}
             </Link>
@@ -189,8 +218,32 @@ export default function CommunityPost() {
                   <span className="text-[11px]" style={{ color: 'var(--color-ink-faint)' }}>· {reply.time}</span>
                 </div>
                 <p style={{ color: 'var(--color-ink-secondary)', fontSize: '0.875rem', lineHeight: 1.7 }}>{reply.body}</p>
-                <div className="mt-2">
+                <div className="mt-2 flex items-center gap-3">
                   <ReportButton targetType="reply" targetId={String(reply.id)} />
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      disabled={moderating}
+                      onClick={async () => {
+                        if (!window.confirm('Delete this reply? This cannot be undone.')) return;
+                        setModerating(true);
+                        try {
+                          await deleteReply(reply.id);
+                          // Refresh the reply list from the server after delete.
+                          setReplies(await listReplies(postId));
+                        } catch (e) {
+                          window.alert(e?.message || 'Could not delete this reply.');
+                        } finally {
+                          setModerating(false);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-xs hover:underline"
+                      style={{ color: 'var(--color-danger)' }}
+                      aria-label={`Delete reply by ${reply.author} (moderation)`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
