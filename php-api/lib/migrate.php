@@ -91,6 +91,7 @@ function migrateAddProfileColumns(): void
         'height_cm'        => "INT DEFAULT NULL",
         'timeline'         => "VARCHAR(80) DEFAULT NULL",
         'photo_url'        => "VARCHAR(500) DEFAULT NULL",
+        'contact_visibility' => "VARCHAR(20) DEFAULT 'members'",
     ];
 
     try {

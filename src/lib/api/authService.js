@@ -85,9 +85,25 @@ export const auth = {
     if (!useRemote) return { ok: true, emailVerified: true };
     return http.get(`/api/auth/verify-email?token=${encodeURIComponent(token)}`);
   },
+  // New verification endpoint (GET /api/auth/verify?token=…). Falls back to
+  // the legacy path if the new one is not deployed yet.
+  async verifyToken(token) {
+    if (!useRemote) return { ok: true, emailVerified: true };
+    try {
+      return await http.get(`/api/auth/verify?token=${encodeURIComponent(token)}`);
+    } catch (e) {
+      if (e?.status === 404) return this.verifyEmail(token);
+      throw e;
+    }
+  },
 
   logout() {
     const session = read(SESSION_KEY, null);
+    // Tell the server to drop this session row (best-effort — local cleanup
+    // must happen even if the network fails).
+    if (useRemote) {
+      http.post('/api/auth/logout', {}).catch(() => {});
+    }
     http.setToken(null);
     // Wipe the session AND every per-user namespaced key so the next person
     // on a shared device never sees the previous user's drafts, interests,

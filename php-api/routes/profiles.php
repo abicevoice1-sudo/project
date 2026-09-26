@@ -420,7 +420,7 @@ function profileUpdate(): void
         'public' => 'public', 'members' => 'members', 'private' => 'private',
         'request' => 'members', 'match' => 'members',
     ];
-    foreach (['visibility', 'photos_visibility', 'photosVisibility'] as $f) {
+    foreach (['visibility', 'photos_visibility', 'photosVisibility', 'contact_visibility', 'contactVisibility'] as $f) {
         if (!empty($b[$f])) {
             $map = $f === 'visibility' ? $visibilityMap : $photoVisibilityMap;
             if (!isset($map[$b[$f]])) {
@@ -436,6 +436,7 @@ function profileUpdate(): void
     $cols = ['display_name', 'displayName', 'age', 'gender', 'city', 'country',
         'sect', 'profession', 'bio', 'expectations', 'aboutFamily',
         'visibility', 'photos_visibility', 'photosVisibility',
+        'contact_visibility', 'contactVisibility',
         // Fields onboarding collects. These columns were added by
         // migrateAddProfileColumns(); without this mapping the answers were
         // accepted by the form and silently thrown away on save.
@@ -472,6 +473,7 @@ function profileUpdate(): void
             'displayName' => 'display_name',
             'aboutFamily' => 'about_family',
             'photosVisibility' => 'photos_visibility',
+            'contactVisibility' => 'contact_visibility',
             'educationLevel' => 'education_level',
             'incomeRange' => 'income_range',
             'maritalStatus' => 'marital_status',

@@ -17,6 +17,7 @@ const Support = lazy(() => import('./pages/Support'));
 const Login = lazy(() => import('./pages/auth/Login'));
 const Register = lazy(() => import('./pages/auth/Register'));
 const VerifyEmail = lazy(() => import('./pages/auth/VerifyEmail'));
+const VerifyToken = lazy(() => import('./pages/auth/VerifyToken'));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 const WaliView = lazy(() => import('./pages/WaliView'));
@@ -134,6 +135,7 @@ const router = createBrowserRouter([
   { path: '/auth/forgot', element: <LazyRoute component={ForgotPassword} /> },
   { path: '/auth/reset', element: <LazyRoute component={ResetPassword} /> },
   { path: '/verify-email', element: <LazyRoute component={VerifyEmail} /> },
+  { path: '/verify/:token', element: <LazyRoute component={VerifyToken} /> },
   { path: '/wali/:token', element: <LazyRoute component={WaliView} /> },
   { path: '/claim/:token', element: <LazyRoute component={ClaimDraft} /> },
   {
