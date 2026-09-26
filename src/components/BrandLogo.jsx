@@ -1,5 +1,3 @@
-import BrandLogo from './BrandLogo';
-
 // ShiaRishta brand mark — "The Nikah Knot" (v2, 2026-09-26).
 //
 // Original construction on a 512 grid: two interlocked wedding bands weave
