@@ -4,19 +4,11 @@ import Layout from '../layouts/LandingLayout';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, AlertCircle, Loader2, MessageSquareHeart } from 'lucide-react';
 
 const CONTACT_METHODS = [
-  { icon: Mail, title: 'Email Support', desc: 'Get help within hours', links: [
-    { label: 'support@shiarishta.com', href: 'mailto:support@shiarishta.com' },
-    { label: 'info@shiarishta.com', href: 'mailto:info@shiarishta.com' },
+  { icon: Mail, title: 'Email Support', desc: 'Send us a message', links: [
+    { label: 'Use the form below', href: '#contact-form' },
   ]},
-  { icon: Phone, title: 'Phone Support', desc: 'Mon–Fri, 9 AM – 6 PM EST', links: [
-    { label: '+1 (555) 123-4567', href: 'tel:+15551234567' },
-  ]},
-  { icon: MapPin, title: 'Headquarters', desc: 'Serving communities worldwide', links: [
-    { label: 'Ann Arbor, MI, United States', href: 'https://maps.google.com/?q=Ann+Arbor,+MI+USA' },
-  ]},
-  { icon: Clock, title: 'Response Time', desc: 'We aim to reply fast', links: [
-    { label: 'Urgent matters — 1–2 hours', href: 'mailto:support@shiarishta.com' },
-    { label: 'General questions — 4–8 hours', href: 'mailto:support@shiarishta.com' },
+  { icon: Clock, title: 'Response Time', desc: 'We read every message', links: [
+    { label: 'We reply as soon as we can', href: '#contact-form' },
   ]},
 ];
 

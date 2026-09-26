@@ -1,3 +1,4 @@
+import { usePageTitle } from '../lib/usePageTitle';
 ﻿import { useState, useMemo, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
@@ -7,6 +8,7 @@ import { MessageCircle, Heart, Plus, Search, X, ChevronRight } from 'lucide-reac
 import { createCommunity, createPost, listCommunities, listPosts, postPath } from '../lib/communityData';
 
 export default function Community() {
+  usePageTitle('Community');
   const { isLoggedIn, user } = useAuth();
   const [activeSub, setActiveSub] = useState('all');
   const [showLoginGate, setShowLoginGate] = useState(false);
@@ -39,17 +41,25 @@ export default function Community() {
   };
 
   // Initial load + reload when switching rooms (remote mode fetches per room)
+  const [notFound, setNotFound] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      setNotFound(false);
       const target = slug || 'all';
       try {
         const [rooms, feed] = await Promise.all([listCommunities(), listPosts(target)]);
         if (cancelled) return;
         setSubreddits(rooms);
         setPosts(feed);
-        setActiveSub(rooms.some(s => s.id === target) ? target : 'all');
+        // Bogus slug → show a proper not-found state, not the generic feed.
+        if (slug && slug !== 'all' && !rooms.some(s => s.id === slug)) {
+          setNotFound(true);
+        } else {
+          setActiveSub(rooms.some(s => s.id === target) ? target : 'all');
+        }
       } catch (e) {
         if (!cancelled) setLoadError(e.message || 'Could not load the community.');
       } finally {
@@ -133,6 +143,22 @@ export default function Community() {
       setSaving(false);
     }
   };
+
+  if (notFound) {
+    return (
+      <Layout>
+        <main className="max-w-xl mx-auto px-4 py-20 text-center">
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-ink)' }}>Community not found</h1>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-ink-secondary)' }}>
+            No community exists at “{slug}”. It may have been removed or the link is wrong.
+          </p>
+          <Link to="/community" className="button primary px-5 py-2.5 font-semibold">
+            Browse communities
+          </Link>
+        </main>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

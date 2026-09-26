@@ -1,3 +1,4 @@
+import { usePageTitle } from '../lib/usePageTitle';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
 import ProfileCard from '../components/ProfileCard.jsx';
@@ -34,6 +35,7 @@ const sentinels = new Set(['Any sect', 'Any level', 'Any education', 'Any marja'
 const clean = (v) => (v === undefined || sentinels.has(String(v)) ? undefined : String(v));
 
 export default function Profiles() {
+  usePageTitle('Browse Profiles');
   const [searchParams, setSearchParams] = useSearchParams();
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);

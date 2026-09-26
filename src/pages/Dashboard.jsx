@@ -1,3 +1,4 @@
+import { usePageTitle } from '../lib/usePageTitle';
 import { Link } from 'react-router-dom';
 import Layout from '../layouts/MainLayout';
 import { useAuth } from '../lib/auth/AuthContext';
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
+  usePageTitle('Dashboard');
   const { user } = useAuth();
   const [profiles, setProfiles] = useState([]);
   const [conversations, setConversations] = useState([]);

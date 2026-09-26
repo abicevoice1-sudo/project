@@ -15,6 +15,7 @@ function routeAuth(string $method, array $segments): void
     if ($method === 'POST' && $action === 'forgot')   { authForgot();   return; }
     if ($method === 'POST' && $action === 'reset')    { authReset();    return; }
     if ($method === 'POST' && $action === 'resend-verification') { authResendVerification(); return; }
+    if ($method === 'DELETE' && $action === 'account') { authDeleteAccount(); return; }
 
     json(['error' => 'Auth endpoint not found'], 404);
 }
@@ -203,5 +204,33 @@ function authResendVerification(): void
     ]);
 
     json(['ok' => true, 'message' => 'Verification email sent — check your inbox.']);
+}
+
+function authDeleteAccount(): void
+{
+    $user = requireAuthUser();
+    $uid = (string)$user['uid'];
+    $pdo = db();
+
+    try {
+        $pdo->beginTransaction();
+        // Delete in dependency order. Foreign keys with ON DELETE CASCADE
+        // handle most of this, but explicit deletes are safer.
+        $pdo->prepare('DELETE FROM messages WHERE sender_id = ?')->execute([$uid]);
+        $pdo->prepare('DELETE FROM conversations WHERE user_a = ? OR user_b = ?')->execute([$uid, $uid]);
+        $pdo->prepare('DELETE FROM interests WHERE from_user_id = ? OR to_user_id = ?')->execute([$uid, $uid]);
+        $pdo->prepare('DELETE FROM blocks WHERE blocker_id = ? OR blocked_id = ?')->execute([$uid, $uid]);
+        $pdo->prepare('DELETE FROM reports WHERE reporter_id = ?')->execute([$uid]);
+        $pdo->prepare('DELETE FROM wali_links WHERE user_id = ?')->execute([$uid]);
+        $pdo->prepare('DELETE FROM verifications WHERE user_id = ?')->execute([$uid]);
+        $pdo->prepare('DELETE FROM profiles WHERE user_id = ?')->execute([$uid]);
+        $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$uid]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
+    }
+
+    json(['ok' => true, 'message' => 'Your account has been deleted.']);
 }
 

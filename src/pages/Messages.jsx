@@ -1,3 +1,4 @@
+import { usePageTitle } from '../lib/usePageTitle';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '../layouts/LandingLayout';
@@ -117,6 +118,7 @@ function nowLabel() {
 
 // ── Messages: Request Center + Chats with Chaperone mode ───────────────────
 export default function Messages() {
+  usePageTitle('Messages');
   const [convos, setConvos] = useState(INITIAL_CONVOS);
   const [messagesByConvo, setMessagesByConvo] = useState(loadThreads);
   const [requests, setRequests] = useState(loadIntros);

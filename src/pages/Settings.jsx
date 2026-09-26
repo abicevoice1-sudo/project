@@ -1,3 +1,4 @@
+import { usePageTitle } from '../lib/usePageTitle';
 import { useState, useEffect } from 'react';
 import { readIsDark, writeIsDark } from '../lib/theme';
 import Layout from '../layouts/MainLayout';
@@ -26,6 +27,7 @@ function settingsKey() {
 }
 
 export default function Settings() {
+  usePageTitle('Settings');
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [saved, setSaved] = useState(false);
@@ -276,12 +278,69 @@ export default function Settings() {
               </div>
             )}
 
+            {activeTab === 'security' && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-ink">Security</h2>
+
+                <div>
+                  <h3 className="text-base font-semibold text-ink mb-2">Change password</h3>
+                  <p className="text-sm text-muted mb-3">Use the forgot-password flow to reset your password securely via email.</p>
+                  <a href="/auth/forgot" className="button secondary px-4 py-2 text-sm font-semibold inline-block">
+                    Reset password
+                  </a>
+                </div>
+
+                <div className="pt-4 border-t border-line/10">
+                  <h3 className="text-base font-semibold text-ink mb-2">Active session</h3>
+                  <p className="text-sm text-muted mb-3">
+                    Signed in as <span className="font-medium text-ink">{user?.email}</span>.
+                    Signing out clears your session and all locally cached data on this device.
+                  </p>
+                  <button
+                    onClick={() => { logout(); window.location.href = '/'; }}
+                    className="button secondary px-4 py-2 text-sm font-semibold"
+                  >
+                    Sign out everywhere on this device
+                  </button>
+                </div>
+
+                <div className="pt-4 border-t border-line/10">
+                  <h3 className="text-base font-semibold text-ink mb-2">Protection</h3>
+                  <ul className="text-sm text-muted space-y-1 list-disc list-inside">
+                    <li>Accounts lock after 5 failed sign-in attempts.</li>
+                    <li>Sessions expire and must be renewed by signing in again.</li>
+                    <li>We never ask for your password by email or message.</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'account' && (
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-ink">Account</h2>
                 <div className="p-4 rounded-xl bg-danger/5 border border-danger/20">
                   <h3 className="font-semibold text-danger">Danger Zone</h3>
-                  <p className="text-sm text-muted mt-1">Account deletion is managed securely once a backend is wired.</p>
+                  <p className="text-sm text-muted mt-1 mb-3">
+                    Deleting your account permanently removes your profile, messages, interests, and all data. This cannot be undone.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      const typed = prompt('Type DELETE to permanently delete your account. This cannot be undone.');
+                      if (typed !== 'DELETE') return;
+                      try {
+                        const { http } = await import('../lib/api/transport');
+                        await http.del('/api/auth/account');
+                        logout();
+                        window.location.href = '/';
+                      } catch (e) {
+                        alert(e.message || 'Could not delete account.');
+                      }
+                    }}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg text-white"
+                    style={{ background: 'var(--color-danger)' }}
+                  >
+                    Delete my account
+                  </button>
                 </div>
               </div>
             )}
