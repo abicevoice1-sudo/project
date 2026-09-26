@@ -48,7 +48,7 @@ export default function Dashboard() {
         } catch { /* ignore */ }
         return { ...p, score };
       })
-      .filter(p => p.score !== null)
+      .filter(p => typeof p.score === 'number' && !Number.isNaN(p.score))
       .sort((a, b) => b.score - a.score)
       .slice(0, 4);
   }, [profiles, user]);
@@ -221,7 +221,9 @@ export default function Dashboard() {
                         <p className="font-medium text-sm truncate" style={{ color: 'var(--color-ink)' }}>{p.displayName}, {p.age}</p>
                         <p className="text-xs truncate" style={{ color: 'var(--color-ink-secondary)' }}>{p.city}, {p.country}</p>
                         <div className="mt-2 flex items-center gap-1">
-                          <span className="badge badge-success text-xs font-bold">{p.score}%</span>
+                          {typeof p.score === 'number' && !Number.isNaN(p.score) && (
+                            <span className="badge badge-success text-xs font-bold">{p.score}%</span>
+                          )}
                           {p.is_verified && <ShieldCheck className="w-3 h-3" style={{ color: 'var(--color-warning)' }} />}
                         </div>
                       </div>

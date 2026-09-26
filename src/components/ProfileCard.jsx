@@ -97,7 +97,7 @@ export default function ProfileCard({ profile, className = '' }) {
           )}
 
           {/* Match score — only when honestly computable */}
-          {matchScore !== null && (
+          {typeof matchScore === 'number' && !Number.isNaN(matchScore) && (
             <div
               className="absolute top-2.5 left-2.5 px-2 py-1 rounded-full text-[10px] font-bold backdrop-blur-md"
               style={{ background: 'rgba(11,15,23,0.6)', border: '1px solid rgba(255,255,255,0.18)', color: 'var(--color-success)', boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}
