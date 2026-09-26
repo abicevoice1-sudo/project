@@ -38,30 +38,43 @@ jobs:
           test -f dist/.htaccess && echo "OK: .htaccess present in dist" || (echo "FAIL: .htaccess missing from dist"; exit 1)
           test -f dist/index.html && echo "OK: index.html present" || (echo "FAIL: index.html missing"; exit 1)
 
-      - name: Database setup (best effort)
-        continue-on-error: true
+      - name: Database setup via cPanel UAPI
+        env:
+          CPANEL_USER: ${{ secrets.FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.FTP_PASSWORD }}
+          DB_PASS: ${{ secrets.DB_PASSWORD }}
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq mysql-client
-          mysql -h "${{ secrets.MYSQL_HOST }}" \
-                -u "${{ secrets.CPANEL_MYSQL_USER }}" \
-                -p"${{ secrets.CPANEL_MYSQL_PASSWORD }}" \
-                --connect-timeout=20 \
-                -e "CREATE DATABASE IF NOT EXISTS \`${{ secrets.DB_NAME }}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" \
-            && echo "DATABASE_CREATE_OK" || echo "DATABASE_CREATE_FAILED (will verify via health check)"
-
-      - name: Create database user and grants (best effort)
-        continue-on-error: true
-        run: |
-          mysql -h "${{ secrets.MYSQL_HOST }}" \
-                -u "${{ secrets.CPANEL_MYSQL_USER }}" \
-                -p"${{ secrets.CPANEL_MYSQL_PASSWORD }}" \
-                --connect-timeout=20 \
-                -e "CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
-                    CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
-                    GRANT ALL PRIVILEGES ON \`${{ secrets.DB_NAME }}\`.* TO '${{ secrets.DB_USER }}'@'%';
-                    GRANT ALL PRIVILEGES ON \`${{ secrets.DB_NAME }}\`.* TO '${{ secrets.DB_USER }}'@'localhost';
-                    FLUSH PRIVILEGES;" \
-            && echo "DB_USER_OK" || echo "DB_USER_FAILED (will verify via health check)"
+          python3 - <<'EOF'
+          import requests, re, sys, os, urllib3
+          urllib3.disable_warnings()
+          CPANEL = 'https://ind85.server.broker:2083'
+          USER = os.environ['CPANEL_USER']
+          PASS = os.environ['CPANEL_PASS']
+          DB_PASS = os.environ['DB_PASS']
+          s = requests.Session()
+          r = s.post(f'{CPANEL}/login/', data={'user': USER, 'pass': PASS},
+                     allow_redirects=False, verify=False, timeout=30)
+          m = re.search(r'/cpsess(\d+)/', r.headers.get('Location', ''))
+          if not m:
+              print('CPANEL LOGIN FAILED'); sys.exit(1)
+          base = f"{CPANEL}/cpsess{m.group(1)}/execute"
+          print('cPanel session established')
+          def uapi(mod, func, **params):
+              r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=30)
+              return r.json()
+          j = uapi('Mysql', 'create_database', name='app')
+          print('create_database:', j.get('status'), (j.get('errors') or [None])[0])
+          j = uapi('Mysql', 'create_user', name='appuser', password=DB_PASS)
+          print('create_user:', j.get('status'), (j.get('errors') or [None])[0])
+          j = uapi('Mysql', 'set_privileges_on_database', user=f'{USER}_appuser',
+                   database=f'{USER}_app', privileges='ALL PRIVILEGES')
+          print('grant:', j.get('status'), (j.get('errors') or [None])[0])
+          j = uapi('Mysql', 'list_databases')
+          dbs = [d.get('database') for d in (j.get('data') or [])]
+          print('databases now:', dbs)
+          assert f'{USER}_app' in dbs, 'database not found after creation'
+          print('DATABASE_SETUP_OK')
+          EOF
 
       - name: Generate production .env
         run: |
