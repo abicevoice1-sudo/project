@@ -17,6 +17,8 @@ function migrateSchema(): void
     // that already had its tables — so those columns never got created.
     migrateAddProfileColumns();
     migrateAddContactTable();
+    migrateAddSessionsTable();
+    migrateAddEmailVerificationsTable();
 
     // Cheap "already migrated" probe. Must check a LATE table too: probing only
     // users.* would skip migration forever after a partial run (a lesson learned
@@ -127,5 +129,43 @@ function migrateAddContactTable(): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     } catch (Throwable $e) {
         error_log('[api] migration (contact table) issue: ' . $e->getMessage());
+    }
+}
+
+// Session tracking table. Created unconditionally (idempotent) so databases
+// created before this table existed still get it — the early-return probe at
+// the top of migrateSchema() would otherwise skip it forever.
+function migrateAddSessionsTable(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS sessions (
+          id         CHAR(36)     NOT NULL PRIMARY KEY,
+          user_id    CHAR(36)     NOT NULL,
+          token_hash VARCHAR(64)  NOT NULL,
+          ip         VARCHAR(64)  DEFAULT NULL,
+          user_agent VARCHAR(512) DEFAULT NULL,
+          created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          last_seen  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE KEY uq_sessions_token (token_hash),
+          KEY idx_sessions_user (user_id, last_seen)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('[api] migration (sessions table) issue: ' . $e->getMessage());
+    }
+}
+
+// Email verification tokens table. Same unconditional-idempotent treatment as
+// sessions: existing databases must pick it up on the next boot.
+function migrateAddEmailVerificationsTable(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS email_verifications (
+          user_id    CHAR(36)     NOT NULL PRIMARY KEY,
+          token_hash VARCHAR(64)  NOT NULL,
+          expires_at DATETIME     NOT NULL,
+          created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('[api] migration (email_verifications table) issue: ' . $e->getMessage());
     }
 }

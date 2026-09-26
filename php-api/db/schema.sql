@@ -219,3 +219,27 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_contact_status (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Session tracking: one row per login token so the Security tab can list
+-- active sessions. token_hash is the SHA-256 of the bearer JWT — the token
+-- itself is never stored, so a DB leak yields no usable credentials.
+CREATE TABLE IF NOT EXISTS sessions (
+  id         CHAR(36)     NOT NULL PRIMARY KEY,
+  user_id    CHAR(36)     NOT NULL,
+  token_hash VARCHAR(64)  NOT NULL,
+  ip         VARCHAR(64)  DEFAULT NULL,
+  user_agent VARCHAR(512) DEFAULT NULL,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_sessions_token (token_hash),
+  KEY idx_sessions_user (user_id, last_seen)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Email verification tokens (stored HASHED — a DB leak must not yield usable
+-- verification links). One row per user; re-requested tokens replace the old.
+CREATE TABLE IF NOT EXISTS email_verifications (
+  user_id    CHAR(36)     NOT NULL PRIMARY KEY,
+  token_hash VARCHAR(64)  NOT NULL,
+  expires_at DATETIME     NOT NULL,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

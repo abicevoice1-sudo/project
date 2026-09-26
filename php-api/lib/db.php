@@ -63,6 +63,12 @@ function requireAuthUser(): array
     if ($user === null) {
         je('Authentication required', 401);
     }
+    // Refresh last_seen for the Security tab's session list. Runtime-resolved
+    // (lib/sessions.php loads after this file) — guarded so a stripped deploy
+    // can never brick authentication.
+    if (function_exists('touchSession')) {
+        touchSession();
+    }
     return $user;
 }
 

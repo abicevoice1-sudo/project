@@ -370,6 +370,12 @@ function profileById(string $id): void
         je('Profile not found.', 404);
     }
 
+    // P0: full (non-teaser) profile views require a verified email.
+    // Deliberately NOT gated: anonymous teasers and the owner's own view.
+    if ($viewer !== null && (string)$viewer['uid'] !== (string)$id && empty($view['teaser'])) {
+        requireVerifiedEmail((string)$viewer['uid']);
+    }
+
     // Include interest state so the UI survives reloads.
     if ($viewer !== null) {
         $sent = db()->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');

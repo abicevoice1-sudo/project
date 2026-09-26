@@ -11,7 +11,11 @@ function routeAuth(string $method, array $segments): void
 
     if ($method === 'POST' && $action === 'register') { authRegister(); return; }
     if ($method === 'POST' && $action === 'login')    { authLogin();    return; }
+    if ($method === 'POST' && $action === 'logout')   { authLogout();   return; }
     if ($method === 'GET'  && $action === 'verify-email') { authVerifyEmail(); return; }
+    if ($method === 'POST' && $action === 'verify' && ($segments[1] ?? '') === 'request') { authVerifyRequest(); return; }
+    if ($method === 'GET'  && $action === 'verify')   { authVerifyToken(); return; }
+    if ($method === 'GET'  && $action === 'sessions') { authSessions(); return; }
     if ($method === 'POST' && $action === 'forgot')   { authForgot();   return; }
     if ($method === 'POST' && $action === 'reset')    { authReset();    return; }
     if ($method === 'POST' && $action === 'resend-verification') { authResendVerification(); return; }
@@ -65,15 +69,17 @@ function authRegister(): void
         throw $e;
     }
 
-    // Email verification: token stored hashed, link valid 24 hours.
-    $verifyToken = bin2hex(random_bytes(32));
-    $pdo->prepare("UPDATE users SET email_verify_token = ?, email_verify_expires = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 24 HOUR) WHERE id = ?")
-        ->execute([sha256Hex($verifyToken), $userId]);
+    // Email verification: explicit unverified flag plus a 24h token in the
+    // email_verifications table (stored HASHED — a DB leak must not yield
+    // usable verify links). The legacy users.email_verify_token columns stay
+    // readable by GET /verify-email for any links already in flight.
+    $pdo->prepare('UPDATE users SET email_verified = 0 WHERE id = ?')->execute([$userId]);
+    $verifyToken = issueVerificationToken($userId);
 
     mailSend([
         'to' => $email,
         'subject' => 'Verify your ShiaRishta email',
-        'text' => "Assalamu Alaikum {$displayName},\n\nConfirm your email to finish creating your account:\n" . publicBase() . "/verify-email?token={$verifyToken}\n\nThis link expires in 24 hours.",
+        'text' => "Assalamu Alaikum {$displayName},\n\nConfirm your email to finish creating your account:\nhttps://shiarishta.com/verify/{$verifyToken}\n\nThis link expires in 24 hours.",
     ]);
 
     $userRow = ['id' => $userId, 'email' => $email, 'display_name' => $displayName, 'is_admin' => $isAdmin, 'email_verified' => false];
@@ -98,10 +104,148 @@ function authLogin(): void
         je('Invalid email or password.', 401);
     }
 
+    $token = signSession($user);
+    // Track this login so the Security tab can list active sessions.
+    recordSession((string)$user['id'], $token);
+
     json([
         'user' => makeMemberSession($user),
-        'token' => signSession($user),
+        'token' => $token,
     ]);
+}
+
+function authLogout(): void
+{
+    // The client clears its own token; this drops the row so the session list
+    // stops showing a signed-out device.
+    requireAuthUser();
+    dropSession();
+    json(['ok' => true]);
+}
+
+// ─── Email verification (table-based, P0) ────────────────────────────────────
+
+// MAIL_ENABLED='true' means a real mail transport is configured. Until SMTP is
+// set up the API runs in devMode and hands the verification URL straight back
+// so the stopgap is explicit, never silent.
+function mailEnabled(): bool
+{
+    return strtolower(trim((string)(getenv('MAIL_ENABLED') ?: ''))) === 'true';
+}
+
+// Issues (or replaces) the 24h verification token for a user. Returns the RAW
+// token — the only place it ever exists in cleartext; the table holds the hash.
+function issueVerificationToken(string $userId): string
+{
+    $token = bin2hex(random_bytes(32));
+    db()->prepare(
+        'INSERT INTO email_verifications (user_id, token_hash, expires_at)
+         VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 24 HOUR))
+         ON DUPLICATE KEY UPDATE token_hash = VALUES(token_hash),
+                                 expires_at = VALUES(expires_at),
+                                 created_at = UTC_TIMESTAMP()'
+    )->execute([$userId, sha256Hex($token)]);
+    return $token;
+}
+
+// POST /api/auth/verify/request — signed-in member asks for a fresh link.
+function authVerifyRequest(): void
+{
+    $user = requireAuthUser();
+
+    // MySQL has no UPDATE...RETURNING: probe first, then issue.
+    $probe = db()->prepare('SELECT id, email, display_name FROM users WHERE id = ? AND email_verified = 0 LIMIT 1');
+    $probe->execute([$user['uid']]);
+    $row = $probe->fetch();
+
+    if (!$row) {
+        json(['ok' => true, 'alreadyVerified' => true]);
+        return;
+    }
+
+    $token = issueVerificationToken((string)$user['uid']);
+    $verifyUrl = 'https://shiarishta.com/verify/' . $token;
+
+    if (mailEnabled()) {
+        mailSend([
+            'to' => $row['email'],
+            'subject' => 'Verify your ShiaRishta email',
+            'text' => "Assalamu Alaikum {$row['display_name']},\n\nConfirm your email to finish creating your account:\n{$verifyUrl}\n\nThis link expires in 24 hours.",
+        ]);
+        json(['ok' => true, 'message' => 'Verification email sent — check your inbox.']);
+    }
+
+    json(['ok' => true, 'devMode' => true, 'verifyUrl' => $verifyUrl]);
+}
+
+// GET /api/auth/verify?token=... — public. Consumes the token on success.
+function authVerifyToken(): void
+{
+    $token = (string)($_GET['token'] ?? '');
+    if ($token === '') {
+        je('Missing verification token.', 400);
+    }
+
+    $stmt = db()->prepare('SELECT user_id FROM email_verifications WHERE token_hash = ? AND expires_at > UTC_TIMESTAMP() LIMIT 1');
+    $stmt->execute([sha256Hex($token)]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        json(['ok' => false, 'error' => 'This link has expired or was already used. Sign in to get a new one.'], 400);
+    }
+
+    $pdo = db();
+    try {
+        $pdo->beginTransaction();
+        $pdo->prepare('UPDATE users SET email_verified = 1 WHERE id = ?')->execute([$row['user_id']]);
+        $pdo->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$row['user_id']]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
+    }
+
+    json(['ok' => true, 'emailVerified' => true]);
+}
+
+// GET /api/auth/sessions — newest first, with the caller's own marked.
+function authSessions(): void
+{
+    $user = requireAuthUser();
+    $stmt = db()->prepare('SELECT id, created_at, last_seen, ip, user_agent, token_hash FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50');
+    $stmt->execute([$user['uid']]);
+    $rows = $stmt->fetchAll();
+
+    $current = sessionTokenHash();
+    $out = [];
+    foreach ($rows as $r) {
+        $out[] = [
+            'id' => $r['id'],
+            'createdAt' => $r['created_at'],
+            'lastSeen' => $r['last_seen'],
+            'ip' => $r['ip'],
+            'userAgent' => $r['user_agent'],
+            'current' => $current !== null && hash_equals((string)$r['token_hash'], $current),
+        ];
+    }
+
+    json($out);
+}
+
+// Gating helper for messaging and full profile views. Deliberately does NOT
+// gate registration, onboarding publish, /profiles/me, or anonymous teasers.
+function requireVerifiedEmail(string $uid): void
+{
+    $stmt = db()->prepare('SELECT email_verified FROM users WHERE id = ? LIMIT 1');
+    $stmt->execute([$uid]);
+    $row = $stmt->fetch();
+
+    if (!$row || empty($row['email_verified'])) {
+        json([
+            'error' => 'Please verify your email to continue. Check your inbox for the verification link, or request a new one from Settings.',
+            'emailVerificationRequired' => true,
+        ], 403);
+    }
 }
 
 function authVerifyEmail(): void

@@ -115,6 +115,9 @@ function messageThread(string $id): void
 function startConversation(): void
 {
     $user = requireAuthUser();
+    // P0: messaging requires a verified email — unverified accounts get no
+    // member access to the conversation loop.
+    requireVerifiedEmail((string)$user['uid']);
     $payload = requestJson();
     $other = (string)($payload['userId'] ?? $payload['profileId'] ?? '');
 
@@ -167,6 +170,8 @@ function startConversation(): void
 function sendMessage(string $id): void
 {
     $user = requireAuthUser();
+    // P0: messaging requires a verified email.
+    requireVerifiedEmail((string)$user['uid']);
     $payload = requestJson();
     $body = cleanMessage($payload['text'] ?? $payload['body'] ?? '');
     if ($body === '') {

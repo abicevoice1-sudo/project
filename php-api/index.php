@@ -11,8 +11,10 @@ require __DIR__ . '/lib/util.php';
 require __DIR__ . '/lib/mail.php';
 require __DIR__ . '/lib/ratelimit.php';
 require __DIR__ . '/lib/migrate.php';
+require __DIR__ . '/lib/sessions.php';
 require __DIR__ . '/routes/auth.php';
 require __DIR__ . '/routes/profiles.php';
+require __DIR__ . '/routes/users.php';
 require __DIR__ . '/routes/messages.php';
 require __DIR__ . '/routes/community.php';
 require __DIR__ . '/routes/reports.php';
@@ -126,6 +128,9 @@ try {
             break;
         case 'profiles':
             routeProfiles($method, $rest);
+            break;
+        case 'users':
+            routeUsers($method, $rest);
             break;
         case 'messages':
             requireAuthUser();
