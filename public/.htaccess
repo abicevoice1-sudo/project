@@ -1,3 +1,20 @@
+<IfModule mod_headers.c>
+  # Entry points — always revalidate. The JS/CSS they reference is
+  # content-hashed, so a fresh index.html is the only thing standing
+  # between a deploy and the user seeing it.
+  <FilesMatch "^(index\.html|sw\.js)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # Unhashed brand assets — revalidate every time (tiny files).
+  <FilesMatch "^(icon\.svg|favicon\.svg|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # Hashed build assets are immutable — cache for a year.
+  <FilesMatch "\.[0-9a-f]{8}\.(js|css|woff2?|png|jpe?g|webp|svg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
 # Shiarishta SPA — Apache fallback for client-side routes.
 # Every non-file request serves index.html so React Router can take over.
 RewriteEngine On

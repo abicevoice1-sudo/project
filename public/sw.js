@@ -1,10 +1,14 @@
 // ─── Service worker — installable app shell, never caches member data ────────
-// Strategy: cache-first for the static shell (so the app opens instantly and
-// works on a flaky connection), but /api/* is ALWAYS network-only and never
-// stored. A matrimonial platform must not leave profiles or messages in a
-// shared-device cache.
-const SHELL = 'shiarishta-shell-v1';
+// Strategy:
+//  • /api/* — network-only, never stored (no profiles/messages on disk).
+//  • Navigations + index.html — network-first (a deploy must reach the user).
+//  • Unhashed brand files (icon.svg, favicon.svg, manifest) — network-first:
+//    they change without a URL change, so cache-first would pin stale art.
+//  • Hashed /assets/* bundles — cache-first, immutable by content hash.
+const SHELL = 'shiarishta-shell-v2';
 const SHELL_FILES = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+// Unhashed files that must revalidate on every fetch (see SHELL_FILES + favicon).
+const NETWORK_FIRST_PATHS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/favicon.svg', '/sw.js'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -29,10 +33,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigations: network first, fall back to the cached shell when offline.
-  if (request.mode === 'navigate') {
+  const networkFirst =
+    request.mode === 'navigate' || NETWORK_FIRST_PATHS.includes(url.pathname);
+
+  if (networkFirst) {
+    // Fresh entry points and brand art; fall back to cache only when offline.
     event.respondWith(
-      fetch(request).catch(() => caches.match('/index.html').then((r) => r || Response.error())),
+      fetch(request)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(SHELL).then((cache) => cache.put(request, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(request).then((r) => r || Response.error())),
     );
     return;
   }
@@ -40,7 +55,7 @@ self.addEventListener('fetch', (event) => {
   // Hashed build assets are immutable — serve from cache, fill cache on miss.
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request).then((res) => {
-      if (res.ok && (url.pathname.startsWith('/assets/') || SHELL_FILES.includes(url.pathname))) {
+      if (res.ok && url.pathname.startsWith('/assets/')) {
         const copy = res.clone();
         caches.open(SHELL).then((cache) => cache.put(request, copy));
       }
