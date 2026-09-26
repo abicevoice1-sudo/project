@@ -42,7 +42,7 @@ export default function About() {
             <div className="space-y-4 text-sm text-muted leading-relaxed">
               <p>ShiaRishta was born from a simple observation: existing matrimonial platforms didn't serve the Shia community well. They lacked granular sect filters, ignored the importance of wali involvement, treated privacy as a premium feature, and felt more like social media than a sacred search.</p>
               <p>We set out to build something different. A platform where privacy is a right. Where family involvement is a feature, not an afterthought. Where AI serves serious intentions — not engagement metrics. Where every design decision is guided by Islamic values and cultural respect.</p>
-              <p>Today, ShiaRishta serves members across 40+ cities, facilitates thousands of introductions, and continues to be shaped by the community we serve.</p>
+              <p>ShiaRishta is in early access, welcoming founding members who are helping shape a thoughtful, faith-centered way to meet.</p>
             </div>
           </div>
         </motion.div>

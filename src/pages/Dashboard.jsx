@@ -99,9 +99,40 @@ export default function Dashboard() {
     },
   ];
 
+  const [verifyMsg, setVerifyMsg] = useState('');
+  const [verifySending, setVerifySending] = useState(false);
+  const resendVerification = async () => {
+    setVerifySending(true);
+    setVerifyMsg('');
+    try {
+      await api.post('/auth/verify/request', {});
+      setVerifyMsg('Verification email sent — check your inbox.');
+    } catch (e) {
+      setVerifyMsg(e?.message || 'Could not send verification email.');
+    } finally {
+      setVerifySending(false);
+    }
+  };
+
   return (
     <Layout>
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        {user && user.emailVerified === false && (
+          <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+            <p className="text-sm flex-1" style={{ color: 'var(--color-ink)' }}>
+              <strong>Verify your email</strong> to unlock messaging and publishing. Check your inbox for the verification link.
+              {verifyMsg && <span className="block mt-1 text-xs opacity-80">{verifyMsg}</span>}
+            </p>
+            <button
+              onClick={resendVerification}
+              disabled={verifySending}
+              className="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background: 'var(--color-primary)' }}
+            >
+              {verifySending ? 'Sending…' : 'Resend email'}
+            </button>
+          </div>
+        )}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-ink)' }}>
             Welcome back, {user?.displayName || 'there'}
