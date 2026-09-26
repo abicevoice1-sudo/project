@@ -160,7 +160,7 @@ function draftsCreate(): void
         ],
         'shareUrl' => $base . '/claim/' . $claimToken,
         'whatsappUrl' => 'https://wa.me/?text=' . rawurlencode(
-            "Assalamu Alaikum — I have set up a private profile for you on Shiarishta (nikah-first matchmaking). Review it and make it yours here (valid " . CLAIM_DAYS . " days): {$base}/claim/{$claimToken}\n\nShort code if the link expires: {$shortCode}"
+            "Assalamu Alaikum — I have set up a private profile for you on ShiaRishta (nikah-first matchmaking). Review it and make it yours here (valid " . CLAIM_DAYS . " days): {$base}/claim/{$claimToken}\n\nShort code if the link expires: {$shortCode}"
         ),
         'quota' => quotaFor((string)$user['uid'], $role),
     ], 201);
@@ -211,8 +211,8 @@ function draftsSend(string $draftId): void
 
     mailSend([
         'to' => $draft['contact_email'],
-        'subject' => "{$by} set up a private profile for you on Shiarishta",
-        'text' => "Assalamu Alaikum {$draft['display_name']},\n\n{$by}, a verified {$draft['creator_role']} on Shiarishta (nikah-first matchmaking), set up a private profile for you and confirmed they have your permission to share your details.\n\nReview it and make it yours (valid " . CLAIM_DAYS . " days):\n{$link}\n\nShort code if the link does not work: {$draft['short_code']}\n\nNot you, or do not want this? Decline and erase everything:\n{$link}?decline=1\n\nNothing is public. Your photo is not included — you add it yourself if you claim the profile.",
+        'subject' => "{$by} set up a private profile for you on ShiaRishta",
+        'text' => "Assalamu Alaikum {$draft['display_name']},\n\n{$by}, a verified {$draft['creator_role']} on ShiaRishta (nikah-first matchmaking), set up a private profile for you and confirmed they have your permission to share your details.\n\nReview it and make it yours (valid " . CLAIM_DAYS . " days):\n{$link}\n\nShort code if the link does not work: {$draft['short_code']}\n\nNot you, or do not want this? Decline and erase everything:\n{$link}?decline=1\n\nNothing is public. Your photo is not included — you add it yourself if you claim the profile.",
     ]);
 
     db()->prepare('UPDATE profile_drafts SET last_sent_at = UTC_TIMESTAMP(), send_count = send_count + 1 WHERE id = ?')
@@ -327,7 +327,7 @@ function draftsClaimDecline(string $token): void
         claim_token = CONCAT('dead-', UUID()) WHERE id = ?")->execute([$draft['id']]);
 
     logEvent($draft['id'], null, 'declined', 'subject declined, fields scrubbed');
-    json(['ok' => true, 'message' => 'Declined and erased. Nothing of yours remains on Shiarishta.']);
+    json(['ok' => true, 'message' => 'Declined and erased. Nothing of yours remains on ShiaRishta.']);
 }
 
 // POST /api/drafts/claim/:token — claim turns the draft into HER real profile.

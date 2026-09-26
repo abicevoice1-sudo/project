@@ -40,7 +40,7 @@ export default function GetVerified() {
     try {
       const imageBase64 = await fileToBase64(file);
       await api.submitVerification({ kind, imageBase64 });
-      setSubmitted('Submitted — a person on our team reviews it, usually within a day. You keep using Shiarishta meanwhile.');
+      setSubmitted('Submitted — a person on our team reviews it, usually within a day. You keep using ShiaRishta meanwhile.');
       if (fileRef.current) fileRef.current.value = '';
       loadMine();
     } catch (err) {

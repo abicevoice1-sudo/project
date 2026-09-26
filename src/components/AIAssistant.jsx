@@ -63,7 +63,7 @@ export default function AIAssistant() {
             <div className="flex items-center gap-2.5">
               <div className="ai-orb"><Bot className="w-4 h-4" /></div>
               <div>
-                <p className="ai-drawer-title">Shiarishta Assistant</p>
+                <p className="ai-drawer-title">ShiaRishta Assistant</p>
                 <p className="ai-drawer-sub"><BadgeCheck className="w-3 h-3" /> Respectful, halal-aware guidance</p>
               </div>
             </div>

@@ -20,7 +20,7 @@ function mailSend(array $opts): array
     $to      = (string)($opts['to'] ?? '');
     $subject = (string)($opts['subject'] ?? '');
     $text    = (string)($opts['text'] ?? '');
-    $from    = (string)(getenv('MAIL_FROM') ?: 'Shiarishta <no-reply@shiarishta.com>');
+    $from    = (string)(getenv('MAIL_FROM') ?: 'ShiaRishta <no-reply@shiarishta.com>');
 
     $host     = trim((string)(getenv('SMTP_HOST') ?: ''));
     $transport = strtolower(trim((string)(getenv('MAIL_TRANSPORT') ?: '')));
@@ -62,7 +62,7 @@ function mailNative(string $from, string $to, string $subject, string $text): ar
     $headers = "From: $from\r\n"
              . "Reply-To: $from\r\n"
              . "Content-Type: text/plain; charset=UTF-8\r\n"
-             . 'X-Mailer: Shiarishta-PHP';
+             . 'X-Mailer: ShiaRishta-PHP';
     $ok = @mail($to, $subject, $text, $headers);
     if ($ok) {
         error_log("[mail:mail] sent to=$to subject=\"$subject\"");

@@ -71,7 +71,7 @@ export default function SuccessStories() {
           className="text-center mb-10"
         >
           <span className="text-xs font-bold uppercase tracking-widest text-primary">
-            How Shiarishta works
+            How ShiaRishta works
           </span>
           <h1 className="text-3xl sm:text-4xl font-bold text-ink mt-2">
             What we actually do
@@ -124,7 +124,7 @@ export default function SuccessStories() {
           className="card p-8 mt-8 text-center"
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
-          <h2 className="text-xl font-bold text-ink mb-2">Married through Shiarishta?</h2>
+          <h2 className="text-xl font-bold text-ink mb-2">Married through ShiaRishta?</h2>
           <p className="text-sm text-muted max-w-lg mx-auto leading-relaxed mb-5">
             If you found your spouse here and you would like your story listed
             with your real name and your own words, get in touch. We publish only

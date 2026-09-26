@@ -1,4 +1,4 @@
--- Shiarishta PHP API â€” MariaDB schema (utf8mb4). Idempotent: safe to re-run.
+-- ShiaRishta PHP API â€” MariaDB schema (utf8mb4). Idempotent: safe to re-run.
 -- Port of server/schema.sql: UUID -> CHAR(36) app-generated, CITEXT -> TEXT with
 -- lowercased values + unique index, TIMESTAMPTZ -> DATETIME (UTC session set by
 -- db.php), gen_random_uuid() -> uuid() in PHP.

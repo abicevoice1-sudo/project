@@ -5,7 +5,7 @@ import { Heart, Shield, Users, Sparkles, Globe, Eye, ArrowRight } from 'lucide-r
 
 const VALUES = [
   { icon: Shield, title: 'Privacy by Default', desc: 'Your photos, your profile, your rules. Hidden-until-match by default, encrypted message storage, and discreet browsing come standard — not as premium add-ons.' },
-  { icon: Heart, title: 'Intention First', desc: 'We built Shiarishta for one purpose: serious nikah-seeking. No swiping culture, no casual browsing — just verified, intentional members.' },
+  { icon: Heart, title: 'Intention First', desc: 'We built ShiaRishta for one purpose: serious nikah-seeking. No swiping culture, no casual browsing — just verified, intentional members.' },
   { icon: Users, title: 'Family-Centered', desc: 'Wali workflows and family-managed introductions aren\'t afterthoughts. They\'re built into the platform from day one.' },
   { icon: Globe, title: 'Community-Driven', desc: 'From Ithna Ashari to Ismaili, Bohra to Zaydi — we serve the full diversity of Shia Islam with granular sect and Marja\' filters.' },
   { icon: Sparkles, title: 'Values-Matched', desc: 'Our compatibility score weighs faith practice, values, lifestyle and timeline alignment — surfacing matches that genuinely matter.' },
@@ -14,7 +14,7 @@ const VALUES = [
 
 const TEAM = [
   { name: 'Mitchell', role: 'Founder & Lead Engineer', initial: 'M' },
-  { name: 'The Shiarishta Team', role: 'Community & Support', initial: 'S' },
+  { name: 'The ShiaRishta Team', role: 'Community & Support', initial: 'S' },
 ];
 
 export default function About() {
@@ -26,7 +26,7 @@ export default function About() {
           <span className="text-xs font-bold uppercase tracking-widest text-primary">Our mission</span>
           <h1 className="text-3xl sm:text-5xl font-bold text-ink mt-2">Built for a sacred purpose</h1>
           <p className="text-muted mt-3 max-w-2xl mx-auto text-lg">
-            Shiarishta exists to help Shia singles and families find life partners with dignity, privacy, and faith at the center.
+            ShiaRishta exists to help Shia singles and families find life partners with dignity, privacy, and faith at the center.
           </p>
         </motion.div>
 
@@ -36,13 +36,13 @@ export default function About() {
           <div className="grid md:grid-cols-[1fr_2fr] gap-8 items-center">
             <div className="text-center">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">S</div>
-              <h2 className="text-xl font-bold text-ink">Shiarishta</h2>
+              <h2 className="text-xl font-bold text-ink">ShiaRishta</h2>
               <p className="text-sm text-muted mt-1">Where intention meets introduction</p>
             </div>
             <div className="space-y-4 text-sm text-muted leading-relaxed">
-              <p>Shiarishta was born from a simple observation: existing matrimonial platforms didn't serve the Shia community well. They lacked granular sect filters, ignored the importance of wali involvement, treated privacy as a premium feature, and felt more like social media than a sacred search.</p>
+              <p>ShiaRishta was born from a simple observation: existing matrimonial platforms didn't serve the Shia community well. They lacked granular sect filters, ignored the importance of wali involvement, treated privacy as a premium feature, and felt more like social media than a sacred search.</p>
               <p>We set out to build something different. A platform where privacy is a right. Where family involvement is a feature, not an afterthought. Where AI serves serious intentions — not engagement metrics. Where every design decision is guided by Islamic values and cultural respect.</p>
-              <p>Today, Shiarishta serves members across 40+ cities, facilitates thousands of introductions, and continues to be shaped by the community we serve.</p>
+              <p>Today, ShiaRishta serves members across 40+ cities, facilitates thousands of introductions, and continues to be shaped by the community we serve.</p>
             </div>
           </div>
         </motion.div>

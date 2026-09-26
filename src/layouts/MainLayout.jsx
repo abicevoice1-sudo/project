@@ -194,7 +194,7 @@ function BrandMark() {
       >
         S
       </div>
-      <span className="font-bold text-sm" style={{ color: 'var(--color-ink)' }}>Shiarishta</span>
+      <span className="font-bold text-sm" style={{ color: 'var(--color-ink)' }}>ShiaRishta</span>
     </div>
   );
 }

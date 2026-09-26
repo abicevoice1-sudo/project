@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Layout from '../layouts/MainLayout';
 import { useAuth } from '../lib/auth/AuthContext';
+import { api } from '../lib/api/client';
 import {
   SECTS, MARJA_OPTIONS, RELIGIOSITY_LEVELS, PRAYER_OPTIONS,
   MODESTY_OPTIONS_FEMALE, MODESTY_OPTIONS_MALE, DIET_OPTIONS, SYED_OPTIONS,
@@ -197,6 +198,7 @@ export default function Onboard() {
   const [draftReady, setDraftReady] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState('');
 
   const totalSteps = ONBOARDING_STEPS.length;
 
@@ -254,8 +256,48 @@ export default function Onboard() {
 
   const publish = async () => {
     setPublishing(true);
+    setPublishError('');
     try {
-      await new Promise(r => setTimeout(r, 900)); // simulated API latency
+      // Map the wizard's form fields to the backend profile columns.
+      // Previously this only wrote to localStorage, so onboarding answers
+      // never reached the database and other members saw an empty profile.
+      const heightMatch = /(\d+)\s*cm/i.exec(data.height || '');
+      const payload = {
+        displayName: data.displayName,
+        age: data.age === '' ? null : parseInt(data.age, 10),
+        gender: data.gender,
+        city: data.city,
+        country: data.country,
+        heightCm: heightMatch ? parseInt(heightMatch[1], 10) : null,
+        maritalStatus: data.maritalStatus,
+        sect: data.sect,
+        religiosity: data.religiosity,
+        prayer: data.prayer,
+        marja: data.marja,
+        modesty: data.modesty,
+        diet: data.diet,
+        ethnicity: data.ethnicity,
+        languages: Array.isArray(data.languages) ? data.languages.join(', ') : data.languages,
+        educationLevel: data.educationLevel,
+        profession: data.profession,
+        incomeRange: data.incomeRange,
+        timeline: data.timeline,
+        relocation: data.relocation,
+        familyInvolvement: data.familyInvolvement,
+        children: data.childrenStatus,
+        childrenPlans: data.childrenPlans,
+        photosVisibility: data.photoAccess,
+        visibility: data.profileVisibility,
+        bio: data.bio,
+        expectations: data.lookingFor,
+      };
+      const clean = {};
+      for (const [k, v] of Object.entries(payload)) {
+        if (v === '' || v === null || v === undefined) continue;
+        if (Number.isNaN(v)) continue;
+        clean[k] = v;
+      }
+      await api.updateProfile(user?.uid || 'me', clean);
       const profile = {
         ...data,
         age: parseInt(data.age, 10),
@@ -266,6 +308,8 @@ export default function Onboard() {
       localStorage.setItem('shiarishta_my_profile', JSON.stringify(profile));
       localStorage.removeItem(DRAFT_KEY);
       navigate('/dashboard');
+    } catch (e) {
+      setPublishError(e?.message || 'Could not save your profile. Please try again.');
     } finally {
       setPublishing(false);
     }
@@ -353,6 +397,9 @@ export default function Onboard() {
               </button>
               <div className="flex items-center gap-3">
                 <span className="hidden sm:inline text-xs text-muted">Progress autosaves automatically</span>
+                {publishError && (
+                  <span className="text-xs font-medium" style={{ color: 'var(--color-danger)' }}>{publishError}</span>
+                )}
                 <button onClick={goNext} disabled={publishing} className="button primary px-7 py-3 font-semibold flex items-center gap-2 disabled:opacity-70">
                   {publishing ? (
                     <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Publishing…</>

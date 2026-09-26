@@ -1,4 +1,4 @@
-# Shiarishta PHP API — Apache front-controller config.
+# ShiaRishta PHP API — Apache front-controller config.
 # Deploy target: public_html/api/ (served as https://shiarishta.com/api).
 RewriteEngine On
 

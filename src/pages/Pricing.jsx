@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
 import { Check, Sparkles, Shield, Heart, ArrowRight, CircleOff } from 'lucide-react';
 
-// HONESTY CONTRACT: Shiarishta has NO payment system, NO subscriptions and NO
+// HONESTY CONTRACT: ShiaRishta has NO payment system, NO subscriptions and NO
 // billing of any kind. This page must never state or imply that money can be
 // charged today. Paid tiers are roadmap items, clearly labeled as planned and
 // not purchasable, and pricing will be shaped by early-member feedback.

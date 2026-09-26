@@ -367,7 +367,7 @@ function LandingHeader({ dark, setDark }) {
       <header className="landing-header" ref={headerRef}>
         <div className="landing-header-inner">
           {/* Logo */}
-          <Link to="/" className="landing-brand" aria-label="Shiarishta — home">
+          <Link to="/" className="landing-brand" aria-label="ShiaRishta — home">
             <span className="landing-brand-mark">S</span>
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '-0.02em' }}>SHIARISHTA</span>

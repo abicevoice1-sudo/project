@@ -1,4 +1,4 @@
-# Shiarishta PHP API — drops onto shared-hosting cPanel
+# ShiaRishta PHP API — drops onto shared-hosting cPanel
 
 Pure-PHP port of the Node/Express backend (`server/`), same routes, same status
 codes, same JSON shapes. Verified with 116 end-to-end assertions against

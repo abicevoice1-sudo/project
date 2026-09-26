@@ -72,7 +72,7 @@ export default function Home() {
               })}
             >
               <p className="hp-eyebrow"><span aria-hidden="true" /> Private Shia matchmaking</p>
-              <h1>{isLoggedIn ? `Welcome back, ${user?.displayName || "friend"}` : "Shiarishta"}</h1>
+              <h1>{isLoggedIn ? `Welcome back, ${user?.displayName || "friend"}` : "ShiaRishta"}</h1>
               <p className="hp-lede">
                 A refined nikah-first platform where serious families can discover verified,
                 privacy-protected profiles with clarity, dignity, and intention.

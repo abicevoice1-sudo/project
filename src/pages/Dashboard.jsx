@@ -25,11 +25,14 @@ export default function Dashboard() {
 
   const rankedMatches = useMemo(() => {
     if (!profiles.length) return [];
+    // Never show the member their own profile as a match.
+    const me = String(user?.uid || '');
     return profiles
+      .filter(p => String(p.id ?? p.user_id ?? p.uid ?? '') !== me)
       .map(p => ({ ...p, score: p.matchScore || 85 }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 4);
-  }, [profiles]);
+  }, [profiles, user]);
 
   const topMatch = rankedMatches[0];
   // Single source of truth: the onboarding wizard's scoring model. Falls back

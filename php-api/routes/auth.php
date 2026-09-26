@@ -65,7 +65,7 @@ function authRegister(): void
 
     mailSend([
         'to' => $email,
-        'subject' => 'Verify your Shiarishta email',
+        'subject' => 'Verify your ShiaRishta email',
         'text' => "Assalamu Alaikum {$displayName},\n\nConfirm your email to finish creating your account:\n" . publicBase() . "/verify-email?token={$verifyToken}\n\nThis link expires in 24 hours.",
     ]);
 
@@ -135,7 +135,7 @@ function authForgot(): void
 
             mailSend([
                 'to' => $email,
-                'subject' => 'Reset your Shiarishta password',
+                'subject' => 'Reset your ShiaRishta password',
                 'text' => "Assalamu Alaikum,\n\nReset your password with this link (valid 1 hour):\n" . publicBase() . "/auth/reset?token={$token}\n\nIf you did not request this, ignore this email — your account is safe.",
             ]);
         }
@@ -192,7 +192,7 @@ function authResendVerification(): void
 
     mailSend([
         'to' => $row['email'],
-        'subject' => 'Verify your Shiarishta email',
+        'subject' => 'Verify your ShiaRishta email',
         'text' => "Assalamu Alaikum {$row['display_name']},\n\nConfirm your email to finish creating your account:\n" . publicBase() . "/verify-email?token={$token}\n\nThis link expires in 24 hours.",
     ]);
 

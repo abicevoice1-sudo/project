@@ -319,6 +319,9 @@ function profilesList(): void
     } else {
         $where[] = "(p.visibility <> 'private' OR p.user_id = ?)";
         $params[] = $viewer['uid'];
+        // Never show members their own profile as a match.
+        $where[] = 'p.user_id <> ?';
+        $params[] = $viewer['uid'];
     }
 
     $sql = 'SELECT p.* FROM profiles p WHERE ' . implode(' AND ', $where) . ' ORDER BY p.created_at DESC LIMIT 100';

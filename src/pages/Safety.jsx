@@ -42,7 +42,7 @@ export default function Safety() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
           <span className="text-xs font-bold uppercase tracking-widest text-primary">Your safety is our priority</span>
           <h1 className="text-3xl sm:text-4xl font-bold text-ink mt-2">Trust & Safety Center</h1>
-          <p className="text-muted mt-2 max-w-xl mx-auto">We build tools and enforce policies to keep Shiarishta a safe, respectful space for serious marriage seekers.</p>
+          <p className="text-muted mt-2 max-w-xl mx-auto">We build tools and enforce policies to keep ShiaRishta a safe, respectful space for serious marriage seekers.</p>
         </motion.div>
 
         {/* Principles */}
