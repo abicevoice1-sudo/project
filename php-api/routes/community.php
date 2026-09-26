@@ -22,14 +22,7 @@ function routeCommunity(string $method, array $segments): void
     json(['error' => 'Community endpoint not found'], 404);
 }
 
-function requireAdminUser(): array
-{
-    $user = requireAuthUser();
-    if (empty($user['isAdmin'])) {
-        je('Admin access required', 403);
-    }
-    return $user;
-}
+// (requireAdminUser lives in lib/db.php — do not redeclare it here.)
 
 // DELETE /api/community/post/:id — admin moderation: remove the post and its
 // replies in one transaction.
