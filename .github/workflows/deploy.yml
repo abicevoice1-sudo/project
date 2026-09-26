@@ -9,7 +9,8 @@ name: Deploy to cPanel
 # Required repository secrets:
 #   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD,
 #   MYSQL_HOST, CPANEL_MYSQL_USER, CPANEL_MYSQL_PASSWORD,
-#   DB_NAME, DB_USER, DB_PASSWORD, JWT_SECRET, DATA_ENCRYPTION_KEY
+#   DB_NAME, DB_USER, DB_PASSWORD, JWT_SECRET, DATA_ENCRYPTION_KEY,
+#   ADMIN_EMAILS (comma-separated emails that become admins on register)
 
 on:
   push:
@@ -90,7 +91,8 @@ jobs:
           CLIENT_URL=https://shiarishta.com
           UPLOAD_DIR=/home/shiarishta/uploads
           MAIL_TRANSPORT=
-          MAIL_FROM=Shiarishta <no-reply@shiarishta.com>
+          MAIL_FROM=ShiaRishta <no-reply@shiarishta.com>
+          ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}
           TZ=America/New_York
           EOF
           echo ".env generated with $(wc -l < php-api/.env) lines (values from secrets, not shown)"
