@@ -108,8 +108,27 @@ function visibleProfile(array $row, ?array $viewer): ?array
         return null;
     }
     $isOwner = $viewer !== null && (string)$viewer['uid'] === $ownerId;
+    $isAnonymous = $viewer === null;
 
-    if (($row['visibility'] ?? 'members') === 'public' || ($viewer !== null && isset($viewer['uid'])) || $isOwner) {
+    // Anonymous visitors get a minimal teaser only — enough to encourage
+    // signup, never intimate details. Full profiles require an account.
+    if ($isAnonymous) {
+        return [
+            'id' => $ownerId,
+            'displayName' => $row['display_name'] ?? null,
+            'age' => $row['age'] ?? null,
+            'city' => $row['city'] ?? null,
+            'country' => $row['country'] ?? null,
+            'is_verified' => (bool)($row['is_verified'] ?? false),
+            'visibility' => $row['visibility'] ?? 'members',
+            'photosVisibility' => (string)($row['photos_visibility'] ?? 'members'),
+            'photosLocked' => true,
+            'locked' => true,
+            'teaser' => true,
+        ];
+    }
+
+    if (($row['visibility'] ?? 'members') === 'public' || isset($viewer['uid']) || $isOwner) {
         $photosVisibility = (string)($row['photos_visibility'] ?? 'members');
         $photosLocked = $photosVisibility === 'private' && !$isOwner;
         return [

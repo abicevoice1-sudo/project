@@ -2,7 +2,7 @@
 // Local fallback keeps every flow working offline/demo: bcrypt-hashed passwords
 // in per-member storage, same session shape the backend returns.
 import bcrypt from 'bcryptjs';
-import { read, write, remove } from './storage';
+import { read, write, remove, clearUserData } from './storage';
 import { http, useRemote } from './transport';
 
 const USERS_KEY = 'users';
@@ -86,8 +86,12 @@ export const auth = {
   },
 
   logout() {
+    const session = read(SESSION_KEY, null);
     http.setToken(null);
-    remove(SESSION_KEY);
+    // Wipe the session AND every per-user namespaced key so the next person
+    // on a shared device never sees the previous user's drafts, interests,
+    // messages, or profile data.
+    clearUserData(session?.uid || null);
   },
 
   current() {

@@ -85,6 +85,8 @@ export default function Profile() {
         // the gallery is empty and we render an honest placeholder instead.
         const gallery = [p.photo].filter(Boolean);
         setProfile({ ...p, gallery });
+        // Restore interest state from the server so it survives reloads.
+        setInterestSent(!!p.interestSent);
         analytics.track('profile_viewed', { id });
       })
       .catch(() => setError('Not found'))

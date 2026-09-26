@@ -133,12 +133,17 @@ function startConversation(): void
     }
 
     // GATE: only two-way interest opens a conversation.
-    $mine = db()->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
-    $mine->execute([$user['uid'], $other]);
-    $theirs = db()->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
-    $theirs->execute([$other, $user['uid']]);
+    // Fetch immediately after each execute — never interleave prepares/executes
+    // across two statements before fetching, which is fragile on some drivers.
+    $mineStmt = db()->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
+    $mineStmt->execute([(string)$user['uid'], $other]);
+    $mineFound = (bool)$mineStmt->fetch();
 
-    if (!$mine->fetch() || !$theirs->fetch()) {
+    $theirsStmt = db()->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
+    $theirsStmt->execute([$other, (string)$user['uid']]);
+    $theirsFound = (bool)$theirsStmt->fetch();
+
+    if (!$mineFound || !$theirsFound) {
         json([
             'error' => 'Messaging unlocks when you both express interest. Send interest and wait for theirs.',
             'mutualInterest' => false,

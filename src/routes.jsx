@@ -56,11 +56,53 @@ function PageSkeleton() {
   );
 }
 
+import { Suspense, Component } from 'react';
+
+// Catches chunk-load failures (e.g. stale bundle after a deploy) and retries
+// once before showing a recoverable error instead of a white-screen crash.
+class ChunkErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false, retrying: false };
+  }
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error) {
+    // If this looks like a stale-chunk failure and we haven't retried yet,
+    // reload once — the new deployment's chunks will then load cleanly.
+    const msg = String(error?.message || '');
+    if (!this.state.retrying && /dynamically imported module|chunk|import\(\)/i.test(msg)) {
+      this.setState({ retrying: true });
+      window.location.reload();
+    }
+  }
+  render() {
+    if (this.state.failed && !this.state.retrying) {
+      return (
+        <main className="max-w-xl mx-auto px-4 py-20 text-center">
+          <h1 className="text-xl font-bold mb-2">Something went wrong loading this page</h1>
+          <p className="text-sm opacity-70 mb-6">Please try again — your data is safe.</p>
+          <button
+            className="btn-primary"
+            onClick={() => window.location.reload()}
+          >
+            Reload page
+          </button>
+        </main>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function LazyRoute({ component: Component }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
-      <Component />
-    </Suspense>
+    <ChunkErrorBoundary>
+      <Suspense fallback={<PageSkeleton />}>
+        <Component />
+      </Suspense>
+    </ChunkErrorBoundary>
   );
 }
 

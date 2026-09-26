@@ -1,26 +1,32 @@
 // ─── Storage adapter — per-member namespaced keys ──────────────────────────
-// Swap this file for an HTTP implementation to point the app at a real server.
-// Browser keys are `sh_<key>::<uid>` while signed in, so two accounts sharing
-// one browser never read each other's interests, messages, tickets or profiles.
-// Signed-out callers fall back to the bare `sh_<key>` bucket. Values are JSON.
-// Quota failures are silent.
-const PREFIX = 'sh_';
+// The SESSION key itself is NEVER namespaced (it holds the UID that defines
+// the namespace). All other keys are `sh_<key>::<uid>` while signed in.
+// On logout, the session is destroyed and per-user keys become unreachable.
+// Signed-out callers get the fallback for non-session keys.
 
-function suffix() {
+const PREFIX = 'sh_';
+const SESSION_KEY = 'session';
+
+function sessionUid() {
   try {
-    const raw = localStorage.getItem('sh_session');
+    const raw = localStorage.getItem(PREFIX + SESSION_KEY);
     const uid = raw ? JSON.parse(raw)?.uid : null;
-    return uid ? `::${uid}` : '';
+    return uid || null;
   } catch {
-    return '';
+    return null;
   }
+}
+
+function keyFor(key) {
+  // The session itself lives at the bare key — never namespaced.
+  if (key === SESSION_KEY) return PREFIX + SESSION_KEY;
+  const uid = sessionUid();
+  return PREFIX + key + (uid ? `::${uid}` : '');
 }
 
 export function read(key, fallback = null) {
   try {
-    const namespaced = localStorage.getItem(PREFIX + key + suffix());
-    if (namespaced) return JSON.parse(namespaced);
-    const raw = localStorage.getItem(PREFIX + key);
+    const raw = localStorage.getItem(keyFor(key));
     return raw ? JSON.parse(raw) : fallback;
   } catch {
     return fallback;
@@ -29,7 +35,7 @@ export function read(key, fallback = null) {
 
 export function write(key, value) {
   try {
-    localStorage.setItem(PREFIX + key + suffix(), JSON.stringify(value));
+    localStorage.setItem(keyFor(key), JSON.stringify(value));
   } catch {
     /* quota exceeded — non-fatal */
   }
@@ -37,8 +43,27 @@ export function write(key, value) {
 
 export function remove(key) {
   try {
-    localStorage.removeItem(PREFIX + key + suffix());
-    localStorage.removeItem(PREFIX + key);
+    localStorage.removeItem(keyFor(key));
+  } catch {
+    /* ignore */
+  }
+}
+
+// Remove ALL keys for a given uid (used on logout to prevent leaks).
+// Also removes the session itself.
+export function clearUserData(uid = null) {
+  try {
+    const targetUid = uid || sessionUid();
+    // Remove session first
+    localStorage.removeItem(PREFIX + SESSION_KEY);
+    if (!targetUid) return;
+    const suffix = `::${targetUid}`;
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.endsWith(suffix)) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
   } catch {
     /* ignore */
   }

@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Bookmark, MapPin, Briefcase, Shield, Lock, Sparkles } from 'lucide-react';
 import { useAuthedImage } from '../lib/api/useAuthedImage';
+import { computeCompatibility, getMyProfile } from '../lib/compatibility';
 
 function excerptText(value, maxLength = 90) {
   const text = String(value || '').trim();
@@ -14,6 +15,18 @@ function excerptText(value, maxLength = 90) {
 export default function ProfileCard({ profile, className = '' }) {
   const [saved, setSaved] = useState(false);
   const [interested, setInterested] = useState(false);
+  // Real compatibility score — computed from the viewer's onboarding answers
+  // vs this profile. Null when the viewer hasn't onboarded (no honest basis
+  // for a score), so we show nothing rather than a fabricated number.
+  const matchScore = useMemo(() => {
+    try {
+      const me = getMyProfile();
+      if (!me || !me.sect) return null;
+      return computeCompatibility(profile, me)?.overall ?? null;
+    } catch {
+      return null;
+    }
+  }, [profile.id]);
   // The server sends `photosVisibility` / `photosLocked`. The old `photoAccess`
   // field was never returned, so this always evaluated false and the "blurred"
   // state could never appear.
@@ -83,13 +96,16 @@ export default function ProfileCard({ profile, className = '' }) {
             </div>
           )}
 
-          {/* Match score */}
-          <div
-            className="absolute top-2.5 left-2.5 px-2 py-1 rounded-full text-[10px] font-bold backdrop-blur-md"
-            style={{ background: 'rgba(11,15,23,0.6)', border: '1px solid rgba(255,255,255,0.18)', color: 'var(--color-success)', boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}
-          >
-            {profile.matchScore || 92}% match
-          </div>
+          {/* Match score — only when honestly computable */}
+          {matchScore !== null && (
+            <div
+              className="absolute top-2.5 left-2.5 px-2 py-1 rounded-full text-[10px] font-bold backdrop-blur-md"
+              style={{ background: 'rgba(11,15,23,0.6)', border: '1px solid rgba(255,255,255,0.18)', color: 'var(--color-success)', boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}
+              title="Compatibility based on your onboarding answers: faith alignment, values, lifestyle, and timeline."
+            >
+              {matchScore}% match
+            </div>
+          )}
 
           {/* Verified */}
           {profile.is_verified && (

@@ -5,6 +5,7 @@ import { api } from '../lib/api/client';
 import { apiUrl } from '../lib/api/transport';
 import { computeProfileCompleteness } from '../lib/onboardingData';
 import { getMyProfile } from '../lib/storage';
+import { computeCompatibility } from '../lib/compatibility';
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -14,11 +15,16 @@ import {
 export default function Dashboard() {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getProfiles().then(p => {
+    Promise.all([
+      api.getProfiles().catch(() => []),
+      api.getConversations().catch(() => []),
+    ]).then(([p, c]) => {
       setProfiles(p);
+      setConversations(c);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -27,9 +33,20 @@ export default function Dashboard() {
     if (!profiles.length) return [];
     // Never show the member their own profile as a match.
     const me = String(user?.uid || '');
+    const myProfile = typeof getMyProfile === 'function' ? getMyProfile() : null;
     return profiles
       .filter(p => String(p.id ?? p.user_id ?? p.uid ?? '') !== me)
-      .map(p => ({ ...p, score: p.matchScore || 85 }))
+      .map(p => {
+        // Honest score only when the viewer has onboarded; otherwise null.
+        let score = null;
+        try {
+          if (myProfile?.sect) {
+            score = computeCompatibility(p, myProfile)?.overall ?? null;
+          }
+        } catch { /* ignore */ }
+        return { ...p, score };
+      })
+      .filter(p => p.score !== null)
       .sort((a, b) => b.score - a.score)
       .slice(0, 4);
   }, [profiles, user]);
@@ -41,6 +58,9 @@ export default function Dashboard() {
   const completeness = savedProfile
     ? computeProfileCompleteness(savedProfile)
     : 75;
+  // Real counts from the API — never fabricated figures.
+  const unreadCount = conversations.reduce((n, c) => n + (c.unread_count || 0), 0);
+  const activeConvos = conversations.length;
 
   const statCards = [
     {
@@ -53,27 +73,27 @@ export default function Dashboard() {
     },
     {
       label: 'Top Match Score',
-      value: (topMatch?.score || 88) + '%',
+      value: topMatch?.score ? topMatch.score + '%' : '—',
       icon: Flame,
       color: 'var(--color-danger)',
       bg: 'var(--color-danger-subtle)',
-      trend: topMatch ? 'with ' + topMatch.displayName : 'Browse profiles to find matches',
+      trend: topMatch ? 'with ' + topMatch.displayName : 'Complete onboarding for match scores',
     },
-        {
+    {
       label: 'Active Conversations',
-      value: '3',
+      value: String(activeConvos),
       icon: MessageCircle,
       color: 'var(--color-success)',
       bg: 'var(--color-success-subtle)',
-      trend: '1 unread message — demo data, not a real unread count',
+      trend: unreadCount > 0 ? `${unreadCount} unread message${unreadCount === 1 ? '' : 's'}` : 'No unread messages',
     },
     {
-      label: 'Profile Views',
-      value: '47',
+      label: 'Potential Matches',
+      value: String(rankedMatches.length),
       icon: Eye,
       color: 'var(--color-accent)',
       bg: 'var(--color-accent-subtle)',
-      trend: '+12 this week — demo figure',
+      trend: rankedMatches.length > 0 ? 'Based on your preferences' : 'Complete your profile for matches',
     },
   ];
 

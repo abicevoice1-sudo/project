@@ -316,6 +316,9 @@ function profilesList(): void
 
     if ($viewer === null) {
         $where[] = "p.visibility <> 'private'";
+        // Anonymous visitors see a small teaser sample, not the full roster.
+        // Full browsing requires an account — this prevents enumeration.
+        $limit = 6;
     } else {
         $where[] = "(p.visibility <> 'private' OR p.user_id = ?)";
         $params[] = $viewer['uid'];
@@ -324,7 +327,7 @@ function profilesList(): void
         $params[] = $viewer['uid'];
     }
 
-    $sql = 'SELECT p.* FROM profiles p WHERE ' . implode(' AND ', $where) . ' ORDER BY p.created_at DESC LIMIT 100';
+    $sql = 'SELECT p.* FROM profiles p WHERE ' . implode(' AND ', $where) . ' ORDER BY p.created_at DESC LIMIT ' . (isset($limit) ? (int)$limit : 100);
     $stmt = db()->prepare($sql);
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
@@ -363,6 +366,22 @@ function profileById(string $id): void
     if (!$view) {
         // Same 404 for missing, blocked, and private-from-you — no probing.
         je('Profile not found.', 404);
+    }
+
+    // Include interest state so the UI survives reloads.
+    if ($viewer !== null) {
+        $sent = db()->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
+        $sent->execute([$viewer['uid'], $id]);
+        $view['interestSent'] = (bool)$sent->fetch();
+
+        $received = db()->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
+        $received->execute([$id, $viewer['uid']]);
+        $view['interestReceived'] = (bool)$received->fetch();
+        $view['mutualInterest'] = $view['interestSent'] && $view['interestReceived'];
+    } else {
+        $view['interestSent'] = false;
+        $view['interestReceived'] = false;
+        $view['mutualInterest'] = false;
     }
 
     json($view);
