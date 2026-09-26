@@ -4,9 +4,10 @@ import Layout from '../layouts/MainLayout';
 import { useAuth } from '../lib/auth/AuthContext';
 import GetVerified from '../components/GetVerified';
 import PhotoUpload from '../components/PhotoUpload';
+import WaliLinks from '../components/WaliLinks';
 import {
   Shield, Bell, User, Lock, Moon, Sun,
-  AlertTriangle
+  AlertTriangle, Link2, Copy, Check, Trash2, Plus
 } from 'lucide-react';
 
 // Settings are per-member: the key follows the signed-in account
@@ -232,6 +233,8 @@ export default function Settings() {
                     </ul>
                   )}
                 </div>
+
+                <WaliLinks />
               </div>
             )}
 

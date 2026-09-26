@@ -35,6 +35,12 @@ function authRegister(): void
     if (mb_strlen($displayName) > 60) {
         je('Display name is too long.', 400);
     }
+    // Sect is required at registration — ShiaRishta is a Shia matrimonial platform.
+    $sect = trim((string)($payload['sect'] ?? ''));
+    $validSects = ['Ithna Ashari (Twelver)', 'Ismaili', 'Bohra (Dawoodi)', 'Zaydi', 'Alevi', 'Other / Prefer not to say'];
+    if (!in_array($sect, $validSects, true)) {
+        je('Please select your sect.', 400);
+    }
 
     // ADMIN_EMAILS drives is_admin on register — the first-admin bootstrap.
     $adminEmails = adminEmails();
@@ -47,8 +53,8 @@ function authRegister(): void
         $pdo->beginTransaction();
         $stmt = $pdo->prepare('INSERT INTO users (id, email, password_hash, display_name, is_admin) VALUES (?, ?, ?, ?, ?)');
         $stmt->execute([$userId, $email, $hash, $displayName, $isAdmin ? 1 : 0]);
-        $profileStmt = $pdo->prepare('INSERT INTO profiles (user_id, display_name) VALUES (?, ?)');
-        $profileStmt->execute([$userId, $displayName]);
+        $profileStmt = $pdo->prepare('INSERT INTO profiles (user_id, display_name, sect) VALUES (?, ?, ?)');
+        $profileStmt->execute([$userId, $displayName, $sect]);
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();

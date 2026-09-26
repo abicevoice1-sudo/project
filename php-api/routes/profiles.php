@@ -468,12 +468,29 @@ function profileUpdate(): void
     }
     $values[] = $user['uid'];
 
-    $sql = 'UPDATE profiles SET ' . implode(', ', $sets) . ', updated_at = UTC_TIMESTAMP() WHERE user_id = ?';
-    db()->prepare($sql)->execute($values);
+    // Upsert: if the profile row doesn't exist yet (e.g. brand-new account
+    // that skipped onboarding), create it instead of silently updating zero rows.
+    $insertCols = ['user_id'];
+    $insertVals = [$user['uid']];
+    $updateSets = [];
+    foreach ($sets as $i => $set) {
+        // $sets entries are "col = ?" — extract col for the INSERT side.
+        $col = explode(' = ', $set)[0];
+        $insertCols[] = $col;
+        $insertVals[] = $values[$i];
+        $updateSets[] = "{$col} = VALUES({$col})";
+    }
+    $sql = 'INSERT INTO profiles (' . implode(', ', $insertCols) . ') VALUES (' .
+        implode(', ', array_fill(0, count($insertVals), '?')) .
+        ') ON DUPLICATE KEY UPDATE ' . implode(', ', $updateSets) . ', updated_at = UTC_TIMESTAMP()';
+    db()->prepare($sql)->execute($insertVals);
 
     $fetch = db()->prepare('SELECT * FROM profiles WHERE user_id = ? LIMIT 1');
     $fetch->execute([$user['uid']]);
     $row = $fetch->fetch();
+    if (!$row) {
+        je('Could not save this profile.', 500);
+    }
 
     json(['ok' => true, 'profile' => $row]);
 }

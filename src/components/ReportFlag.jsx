@@ -7,17 +7,29 @@ import LoginGate from './LoginGate';
 // Reading stays open; guests get the login gate when they try to file.
 export function ReportFlag({ targetType, targetId, onDone }) {
   const { isLoggedIn } = useAuth();
+  const [category, setCategory] = useState('');
   const [reason, setReason] = useState('');
   const [gate, setGate] = useState(false);
   const [state, setState] = useState({ idle: true, busy: false, ok: false, error: '' });
 
+  const CATEGORIES = [
+    'Harassment or threats',
+    'Scam or financial fraud',
+    'Fake profile / impersonation',
+    'Inappropriate content',
+    'Soliciting contact info off-platform',
+    'Spam',
+    'Other',
+  ];
+
   const submit = async (e) => {
     e.preventDefault();
     if (!isLoggedIn) { setGate(true); return; }
+    if (!category) { setState({ idle: false, busy: false, ok: false, error: 'Please select a reason.' }); return; }
     if (!reason.trim()) { setState({ idle: false, busy: false, ok: false, error: 'Please describe the problem.' }); return; }
     setState({ idle: false, busy: true, ok: false, error: '' });
     try {
-      await fileReport({ targetType, targetId, reason: reason.trim() });
+      await fileReport({ targetType, targetId, reason: `[${category}] ${reason.trim()}` });
       setState({ idle: false, busy: false, ok: true, error: '' });
       onDone?.();
     } catch (err) {
@@ -34,11 +46,21 @@ export function ReportFlag({ targetType, targetId, onDone }) {
       <label htmlFor={`report-${targetType}-${targetId}`} className="text-xs font-semibold" style={{ color: 'var(--color-ink)' }}>
         Report this {targetType}?
       </label>
+      <select
+        value={category}
+        onChange={e => setCategory(e.target.value)}
+        className="input w-full text-xs"
+        style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+        aria-label="Reason for report"
+      >
+        <option value="">Select a reason…</option>
+        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+      </select>
       <textarea
         id={`report-${targetType}-${targetId}`}
         value={reason}
         onChange={e => setReason(e.target.value)}
-        placeholder="What is wrong? (e.g. harassment, scam, contact solicitation)"
+        placeholder="What happened? (details help our team act faster)"
         rows={2}
         maxLength={1000}
         className="input w-full resize-none text-xs"

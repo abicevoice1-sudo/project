@@ -8,7 +8,7 @@ import { Eye, EyeOff, Mail, Lock, User, Sparkles, X } from 'lucide-react';
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ displayName: '', email: '', password: '', confirmPassword: '' });
+  const [formData, setFormData] = useState({ displayName: '', email: '', password: '', confirmPassword: '', sect: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function Register() {
     setLoading(true);
     setError('');
     try {
-      await register({ email: formData.email, password: formData.password, displayName: formData.displayName });
+      await register({ email: formData.email, password: formData.password, displayName: formData.displayName, sect: formData.sect });
       analytics.track('account_created', { browser_local: true });
       navigate('/onboard');
     } catch (err) {
@@ -131,6 +131,30 @@ export default function Register() {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'var(--color-ink-faint)' }} />
                 <input type={showPassword ? 'text' : 'password'} id="confirmPassword" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required minLength={6} placeholder="Repeat password" className={inputClass} style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }} />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="sect" className="block mb-1.5 text-sm font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Sect</label>
+              <select
+                id="sect"
+                name="sect"
+                value={formData.sect}
+                onChange={handleChange}
+                required
+                className="input w-full"
+                style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              >
+                <option value="">Select your sect…</option>
+                <option value="Ithna Ashari (Twelver)">Ithna Ashari (Twelver)</option>
+                <option value="Ismaili">Ismaili</option>
+                <option value="Bohra (Dawoodi)">Bohra (Dawoodi)</option>
+                <option value="Zaydi">Zaydi</option>
+                <option value="Alevi">Alevi</option>
+                <option value="Other / Prefer not to say">Other / Prefer not to say</option>
+              </select>
+              <p className="mt-1 text-xs" style={{ color: 'var(--color-ink-faint)' }}>
+                ShiaRishta is a Shia matrimonial platform.
+              </p>
             </div>
 
             <button type="submit" disabled={loading} className="btn btn-primary w-full py-3.5 text-base">
