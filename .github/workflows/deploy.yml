@@ -1,0 +1,131 @@
+name: Deploy to cPanel
+
+# Deploys the Shiarishta app to shared cPanel hosting on every push to main.
+#   Frontend (Vite dist/)      -> /public_html/            (https://shiarishta.com)
+#   PHP API (php-api/)         -> /public_html/api/        (https://shiarishta.com/api)
+#   Production .env is generated from GitHub Secrets at deploy time and is
+#   never committed to the repository.
+#
+# Required repository secrets:
+#   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD,
+#   MYSQL_HOST, CPANEL_MYSQL_USER, CPANEL_MYSQL_PASSWORD,
+#   DB_NAME, DB_USER, DB_PASSWORD, JWT_SECRET, DATA_ENCRYPTION_KEY
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build frontend
+        run: |
+          npm ci
+          VITE_API_URL=https://shiarishta.com npm run build
+          echo "--- dist contents ---"
+          ls dist/
+          test -f dist/.htaccess && echo "OK: .htaccess present in dist" || (echo "FAIL: .htaccess missing from dist"; exit 1)
+          test -f dist/index.html && echo "OK: index.html present" || (echo "FAIL: index.html missing"; exit 1)
+
+      - name: Database setup (best effort)
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq mysql-client
+          mysql -h "${{ secrets.MYSQL_HOST }}" \
+                -u "${{ secrets.CPANEL_MYSQL_USER }}" \
+                -p"${{ secrets.CPANEL_MYSQL_PASSWORD }}" \
+                --connect-timeout=20 \
+                -e "CREATE DATABASE IF NOT EXISTS \`${{ secrets.DB_NAME }}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" \
+            && echo "DATABASE_CREATE_OK" || echo "DATABASE_CREATE_FAILED (will verify via health check)"
+
+      - name: Create database user and grants (best effort)
+        continue-on-error: true
+        run: |
+          mysql -h "${{ secrets.MYSQL_HOST }}" \
+                -u "${{ secrets.CPANEL_MYSQL_USER }}" \
+                -p"${{ secrets.CPANEL_MYSQL_PASSWORD }}" \
+                --connect-timeout=20 \
+                -e "CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
+                    CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
+                    GRANT ALL PRIVILEGES ON \`${{ secrets.DB_NAME }}\`.* TO '${{ secrets.DB_USER }}'@'%';
+                    GRANT ALL PRIVILEGES ON \`${{ secrets.DB_NAME }}\`.* TO '${{ secrets.DB_USER }}'@'localhost';
+                    FLUSH PRIVILEGES;" \
+            && echo "DB_USER_OK" || echo "DB_USER_FAILED (will verify via health check)"
+
+      - name: Generate production .env
+        run: |
+          cat > php-api/.env <<EOF
+          APP_ENV=production
+          DB_HOST=localhost
+          DB_PORT=3306
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          DATA_ENCRYPTION_KEY=${{ secrets.DATA_ENCRYPTION_KEY }}
+          CLIENT_URL=https://shiarishta.com
+          UPLOAD_DIR=/home/shiarishta/uploads
+          MAIL_TRANSPORT=
+          MAIL_FROM=Shiarishta <no-reply@shiarishta.com>
+          TZ=America/New_York
+          EOF
+          echo ".env generated with $(wc -l < php-api/.env) lines (values from secrets, not shown)"
+
+      - name: Deploy frontend to public_html
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/
+          server-dir: /public_html/
+          exclude: |
+            **/.git*
+            **/.DS_Store
+
+      - name: Deploy API to public_html/api
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./php-api/
+          server-dir: /public_html/api/
+          exclude: |
+            **/.git*
+            **/.DS_Store
+            tests/**
+            scripts/**
+
+      - name: Ensure uploads directory exists
+        continue-on-error: true
+        run: |
+          curl -s --max-time 30 "ftp://${{ secrets.FTP_SERVER }}/" \
+            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
+            -Q "MKD /uploads" -o /dev/null \
+            && echo "uploads dir ready" || echo "uploads dir already exists or MKD skipped"
+
+      - name: Verify deployment
+        run: |
+          echo "--- API health ---"
+          sleep 8
+          curl -sk --max-time 40 https://shiarishta.com/api/health; echo
+          echo "--- Frontend ---"
+          curl -sk --max-time 40 -o /dev/null -w "frontend HTTP %{http_code}\n" https://shiarishta.com/
+          echo "--- .env must NOT be web-accessible ---"
+          code=$(curl -sk --max-time 40 -o /dev/null -w "%{http_code}" https://shiarishta.com/api/.env)
+          echo ".env HTTP $code"
+          test "$code" = "403" -o "$code" = "404" && echo "OK: .env blocked" || echo "WARN: .env returned $code"

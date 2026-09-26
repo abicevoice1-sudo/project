@@ -1,0 +1,6 @@
+# Shiarishta SPA — Apache fallback for client-side routes.
+# Every non-file request serves index.html so React Router can take over.
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]

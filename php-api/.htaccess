@@ -1,0 +1,13 @@
+# Shiarishta PHP API — Apache front-controller config.
+# Deploy target: public_html/api/ (served as https://shiarishta.com/api).
+RewriteEngine On
+
+# Never serve dotfiles over HTTP — most importantly .env (DB + JWT secrets).
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Route every non-file request through the front controller.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
