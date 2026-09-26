@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { RequireAuth, RequireAdmin } from './layouts/Guards';
 
@@ -56,7 +56,7 @@ function PageSkeleton() {
   );
 }
 
-import { Suspense, Component } from 'react';
+import { Component } from 'react';
 
 // Catches chunk-load failures (e.g. stale bundle after a deploy) and retries
 // once before showing a recoverable error instead of a white-screen crash.

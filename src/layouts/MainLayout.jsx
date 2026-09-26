@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import ThemeMenu from '../components/ThemeMenu';
 import AIAssistant from '../components/AIAssistant';
-import BrandLogo from '../components/BrandLogo';
+import BrandLockup from '../components/BrandLockup';
 
 // ── Command Palette — Full-text search across navigation + actions ───────────
 function CommandPalette({ open, onClose, toggleTheme, isAdmin }) {
@@ -188,9 +188,8 @@ function CommandPalette({ open, onClose, toggleTheme, isAdmin }) {
 // ── Sidebar Brand ────────────────────────────────────────────────────────────
 function BrandMark() {
   return (
-    <div className="flex items-center gap-2.5 px-2 mb-6">
-      <BrandLogo size={32} />
-      <span className="font-bold text-sm" style={{ color: 'var(--color-ink)' }}>ShiaRishta</span>
+    <div className="flex items-center px-2 mb-6">
+      <BrandLockup iconSize={32} tagline={false} />
     </div>
   );
 }

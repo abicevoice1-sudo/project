@@ -1,12 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- ShiaRishta favicon — simplified "Nikah Knot" (no keyline; too fine below 32px) -->
   <defs>
-    <linearGradient id="srf-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#10B981"/>
-      <stop offset="1" stop-color="#047857"/>
+    <linearGradient id="srkf-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#33604F"/>
+      <stop offset="1" stop-color="#1B3D31"/>
     </linearGradient>
+    <radialGradient id="srkf-star" cx="0.5" cy="0.42" r="0.75">
+      <stop offset="0" stop-color="#DDAE54"/>
+      <stop offset="1" stop-color="#B98334"/>
+    </radialGradient>
+    <mask id="srkf-under">
+      <rect width="64" height="64" fill="white"/>
+      <circle cx="39.25" cy="38" r="11" fill="none" stroke="black" stroke-width="9.75"/>
+    </mask>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#srf-bg)"/>
-  <circle cx="25" cy="26" r="11" fill="none" stroke="#fff" stroke-width="7"/>
-  <circle cx="39" cy="38" r="11" fill="none" stroke="#fff" stroke-width="7"/>
-  <circle cx="32" cy="32" r="2.6" fill="#F5C86B"/>
+  <rect width="64" height="64" rx="14.5" fill="url(#srkf-bg)"/>
+  <g mask="url(#srkf-under)">
+    <circle cx="24.75" cy="26" r="11" fill="none" stroke="#FFFAF4" stroke-width="6.75"/>
+  </g>
+  <circle cx="39.25" cy="38" r="11" fill="none" stroke="#FFFAF4" stroke-width="6.75"/>
+  <polygon fill="url(#srkf-star)" stroke="#8A5F22" stroke-width="0.5" stroke-linejoin="round"
+    points="32,27.5 32.7,30.3 35.2,28.8 33.7,31.3 36.5,32 33.7,32.7 35.2,35.2 32.7,33.7 32,36.5 31.3,33.7 28.8,35.2 30.3,32.7 27.5,32 30.3,31.3 28.8,28.8 31.3,30.3"/>
 </svg>

@@ -1,5 +1,5 @@
 import { usePageTitle } from '../lib/usePageTitle';
-﻿import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
 import LoginGate from '../components/LoginGate';

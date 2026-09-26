@@ -1,33 +1,68 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ShiaRishta — New Brand Mark</title>
+<title>ShiaRishta — Brand Mark v2 "The Nikah Knot"</title>
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif; background: #0b0f17; color: #e8ecf1;
+  :root { --paper:#FFFAF4; --ink:#17130F; --muted:#746C63; --sage:#33604F; --sage-deep:#1B3D31; --gold:#B98334; --line:#EADFD4; }
+  body { font-family: -apple-system, system-ui, sans-serif; background: var(--paper); color: var(--ink);
          display: flex; flex-direction: column; align-items: center; padding: 48px 20px; margin: 0; }
-  h1 { font-size: 22px; margin: 0 0 6px; } p.sub { color: #8a94a6; margin: 0 0 36px; font-size: 14px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  p.sub { color: var(--muted); margin: 0 0 36px; font-size: 14px; }
   .row { display: flex; gap: 32px; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; justify-content: center; }
   .cell { text-align: center; } .cell img { display: block; margin: 0 auto 8px; border-radius: 22%; }
-  .cell span { font-size: 12px; color: #8a94a6; }
-  .lockup { display: flex; align-items: center; gap: 14px; background: #111827; padding: 20px 28px;
-            border-radius: 20px; border: 1px solid #1f2937; margin-bottom: 12px; }
+  .cell span { font-size: 12px; color: var(--muted); }
+  .lockup { display: flex; align-items: center; gap: 14px; background: #fff; padding: 20px 28px;
+            border-radius: 20px; border: 1px solid var(--line); margin-bottom: 12px; box-shadow: 0 8px 24px rgba(23,19,15,.06); }
   .lockup img { border-radius: 22%; }
   .lockup .name { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
-  .lockup .name em { font-style: normal; color: #10B981; }
-  .note { max-width: 520px; text-align: center; color: #8a94a6; font-size: 13px; line-height: 1.6; }
+  .lockup .name em { font-style: normal; color: var(--sage); }
+  .swatches { display: flex; gap: 12px; margin-bottom: 36px; flex-wrap: wrap; justify-content: center; }
+  .sw { width: 120px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+  .sw i { display: block; height: 56px; } .sw span { display: block; font-size: 11px; padding: 8px 10px; color: var(--muted); }
+  .sw b { display: block; font-size: 12px; color: var(--ink); }
+  .note { max-width: 560px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.7; }
+  .note b { color: var(--ink); }
+  .dark-demo { background: var(--sage-deep); border-radius: 20px; padding: 28px 36px; margin-bottom: 36px;
+               display: flex; align-items: center; gap: 16px; }
+  .dark-demo .name { color: var(--paper); font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+  .dark-demo .tag { color: var(--gold); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
 </style></head><body>
-  <h1>ShiaRishta — New Brand Mark</h1>
-  <p class="sub">Two interlocking wedding bands forming an "S" · emerald gradient · gold union dot</p>
+  <h1>ShiaRishta — "The Nikah Knot"</h1>
+  <p class="sub">Brand mark v2 · two interlocked bands in an S-weave · Rub el Hizb star at the crossing</p>
+
   <div class="lockup">
     <img src="icon.svg" width="56" height="56" alt="ShiaRishta icon">
     <div class="name">Shia<em>Rishta</em></div>
   </div>
+
+  <div class="dark-demo">
+    <img src="icon.svg" width="56" height="56" alt="ShiaRishta icon on dark" style="border-radius:22%">
+    <div><div class="name">ShiaRishta</div><div class="tag">Nikah Matchmaking</div></div>
+  </div>
+
   <div class="row">
     <div class="cell"><img src="icon.svg" width="120" height="120"><span>App icon · 120px</span></div>
     <div class="cell"><img src="favicon.svg" width="48" height="48"><span>Favicon · 48px</span></div>
     <div class="cell"><img src="favicon.svg" width="24" height="24"><span>Tab icon · 24px</span></div>
     <div class="cell"><img src="favicon.svg" width="16" height="16"><span>16px</span></div>
   </div>
-  <p class="note">The mark reads at every size: two rings = marriage &amp; union, the S-curve = ShiaRishta,
-  the gold dot = the moment two lives join. If you want a different direction — monogram, crescent motif,
-  or a different color — tell me.</p>
+
+  <div class="swatches">
+    <div class="sw"><i style="background:#33604F"></i><span><b>Deep Sage</b>#33604F · tile</span></div>
+    <div class="sw"><i style="background:#1B3D31"></i><span><b>Sage Deep</b>#1B3D31 · tile shade</span></div>
+    <div class="sw"><i style="background:#FFFAF4;border-bottom:1px solid #EADFD4"></i><span><b>Paper</b>#FFFAF4 · rings</span></div>
+    <div class="sw"><i style="background:#B98334"></i><span><b>Burnished Gold</b>#B98334 · star</span></div>
+  </div>
+
+  <p class="note">
+    <b>The idea.</b> Two wedding bands weave over–under into an S — two lives, one bond, the initial of
+    ShiaRishta. Where they cross, an 8-pointed Rub el Hizb star (۞) marks the nikah: the moment two
+    families join. The motif comes from classical Islamic geometry; this rendering is drawn from scratch
+    on our own grid, which is what makes the expression original.<br><br>
+    <b>The colors.</b> Every tone is pulled from the site's own palette — deep sage, warm paper, burnished
+    gold — so the mark sits naturally in the header instead of fighting it. The old neon emerald is gone.<br><br>
+    <b>On originality.</b> No stock icon, no template, no traced artwork: every coordinate above was authored
+    for this mark. That originality is the real protection against copy claims. A trademark attorney's
+    clearance search is still the right step before you register the mark — say the word and I'll prep the
+    usage sheet they'll ask for.
+  </p>
 </body></html>
