@@ -19,7 +19,7 @@ export default function BrandLockup({
       className={className}
       style={{ display: 'inline-flex', alignItems: 'center', gap: iconSize * 0.34, ...style }}
     >
-      <BrandLogo size={iconSize} detail={false} />
+      <BrandLogo size={iconSize} detail />
       <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.08 }}>
         <span
           style={{
