@@ -62,9 +62,9 @@ jobs:
           def uapi(mod, func, **params):
               r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=30)
               return r.json()
-          j = uapi('Mysql', 'create_database', name='app')
+          j = uapi('Mysql', 'create_database', name=f'{USER}_app')
           print('create_database:', j.get('status'), (j.get('errors') or [None])[0])
-          j = uapi('Mysql', 'create_user', name='appuser', password=DB_PASS)
+          j = uapi('Mysql', 'create_user', name=f'{USER}_appuser', password=DB_PASS)
           print('create_user:', j.get('status'), (j.get('errors') or [None])[0])
           j = uapi('Mysql', 'set_privileges_on_database', user=f'{USER}_appuser',
                    database=f'{USER}_app', privileges='ALL PRIVILEGES')
