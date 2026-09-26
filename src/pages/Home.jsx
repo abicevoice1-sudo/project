@@ -40,7 +40,9 @@ const PREMIUM_TOOLS = [
   'Nikah planning and guidance resources',
 ];
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80';
+// Self-hosted WebP hero (was a hotlinked Unsplash JPEG): 34KB vs 91KB,
+// no third-party DNS/TLS on the critical path, immutable-cacheable.
+const HERO_IMAGE = '/hero-nikah.webp';
 
 
 export default function Home() {
@@ -73,7 +75,7 @@ export default function Home() {
               delay={0.12}
             >
               <div className="hp-visual-frame">
-                <img src={HERO_IMAGE} alt="Nikah celebration" loading="eager" decoding="async" />
+                <img src={HERO_IMAGE} alt="Nikah celebration" loading="eager" fetchPriority="high" decoding="async" width="1200" height="800" />
               </div>
               {HERO_CHIPS.map(({ icon: Icon, label, className }, i) => (
                 <span

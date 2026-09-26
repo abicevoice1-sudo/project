@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { RequireAuth, RequireAdmin } from './layouts/Guards';
+import Seo from './components/Seo';
 
 // Route-based code splitting — each page loads only when visited,
 // keeping the first paint tiny and the app fast on every device.
@@ -100,6 +101,7 @@ class ChunkErrorBoundary extends Component {
 function LazyRoute({ component: Component }) {
   return (
     <ChunkErrorBoundary>
+      <Seo />
       <Suspense fallback={<PageSkeleton />}>
         <Component />
       </Suspense>
