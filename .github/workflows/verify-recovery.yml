@@ -6,24 +6,25 @@ jobs:
     steps:
       - run: |
           python3 - <<'PYEOF2'
-          import requests, re, os, urllib3
+          import requests, urllib3
           urllib3.disable_warnings()
           s = requests.Session()
           A = 'https://shiarishta.com/api'
           r = s.get(f'{A}/health', verify=False, timeout=30)
-          print('health:', r.status_code, r.text[:80]); assert r.status_code == 200 and r.json()['ok'] is True
+          print('health:', r.status_code); assert r.status_code == 200 and r.json()['ok'] is True
           r = s.post(f'{A}/auth/login', verify=False, timeout=30,
                      json={'email': 'qatest13@example.com', 'password': 'QaTest#2026-13'})
           print('login:', r.status_code); assert r.status_code == 200
           H = {'Authorization': 'Bearer ' + r.json()['token']}
           r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
-          orig = (r.json().get('profile') or {}).get('bio') or ''
+          print('profile get:', r.status_code, 'bio field present:', 'bio' in r.json())
+          orig = r.json().get('bio') or ''
           marker = 'RECOVERY-PROBE-OK'
           r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': marker})
           print('bio save:', r.status_code); assert r.status_code == 200, r.text[:200]
           r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
-          saved = (r.json().get('profile') or {}).get('bio') or ''
-          print('bio persisted:', saved == marker); assert saved == marker
+          saved = r.json().get('bio') or ''
+          print('bio round-trip persisted:', saved == marker, repr(saved[:40])); assert saved == marker
           r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': orig})
           print('bio restored:', r.status_code); assert r.status_code == 200
           print('ALL_GREEN')
