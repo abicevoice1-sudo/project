@@ -1,31 +1,35 @@
-name: Final recovery check
+name: Cleanup probe files
 on: workflow_dispatch
 jobs:
-  verify:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
       - run: |
           python3 - <<'PYEOF2'
-          import requests, urllib3
+          import requests, re, os, urllib3
           urllib3.disable_warnings()
+          CPANEL = 'https://ind85.server.broker:2083'
+          USER = os.environ['CPANEL_USER']; PASS = os.environ['CPANEL_PASS']
           s = requests.Session()
-          A = 'https://shiarishta.com/api'
-          r = s.get(f'{A}/health', verify=False, timeout=30)
-          print('health:', r.status_code); assert r.status_code == 200 and r.json()['ok'] is True
-          r = s.post(f'{A}/auth/login', verify=False, timeout=30,
-                     json={'email': 'qatest13@example.com', 'password': 'QaTest#2026-13'})
-          print('login:', r.status_code); assert r.status_code == 200
-          H = {'Authorization': 'Bearer ' + r.json()['token']}
-          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
-          print('profile get:', r.status_code, 'bio field present:', 'bio' in r.json())
-          orig = r.json().get('bio') or ''
-          marker = 'RECOVERY-PROBE-OK'
-          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': marker})
-          print('bio save:', r.status_code); assert r.status_code == 200, r.text[:200]
-          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
-          saved = r.json().get('bio') or ''
-          print('bio round-trip persisted:', saved == marker, repr(saved[:40])); assert saved == marker
-          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': orig})
-          print('bio restored:', r.status_code); assert r.status_code == 200
-          print('ALL_GREEN')
+          r = s.post(f'{CPANEL}/login/', data={'user': USER, 'pass': PASS},
+                     allow_redirects=False, verify=False, timeout=30)
+          m = re.search(r'/cpsess(\d+)/', r.headers.get('Location', ''))
+          assert m, 'CPANEL LOGIN FAILED'
+          base = f"{CPANEL}/cpsess{m.group(1)}/execute"
+          def uapi(mod, func, **params):
+              r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
+              return r.json()
+          D = '/home/shiarishta/public_html/api'
+          for target in ['diag_jarvis.php', 'dbprobe_jarvis.php']:
+              j = uapi('Fileman', 'save_file_content', dir=D, file=target, content='<?php // removed')
+              print(target, 'neutralized:', j.get('status'))
+              j = uapi('Fileman', 'delete_files', dir=D, **{'file-0': target})
+              print(target, 'delete:', j.get('status'))
+          j = uapi('Fileman', 'list_files', dir=D)
+          names = [f.get('file') for f in (j.get('data') or [])]
+          print('probe files remaining:', [n for n in names if 'jarvis' in n] or 'NONE')
+          print('CLEANUP_DONE')
           PYEOF2
+        env:
+          CPANEL_USER: ${{ secrets.FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.FTP_PASSWORD }}
