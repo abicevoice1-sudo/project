@@ -11,4 +11,7 @@ export const LANDING_PAGE_META = {
   'shia-matrimony-houston': { title: 'Shia Matrimony Houston | Find Shia Rishta for Nikah – ShiaRishta', desc: 'Shia rishta in Houston: verified Shia brides and grooms across Texas with wali-involved introductions and privacy-first profiles. Join free.' },
   'shia-matrimony-new-york': { title: 'Shia Matrimony New York | Find Shia Rishta for Nikah – ShiaRishta', desc: 'Shia rishta in New York: verified Shia brides and grooms across the NYC metro with wali-involved introductions. Join free.' },
   'shia-matrimony-london': { title: 'Shia Matrimony London | Find Shia Rishta for Nikah – ShiaRishta', desc: 'Shia rishta in London: verified Shia brides and grooms across the UK with wali-involved introductions and privacy-first profiles. Join free.' },
+  'shia-matrimonial': { title: 'Shia Matrimonial | Verified Shia Marriage Profiles – ShiaRishta', desc: 'A Shia matrimonial platform built for nikah: verified Shia brides and grooms, marja-aware matching, wali involvement, and privacy-first profiles. Join free.' },
+  'shia-marriage': { title: 'Shia Marriage | Nikah, Process & Finding a Shia Spouse – ShiaRishta', desc: 'Understanding Shia marriage: the nikah process, the wali\u2019s role, and how ShiaRishta helps Shia families find verified, compatible matches. Join free.' },
+  'shia-nikah': { title: 'Shia Nikah | Meaning, Process & Finding Your Match – ShiaRishta', desc: 'What is a Shia nikah? The contract, mahr, and process explained — plus how ShiaRishta helps you find a verified Shia spouse for nikah. Join free.' },
 };
