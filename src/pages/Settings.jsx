@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth/AuthContext';
 import GetVerified from '../components/GetVerified';
 import PhotoUpload from '../components/PhotoUpload';
 import WaliLinks from '../components/WaliLinks';
+import ConfirmDialog from '../components/ConfirmDialog';
 import {
   Shield, Bell, User, Lock, Moon, Sun,
   AlertTriangle, Link2, Copy, Check, Trash2, Plus
@@ -154,6 +155,9 @@ export default function Settings() {
   const [privacySaved, setPrivacySaved] = useState('');
   const [blocks, setBlocks] = useState([]);
   const [blocking, setBlocking] = useState('');
+  const [blockError, setBlockError] = useState('');
+  const [blockSuccess, setBlockSuccess] = useState('');
+  const [confirmBlockId, setConfirmBlockId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -358,13 +362,14 @@ export default function Settings() {
                       aria-label="Member ID to block"
                     />
                     <button
-                      onClick={async () => {
-                        if (!blocking.trim()) return;
-                        const { blockMember } = await import('../lib/api/safety');
-                        await blockMember(blocking.trim());
-                        const { listBlocks } = await import('../lib/api/safety');
-                        setBlocks(await listBlocks().catch(() => []));
-                        setBlocking('');
+                      onClick={() => {
+                        setBlockError('');
+                        setBlockSuccess('');
+                        if (!blocking.trim()) {
+                          setBlockError('Enter a member ID to block.');
+                          return;
+                        }
+                        setConfirmBlockId(blocking.trim());
                       }}
                       className="button px-4 py-2 text-sm font-semibold"
                       style={{ background: 'var(--color-elevated)', border: '1px solid var(--color-border)' }}
@@ -372,6 +377,36 @@ export default function Settings() {
                       Block
                     </button>
                   </div>
+                  {blockError && (
+                    <div className="text-sm p-2 rounded-lg mb-3" role="alert" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)' }}>
+                      {blockError}
+                    </div>
+                  )}
+                  {blockSuccess && (
+                    <div className="text-sm p-2 rounded-lg mb-3" role="status" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+                      {blockSuccess}
+                    </div>
+                  )}
+                  <ConfirmDialog
+                    open={!!confirmBlockId}
+                    title="Block this member?"
+                    message="Blocking hides you from each other and disables messaging both ways — immediately, on every device. This can be undone later."
+                    confirmLabel="Block member"
+                    onCancel={() => setConfirmBlockId(null)}
+                    onConfirm={async () => {
+                      const id = confirmBlockId;
+                      setConfirmBlockId(null);
+                      try {
+                        const { blockMember, listBlocks } = await import('../lib/api/safety');
+                        await blockMember(id);
+                        setBlocks(await listBlocks().catch(() => []));
+                        setBlocking('');
+                        setBlockSuccess('Member blocked.');
+                      } catch (e) {
+                        setBlockError((e && e.message) || 'Could not block this member. Please try again.');
+                      }
+                    }}
+                  />
                   {blocks.length > 0 && (
                     <ul className="space-y-2">
                       {blocks.map(b => {

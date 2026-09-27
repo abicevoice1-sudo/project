@@ -72,6 +72,7 @@ export default function Messages() {
   const [threadError, setThreadError] = useState('');
   const [requests, setRequests] = useState([]);
   const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestError, setRequestError] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const [activeId, setActiveId] = useState(null);
@@ -150,6 +151,7 @@ export default function Messages() {
   const respondToRequest = async (userId, accept) => {
     const req = requests.find((r) => r.userId === userId);
     if (!req) return;
+    setRequestError('');
     try {
       if (accept) {
         // Accepting expresses mutual interest and opens the real conversation.
@@ -166,8 +168,15 @@ export default function Messages() {
         await api.withdrawInterest(userId);
         setRequests((prev) => prev.filter((r) => r.userId !== userId));
       }
-    } catch {
+    } catch (e) {
       // Keep the request visible so the member can retry — never silently drop it.
+      // Surface the reason: most often the email-verification gate on messaging.
+      const msg = (e && e.message) || '';
+      setRequestError(
+        /verify/i.test(msg)
+          ? 'Please verify your email to accept introductions and start conversations. Check your inbox for the verification link.'
+          : (msg || 'Could not respond to this request. Please try again.')
+      );
     }
   };
 
@@ -253,7 +262,14 @@ export default function Messages() {
             <ConversationList convos={filteredConvos} activeId={activeId} onSelect={setActiveId}
               loading={convosLoading} error={convosError} />
           ) : (
-            <RequestList requests={requests} onRespond={respondToRequest} loading={requestsLoading} />
+            <>
+              {requestError && (
+                <div className="mx-4 mt-3 p-3 rounded-lg text-sm" role="alert" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)' }}>
+                  {requestError}
+                </div>
+              )}
+              <RequestList requests={requests} onRespond={respondToRequest} loading={requestsLoading} />
+            </>
           )}
         </div>
 

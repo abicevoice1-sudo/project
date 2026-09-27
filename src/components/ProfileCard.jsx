@@ -23,15 +23,20 @@ export default function ProfileCard({ profile, className = '' }) {
 
   const handleInterest = async (e) => {
     e.preventDefault();
-    if (interestBusy || interested) return;
+    if (interestBusy) return;
     setInterestBusy(true);
     setInterestError('');
     try {
       const { api } = await import('../lib/api/client');
-      await api.expressInterest(profile.id);
-      setInterested(true);
+      if (interested) {
+        await api.withdrawInterest(profile.id);
+        setInterested(false);
+      } else {
+        await api.expressInterest(profile.id);
+        setInterested(true);
+      }
     } catch (err) {
-      setInterestError(err.message || 'Could not send interest.');
+      setInterestError(err.message || (interested ? 'Could not withdraw interest.' : 'Could not send interest.'));
     } finally {
       setInterestBusy(false);
     }
@@ -169,10 +174,10 @@ export default function ProfileCard({ profile, className = '' }) {
           disabled={interestBusy}
           className={'flex-1 py-2.5 min-h-[38px] text-xs font-semibold flex items-center justify-center gap-1 rounded-lg transition-all disabled:opacity-60 ' + (interested ? '' : 'btn-primary')}
           style={{ minHeight: '38px', ...(interested ? { background: 'var(--color-primary-subtle)', color: 'var(--color-primary)', border: '1px solid var(--color-primary-subtle)' } : undefined) }}
-          title={interestError || undefined}
+          title={interestError || (interested ? 'Click to withdraw interest' : undefined)}
         >
           <Heart className={'w-3.5 h-3.5 ' + (interested ? 'fill-current' : '')} />
-          {interestBusy ? 'Sending…' : interested ? 'Interested' : 'Interest'}
+          {interestBusy ? (interested ? 'Withdrawing…' : 'Sending…') : interested ? 'Interested' : 'Interest'}
         </button>
         <button
           onClick={e => { e.preventDefault(); setSaved(!saved); }}
