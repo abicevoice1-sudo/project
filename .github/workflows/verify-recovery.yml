@@ -1,0 +1,50 @@
+name: Verify API recovery
+on: workflow_dispatch
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python3 - <<'PYEOF2'
+          import requests, re, os, json as J, urllib3
+          urllib3.disable_warnings()
+          CPANEL = 'https://ind85.server.broker:2083'
+          USER = os.environ['CPANEL_USER']; PASS = os.environ['CPANEL_PASS']
+          s = requests.Session()
+          r = s.post(f'{CPANEL}/login/', data={'user': USER, 'pass': PASS},
+                     allow_redirects=False, verify=False, timeout=30)
+          m = re.search(r'/cpsess(\d+)/', r.headers.get('Location', ''))
+          assert m, 'CPANEL LOGIN FAILED'
+          base = f"{CPANEL}/cpsess{m.group(1)}/execute"
+          def uapi(mod, func, **params):
+              r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
+              return r.json()
+          # 1. cleanup leftover diag probe if present
+          j = uapi('Fileman', 'list_files', dir='/home/shiarishta/public_html/api')
+          names = [f.get('file') for f in (j.get('data') or [])]
+          if 'diag_jarvis.php' in names:
+              j = uapi('Fileman', 'delete_files', dir='/home/shiarishta/public_html/api', files='diag_jarvis.php')
+              print('diag cleanup:', j.get('status'))
+          else:
+              print('diag cleanup: already gone')
+          # 2. health
+          r = s.get('https://shiarishta.com/api/health', verify=False, timeout=30)
+          print('health:', r.status_code, r.text[:120])
+          assert r.status_code == 200 and r.json().get('ok') is True, 'HEALTH FAILED'
+          # 3. login (was 500ing)
+          r = s.post('https://shiarishta.com/api/auth/login', verify=False, timeout=30,
+                     json={'email': 'qatest02@example.com', 'password': 'Test1234!'})
+          print('login:', r.status_code, r.text[:160])
+          assert r.status_code == 200, 'LOGIN FAILED'
+          tok = r.json().get('token') or r.json().get('session', {}).get('token', '')
+          assert tok, 'no token in login response'
+          # 4. authenticated me
+          r = s.get('https://shiarishta.com/api/users/me', verify=False, timeout=30,
+                    headers={'Authorization': f'Bearer {tok}'})
+          print('me:', r.status_code, r.text[:160])
+          assert r.status_code == 200, 'ME FAILED'
+          print('RECOVERY_VERIFIED')
+          PYEOF2
+        env:
+          CPANEL_USER: ${{ secrets.FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.FTP_PASSWORD }}
