@@ -1,5 +1,5 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { createBrowserRouter, Navigate, useLocation, useNavigationType } from 'react-router-dom';
+import { lazy, Suspense, useLayoutEffect } from 'react';
 import { RequireAuth, RequireAdmin } from './layouts/Guards';
 import Seo from './components/Seo';
 
@@ -104,11 +104,26 @@ function LazyRoute({ component: Component }) {
   return (
     <ChunkErrorBoundary>
       <Seo />
+      <ScrollToTop />
       <Suspense fallback={<PageSkeleton />}>
         <Component />
       </Suspense>
     </ChunkErrorBoundary>
   );
+}
+
+// Reset scroll to top on every navigation (PUSH/REPLACE), so a link never
+// lands the user at the bottom of the new page. Back/forward (POP) keeps the
+// browser's natural scroll restoration. Hash-only changes are left alone.
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const navType = useNavigationType();
+  useLayoutEffect(() => {
+    if (navType !== 'POP') {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, navType]);
+  return null;
 }
 
 // Each page renders its own layout (MainLayout/LandingLayout), so public routes
