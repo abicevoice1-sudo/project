@@ -1,4 +1,4 @@
-name: Verify API recovery v6
+name: Final recovery check
 on: workflow_dispatch
 jobs:
   verify:
@@ -6,26 +6,25 @@ jobs:
     steps:
       - run: |
           python3 - <<'PYEOF2'
-          import requests, re, os, time, urllib3
+          import requests, re, os, urllib3
           urllib3.disable_warnings()
-          CPANEL = 'https://ind85.server.broker:2083'
-          USER = os.environ['CPANEL_USER']; PASS = os.environ['CPANEL_PASS']
           s = requests.Session()
-          r = s.post(f'{CPANEL}/login/', data={'user': USER, 'pass': PASS},
-                     allow_redirects=False, verify=False, timeout=30)
-          m = re.search(r'/cpsess(\d+)/', r.headers.get('Location', ''))
-          assert m, 'CPANEL LOGIN FAILED'
-          base = f"{CPANEL}/cpsess{m.group(1)}/execute"
-          def uapi(mod, func, **params):
-              r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
-              return r.json()
-          PHP = '<?php\nheader(\'Content-Type: text/plain; charset=utf-8\');\nrequire __DIR__ . \'/lib/bootstrap.php\';\nrequire __DIR__ . \'/lib/db.php\';\n$u = db()->prepare("SELECT id FROM users WHERE email=\'qatest13@example.com\' LIMIT 1");\n$u->execute(); $uid = $u->fetch()[\'id\'];\necho "uid_len=" . strlen($uid) . " uid_hex=" . bin2hex($uid) . "\\n";\n$p = db()->prepare(\'SELECT user_id, HEX(user_id) AS hx FROM profiles WHERE user_id=? LIMIT 1\');\n$p->execute([$uid]); $pr = $p->fetch();\necho "row_hex=" . ($pr[\'hx\'] ?? \'NONE\') . "\\n";\necho "equal=" . var_export($pr && $pr[\'user_id\'] === $uid, true) . "\\n";\ntry {\n    db()->prepare(\'INSERT INTO profiles (user_id, bio) VALUES (?, ?)\')->execute([$uid, \'x\']);\n    echo "PLAIN_INSERT_OK?!\\n";\n} catch (Throwable $e) { echo "PLAIN_INSERT: " . substr($e->getMessage(), 0, 200) . "\\n"; }\necho "DONE\\n";\n'
-          uapi('Fileman', 'save_file_content', dir='/home/shiarishta/public_html/api',
-               file='dbprobe_jarvis.php', content=PHP)
-          time.sleep(2)
-          r = s.get('https://shiarishta.com/api/dbprobe_jarvis.php', verify=False, timeout=40)
-          print(r.text[:2000])
+          A = 'https://shiarishta.com/api'
+          r = s.get(f'{A}/health', verify=False, timeout=30)
+          print('health:', r.status_code, r.text[:80]); assert r.status_code == 200 and r.json()['ok'] is True
+          r = s.post(f'{A}/auth/login', verify=False, timeout=30,
+                     json={'email': 'qatest13@example.com', 'password': 'QaTest#2026-13'})
+          print('login:', r.status_code); assert r.status_code == 200
+          H = {'Authorization': 'Bearer ' + r.json()['token']}
+          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
+          orig = (r.json().get('profile') or {}).get('bio') or ''
+          marker = 'RECOVERY-PROBE-OK'
+          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': marker})
+          print('bio save:', r.status_code); assert r.status_code == 200, r.text[:200]
+          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
+          saved = (r.json().get('profile') or {}).get('bio') or ''
+          print('bio persisted:', saved == marker); assert saved == marker
+          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': orig})
+          print('bio restored:', r.status_code); assert r.status_code == 200
+          print('ALL_GREEN')
           PYEOF2
-        env:
-          CPANEL_USER: ${{ secrets.FTP_USERNAME }}
-          CPANEL_PASS: ${{ secrets.FTP_PASSWORD }}
