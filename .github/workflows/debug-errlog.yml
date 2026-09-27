@@ -1,0 +1,42 @@
+name: Debug API error log
+on: workflow_dispatch
+jobs:
+  errlog:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python3 - <<'PYEOF'
+          import requests, re, os, urllib3
+          urllib3.disable_warnings()
+          CPANEL = 'https://ind85.server.broker:2083'
+          USER = os.environ['CPANEL_USER']; PASS = os.environ['CPANEL_PASS']
+          s = requests.Session()
+          r = s.post(f'{CPANEL}/login/', data={'user': USER, 'pass': PASS},
+                     allow_redirects=False, verify=False, timeout=30)
+          m = re.search(r'/cpsess(\d+)/', r.headers.get('Location', ''))
+          assert m, 'CPANEL LOGIN FAILED'
+          base = f"{CPANEL}/cpsess{m.group(1)}/execute"
+          def uapi(mod, func, **params):
+              r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
+              return r.json()
+          for d in ['/home/shiarishta/public_html/api', '/home/shiarishta/public_html', '/home/shiarishta/logs']:
+              try:
+                  j = uapi('Fileman', 'list_files', dir=d, show_hidden=1)
+                  names = [f.get('file') for f in (j.get('data') or [])]
+                  print('DIR', d, '->', names[:40])
+              except Exception as e:
+                  print('DIR', d, 'ERR', str(e)[:120])
+          for p in ['/home/shiarishta/public_html/api/error_log',
+                    '/home/shiarishta/public_html/error_log']:
+              try:
+                  j = uapi('Fileman', 'get_file_content', dir='/', file=p)
+                  content = ((j.get('data') or {}).get('content') or '')
+                  lines = content.splitlines()
+                  print('='*20, 'TAIL', p, f'({len(lines)} lines)')
+                  print('\n'.join(lines[-60:]))
+              except Exception as e:
+                  print('READ', p, 'ERR', str(e)[:120])
+          PYEOF
+        env:
+          CPANEL_USER: ${{ secrets.FTP_USERNAME }}
+          CPANEL_PASS: ${{ secrets.FTP_PASSWORD }}
