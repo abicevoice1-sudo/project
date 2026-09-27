@@ -13,6 +13,8 @@ jobs:
           import json, sys
           s = sys.argv[1]
           d = json.load(open(f'/tmp/psi-{s}.json'))
+          if 'error' in d:
+              print('API ERROR:', json.dumps(d['error'])[:500]); sys.exit(0)
           cats = d.get('lighthouseResult', {}).get('categories', {})
           for k in ['performance','accessibility','best-practices','seo']:
               v = cats.get(k, {}).get('score')
