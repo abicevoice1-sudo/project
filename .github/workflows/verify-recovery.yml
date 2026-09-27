@@ -5,31 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          python3 - <<'PYEOF2'
-          import requests, re, os, urllib3
-          urllib3.disable_warnings()
-          CPANEL = 'https://ind85.server.broker:2083'
-          USER = os.environ['CPANEL_USER']; PASS = os.environ['CPANEL_PASS']
-          s = requests.Session()
-          r = s.post(f'{CPANEL}/login/', data={'user': USER, 'pass': PASS},
-                     allow_redirects=False, verify=False, timeout=30)
-          m = re.search(r'/cpsess(\d+)/', r.headers.get('Location', ''))
-          assert m, 'CPANEL LOGIN FAILED'
-          base = f"{CPANEL}/cpsess{m.group(1)}/execute"
-          def uapi(mod, func, **params):
-              r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
-              return r.json()
-          D = '/home/shiarishta/public_html/api'
-          for target in ['diag_jarvis.php', 'dbprobe_jarvis.php']:
-              j = uapi('Fileman', 'save_file_content', dir=D, file=target, content='<?php // removed')
-              print(target, 'neutralized:', j.get('status'))
-              j = uapi('Fileman', 'delete_files', dir=D, **{'file-0': target})
-              print(target, 'delete:', j.get('status'))
-          j = uapi('Fileman', 'list_files', dir=D)
-          names = [f.get('file') for f in (j.get('data') or [])]
-          print('probe files remaining:', [n for n in names if 'jarvis' in n] or 'NONE')
-          print('CLEANUP_DONE')
-          PYEOF2
-        env:
-          CPANEL_USER: ${{ secrets.FTP_USERNAME }}
-          CPANEL_PASS: ${{ secrets.FTP_PASSWORD }}
+          for f in diag_jarvis.php dbprobe_jarvis.php; do
+            curl -s --max-time 30 "ftp://${{ secrets.FTP_SERVER }}/" \
+              --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
+              -Q "DELE /public_html/api/$f" -o /dev/null -w "$f DELE %{http_code}\n" || echo "$f DELE attempted"
+          done
+          echo CLEANUP_DONE
