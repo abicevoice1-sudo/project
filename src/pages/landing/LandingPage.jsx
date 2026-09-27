@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import Layout from '../../layouts/LandingLayout';
 import FaqSection from '../../components/FaqSection.jsx';
@@ -9,7 +9,11 @@ import NotFound from '../NotFound';
 // imported so it ships as its own async chunk instead of bloating the
 // shared entry chunk.
 export default function LandingPage() {
-  const { slug } = useParams();
+  // NOTE: landing routes are static paths (/shia-matrimony-usa, /shia-brides,
+  // …), not a :slug param — derive the slug from the pathname. (useParams
+  // returns {} here; using it 404s every landing page.)
+  const { pathname } = useLocation();
+  const slug = pathname.replace(/^\//, '').split('/')[0];
   const [pages, setPages] = useState(null);
   useEffect(() => {
     let on = true;
