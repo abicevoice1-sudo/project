@@ -1,4 +1,4 @@
-name: Verify API recovery v2
+name: Verify API recovery v3
 on: workflow_dispatch
 jobs:
   verify:
@@ -19,44 +19,30 @@ jobs:
           def uapi(mod, func, **params):
               r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
               return r.json()
-          # cleanup diag probe (try numbered param form)
           j = uapi('Fileman', 'delete_files', dir='/home/shiarishta/public_html/api', **{'file-0': 'diag_jarvis.php'})
-          print('diag delete try2:', j.get('status'), (j.get('errors') or [None])[0] if j.get('errors') else '')
+          print('diag delete:', j.get('status'))
           j = uapi('Fileman', 'list_files', dir='/home/shiarishta/public_html/api')
           names = [f.get('file') for f in (j.get('data') or [])]
           print('diag still present:', 'diag_jarvis.php' in names)
-          # health
-          r = s.get('https://shiarishta.com/api/health', verify=False, timeout=30)
-          print('health:', r.status_code, r.text[:100])
-          assert r.status_code == 200 and r.json().get('ok') is True
-          # login with known QA credential
-          r = s.post('https://shiarishta.com/api/auth/login', verify=False, timeout=30,
+          A = 'https://shiarishta.com/api'
+          r = s.get(f'{A}/health', verify=False, timeout=30)
+          print('health:', r.status_code); assert r.status_code == 200 and r.json()['ok'] is True
+          r = s.post(f'{A}/auth/login', verify=False, timeout=30,
                      json={'email': 'qatest13@example.com', 'password': 'QaTest#2026-13'})
-          print('login:', r.status_code, r.text[:160])
-          assert r.status_code == 200, 'LOGIN FAILED'
-          d = r.json()
-          tok = d.get('token') or d.get('session', {}).get('token', '')
-          assert tok, 'no token'
+          print('login:', r.status_code); assert r.status_code == 200
+          tok = r.json().get('token'); assert tok
           H = {'Authorization': f'Bearer {tok}'}
-          # me
-          r = s.get('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H)
-          print('me:', r.status_code, r.text[:160])
-          assert r.status_code == 200
-          orig_bio = (r.json().get('user') or r.json()).get('bio', '')
-          # profile bio save round-trip (the exact op that 500'd)
-          marker = 'RECOVERY-PROBE ' + 'ok'
-          r = s.put('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H,
-                    json={'bio': marker})
-          print('bio save:', r.status_code, r.text[:160])
-          assert r.status_code == 200, 'BIO SAVE FAILED'
-          r = s.get('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H)
-          saved = (r.json().get('user') or r.json()).get('bio', '')
-          print('bio persisted:', saved == marker)
-          assert saved == marker, 'BIO NOT PERSISTED'
-          # restore original bio
-          r = s.put('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H,
-                    json={'bio': orig_bio})
-          print('bio restore:', r.status_code)
+          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
+          print('profile get:', r.status_code); assert r.status_code == 200
+          orig = (r.json().get('profile') or {}).get('bio') or ''
+          marker = 'RECOVERY-PROBE-OK'
+          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': marker})
+          print('profile save:', r.status_code, r.text[:120]); assert r.status_code == 200, 'SAVE FAILED'
+          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
+          saved = (r.json().get('profile') or {}).get('bio') or ''
+          print('bio round-trip persisted:', saved == marker); assert saved == marker
+          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': orig})
+          print('bio restored:', r.status_code)
           print('RECOVERY_VERIFIED')
           PYEOF2
         env:
