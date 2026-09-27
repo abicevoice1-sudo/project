@@ -174,6 +174,7 @@ export default function Settings() {
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const [notifications, setNotifications] = useState({
     emailMessages: true, emailMatches: true, emailWeeklyDigest: true,
@@ -591,7 +592,21 @@ export default function Settings() {
                   {deleteError && <p className="text-sm mb-3" role="alert" style={{ color: 'var(--color-danger)' }}>{deleteError}</p>}
                   <button
                     disabled={deleteConfirm !== 'DELETE' || deleteBusy}
-                    onClick={async () => {
+                    onClick={() => setConfirmDeleteOpen(true)}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg text-white disabled:opacity-40"
+                    style={{ background: 'var(--color-danger)' }}
+                  >
+                    {deleteBusy ? 'Deleting…' : 'Delete my account'}
+                  </button>
+                  <ConfirmDialog
+                    open={confirmDeleteOpen}
+                    title="Permanently delete your account?"
+                    message="This removes your profile, messages, interests, and all data. This cannot be undone."
+                    confirmLabel="Yes, delete everything"
+                    danger
+                    busy={deleteBusy}
+                    onCancel={() => setConfirmDeleteOpen(false)}
+                    onConfirm={async () => {
                       setDeleteBusy(true);
                       setDeleteError('');
                       try {
@@ -603,13 +618,10 @@ export default function Settings() {
                         setDeleteError(e.message || 'Could not delete account.');
                       } finally {
                         setDeleteBusy(false);
+                        setConfirmDeleteOpen(false);
                       }
                     }}
-                    className="px-4 py-2 text-sm font-semibold rounded-lg text-white disabled:opacity-40"
-                    style={{ background: 'var(--color-danger)' }}
-                  >
-                    {deleteBusy ? 'Deleting…' : 'Delete my account'}
-                  </button>
+                  />
                 </div>
               </div>
             )}
