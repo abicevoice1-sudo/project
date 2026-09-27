@@ -63,6 +63,19 @@ export default function Settings() {
         return;
       }
       await http.put('/api/users/me', payload);
+      // Sync the cached session — otherwise the old displayName overwrites the
+      // input on reload (the backend is correct; the localStorage copy was stale).
+      if (payload.displayName) {
+        try {
+          const { auth } = await import('../lib/api/authService');
+          const { write } = await import('../lib/api/storage');
+          const sess = auth.current();
+          if (sess) {
+            sess.displayName = payload.displayName;
+            write('session', sess);
+          }
+        } catch {}
+      }
       if (payload.email) {
         setAccountSaved('Saved. Verification required — check your inbox to confirm the new email address.');
       } else {
