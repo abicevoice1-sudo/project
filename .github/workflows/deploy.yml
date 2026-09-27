@@ -103,9 +103,13 @@ jobs:
           DATA_ENCRYPTION_KEY=${{ secrets.DATA_ENCRYPTION_KEY }}
           CLIENT_URL=https://shiarishta.com
           UPLOAD_DIR=/home/shiarishta/uploads
-          MAIL_TRANSPORT=
+          MAIL_TRANSPORT=${{ secrets.SMTP_HOST != '' && 'smtp' || '' }}
           MAIL_ENABLED=true
           MAIL_FROM=ShiaRishta <no-reply@shiarishta.com>
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASS=${{ secrets.SMTP_PASS }}
           ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}
           PROMOTE_TOKEN=${{ secrets.PROMOTE_TOKEN }}
           TZ=America/New_York
