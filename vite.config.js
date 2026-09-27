@@ -44,6 +44,14 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    // Don't preload below-the-fold vendor/layout chunks on first paint.
+    // vendor-motion (framer-motion) and MainLayout are only needed when a
+    // guarded member route renders or a toast fires — both happen after
+    // first paint. They still load on demand via the dynamic-import runtime.
+    modulePreload: {
+      resolveDependencies: (filename, deps) =>
+        deps.filter((d) => !d.includes('vendor-motion') && !d.includes('MainLayout')),
+    },
     rollupOptions: {
       output: {
         // Split slow-moving vendor code from the app entry so repeat visits

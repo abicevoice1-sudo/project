@@ -1,16 +1,22 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { useAuth } from '../lib/auth/AuthContext';
-import Layout from './MainLayout';
+
+// Lazy: MainLayout pulls in framer-motion. It isn't needed until a guarded
+// route actually renders, so keep it out of the entry chunk's static graph.
+const MainLayout = lazy(() => import('./MainLayout'));
 
 function LoadingGate() {
   return (
-    <Layout>
-      <main>
-        <div className="empty-state">
-          <p>Loading…</p>
-        </div>
-      </main>
-    </Layout>
+    <Suspense fallback={<div className="empty-state"><p>Loading…</p></div>}>
+      <MainLayout>
+        <main>
+          <div className="empty-state">
+            <p>Loading…</p>
+          </div>
+        </main>
+      </MainLayout>
+    </Suspense>
   );
 }
 
