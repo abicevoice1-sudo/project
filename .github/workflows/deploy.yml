@@ -104,6 +104,7 @@ jobs:
           CLIENT_URL=https://shiarishta.com
           UPLOAD_DIR=/home/shiarishta/uploads
           MAIL_TRANSPORT=
+          MAIL_ENABLED=true
           MAIL_FROM=ShiaRishta <no-reply@shiarishta.com>
           ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}
           PROMOTE_TOKEN=${{ secrets.PROMOTE_TOKEN }}
