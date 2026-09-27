@@ -1,0 +1,14 @@
+name: Debug HTTP responses
+on: workflow_dispatch
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe live site
+        run: |
+          echo "=== HEAD / ==="; curl -skI --max-time 30 https://shiarishta.com/ | head -12
+          echo "=== HEAD /shia-matrimony-usa ==="; curl -skI --max-time 30 https://shiarishta.com/shia-matrimony-usa | head -12
+          echo "=== HEAD /members/Sumaira/ (expect 410) ==="; curl -skI --max-time 30 https://shiarishta.com/members/Sumaira/ | head -6
+          echo "=== first 400 chars of / ==="; curl -sk --max-time 30 https://shiarishta.com/ | head -c 400; echo
+          echo "=== title of / ==="; curl -sk --max-time 30 https://shiarishta.com/ | grep -o "<title>[^<]*</title>" | head -2
+          echo "=== first 300 chars of /shia-matrimony-usa ==="; curl -sk --max-time 30 https://shiarishta.com/shia-matrimony-usa | head -c 300; echo
