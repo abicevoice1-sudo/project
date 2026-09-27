@@ -101,12 +101,21 @@ export default function Dashboard() {
 
   const [verifyMsg, setVerifyMsg] = useState('');
   const [verifySending, setVerifySending] = useState(false);
+  const [verifyUrl, setVerifyUrl] = useState('');
   const resendVerification = async () => {
     setVerifySending(true);
     setVerifyMsg('');
+    setVerifyUrl('');
     try {
-      await api.post('/auth/verify/request', {});
-      setVerifyMsg('Verification email sent — check your inbox.');
+      const res = await api.post('/auth/verify/request', {});
+      if (res?.devMode && res?.verifyUrl) {
+        setVerifyUrl(res.verifyUrl);
+        setVerifyMsg('Email sending is not configured yet — use this link to verify:');
+      } else if (res?.alreadyVerified) {
+        setVerifyMsg('Your email is already verified.');
+      } else {
+        setVerifyMsg(res?.message || 'Verification email sent — check your inbox.');
+      }
     } catch (e) {
       setVerifyMsg(e?.message || 'Could not send verification email.');
     } finally {
@@ -122,6 +131,11 @@ export default function Dashboard() {
             <p className="text-sm flex-1" style={{ color: 'var(--color-ink)' }}>
               <strong>Verify your email</strong> to unlock messaging and publishing. Check your inbox for the verification link.
               {verifyMsg && <span className="block mt-1 text-xs opacity-80">{verifyMsg}</span>}
+              {verifyUrl && (
+                <a href={verifyUrl} className="block mt-1 text-xs font-semibold underline break-all" style={{ color: 'var(--color-primary)' }}>
+                  {verifyUrl}
+                </a>
+              )}
             </p>
             <button
               onClick={resendVerification}
