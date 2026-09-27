@@ -12,7 +12,7 @@ jobs:
         run: |
           cat > /tmp/mailtest.php <<'PHPEOF'
           <?php
-          require __DIR__ . '/.env.php';
+          require __DIR__ . '/lib/bootstrap.php';
           require __DIR__ . '/lib/mail.php';
           $r = mailSend([
             'to' => 'abicevoice1@gmail.com',
