@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../layouts/MainLayout';
 import { useAuth } from '../lib/auth/AuthContext';
 import { api } from '../lib/api/client';
-import { apiUrl } from '../lib/api/transport';
+import { apiUrl, http } from '../lib/api/transport';
 import { computeProfileCompleteness } from '../lib/onboardingData';
 import { getMyProfile } from '../lib/storage';
 import { computeCompatibility } from '../lib/compatibility';
@@ -107,7 +107,7 @@ export default function Dashboard() {
     setVerifyMsg('');
     setVerifyUrl('');
     try {
-      const res = await api.post('/auth/verify/request', {});
+      const res = await http.post('/auth/verify/request', {});
       if (res?.devMode && res?.verifyUrl) {
         setVerifyUrl(res.verifyUrl);
         setVerifyMsg('Email sending is not configured yet — use this link to verify:');
