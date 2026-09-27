@@ -1,0 +1,23 @@
+name: Check IP Reputation
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check IP against major DNSBLs
+        run: |
+          IP="103.178.113.48"
+          # Reverse the IP for DNSBL queries
+          REV=$(echo $IP | awk -F. '{print $4"."$3"."$2"."$1}')
+          echo "Checking $IP (reversed: $REV)"
+          echo ""
+          for bl in zen.spamhaus.org bl.spamcop.net dnsbl.sorbs.net psbl.surriel.com; do
+            RESULT=$(dig +short "${REV}.${bl}" @8.8.8.8)
+            if [ -n "$RESULT" ]; then
+              echo "LISTED on $bl: $RESULT"
+            else
+              echo "Clean on $bl"
+            fi
+          done
