@@ -57,13 +57,18 @@ function mailDevLog(string $to, string $subject, string $text): array
 
 function mailNative(string $from, string $to, string $subject, string $text): array
 {
-    // Reply-To is set separately: mail() takes the envelope sender in -f, and a
-    // mismatched From breaks SPF/DKIM alignment on most hosts.
+    // Set the envelope sender (-f) to match the From domain, otherwise cPanel
+    // defaults it to user@server-hostname and Gmail flags "via server-hostname".
+    $envelope = $from;
+    if (preg_match('/<([^>]+)>/', $from, $m)) {
+        $envelope = $m[1];
+    }
+    $envelope = filter_var(trim($envelope), FILTER_VALIDATE_EMAIL) ? trim($envelope) : 'no-reply@shiarishta.com';
     $headers = "From: $from\r\n"
              . "Reply-To: $from\r\n"
              . "Content-Type: text/plain; charset=UTF-8\r\n"
              . 'X-Mailer: ShiaRishta-PHP';
-    $ok = @mail($to, $subject, $text, $headers);
+    $ok = @mail($to, $subject, $text, $headers, '-f' . $envelope);
     if ($ok) {
         error_log("[mail:mail] sent to=$to subject=\"$subject\"");
         return ['sent' => true, 'method' => 'mail'];
