@@ -25,7 +25,6 @@ function routeAdmin(string $method, array $segments): void
         if ($verb === 'approve') { adminApproveVerification((string)$segments[1]); return; }
         if ($verb === 'reject')  { adminRejectVerification((string)$segments[1]); return; }
     }
-    if ($method === 'POST' && $action === 'qa-cleanup') { adminQaCleanup(); return; }
     if ($method === 'GET' && $action === 'overview') { adminOverview(); return; }
     if ($method === 'GET' && $action === 'analytics') { adminAnalytics(); return; }
     if ($method === 'GET' && $action === 'reports') { adminReports(); return; }
@@ -151,58 +150,6 @@ function adminVerificationFile(string $verificationId): void
     echo $plain;
     exit;
 }
-function adminQaCleanup(): void
-{
-    $user = requireAuthUser();
-    if (empty($user['isAdmin'])) {
-        je('Admin access required', 403);
-    }
-    $pdo = db();
-    $pdo->beginTransaction();
-    try {
-        // Find QA test accounts by email pattern.
-        $stmt = $pdo->query("SELECT id, email FROM users WHERE email LIKE 'qatest%' OR email LIKE '%test.local' OR email = 'qatest+alpha1@example.com'");
-        $qaUsers = $stmt->fetchAll();
-        $qaIds = array_column($qaUsers, 'id');
-
-        $stats = ['qaAccounts' => count($qaUsers), 'waliRevoked' => 0, 'interestsDeleted' => 0];
-
-        if ($qaIds) {
-            $placeholders = implode(',', array_fill(0, count($qaIds), '?'));
-
-            // Revoke all wali links owned by QA accounts.
-            $stmt = $pdo->prepare("UPDATE wali_links SET revoked = 1 WHERE user_id IN ($placeholders)");
-            $stmt->execute($qaIds);
-            $stats['waliRevoked'] = $stmt->rowCount();
-
-            // Delete interests involving QA accounts.
-            $stmt = $pdo->prepare("DELETE FROM interests WHERE from_user_id IN ($placeholders) OR to_user_id IN ($placeholders)");
-            $stmt->execute($qaIds);
-            $stats['interestsDeleted'] = $stmt->rowCount();
-
-            // Delete QA profiles (removes them from discovery).
-            $stmt = $pdo->prepare("DELETE FROM profiles WHERE user_id IN ($placeholders)");
-            $stmt->execute($qaIds);
-            $stats['profilesDeleted'] = $stmt->rowCount();
-
-            // Delete QA accounts.
-            $stmt = $pdo->prepare("DELETE FROM users WHERE id IN ($placeholders)");
-            $stmt->execute($qaIds);
-            $stats['accountsDeleted'] = $stmt->rowCount();
-        }
-
-        // Revoke ALL wali links as a safety measure (QA created 14).
-        $stmt = $pdo->query("UPDATE wali_links SET revoked = 1 WHERE revoked = 0");
-        $stats['allWaliRevoked'] = $stmt->rowCount();
-
-        $pdo->commit();
-        json(['ok' => true, 'stats' => $stats]);
-    } catch (Throwable $e) {
-        $pdo->rollBack();
-        je('Cleanup failed: ' . $e->getMessage(), 500);
-    }
-}
-
 function adminOverview(): void
 {
     // COUNT(*) comes back as a string from MySQL — cast for numeric parity.
