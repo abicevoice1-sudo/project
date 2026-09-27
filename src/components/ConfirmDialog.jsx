@@ -7,6 +7,7 @@ import { AlertTriangle } from 'lucide-react';
 // real DOM element: it works everywhere, is keyboard-accessible, and can be
 // driven by QA automation.
 export default function ConfirmDialog({
+  open = true,
   title = 'Are you sure?',
   message = '',
   confirmLabel = 'Confirm',
@@ -23,6 +24,8 @@ export default function ConfirmDialog({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onCancel]);
+
+  if (!open) return null;
 
   return (
     <div
