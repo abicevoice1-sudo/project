@@ -48,6 +48,9 @@ RewriteRule ^wp-includes/ - [G,L]
 RewriteRule ^wp-admin - [G,L]
 RewriteRule ^wp-login\.php$ - [G,L]
 RewriteRule ^xmlrpc\.php$ - [G,L]
+RewriteRule ^sitemap_index\.xml$ - [G,L]
+RewriteRule ^wp-sitemap\.xml$ - [G,L]
+RewriteRule ^wp-sitemap-posts- - [G,L]
 
 # 3) ShiaRishta SPA — Apache fallback for client-side routes.
 #    Every non-file request serves index.html so React Router can take over.
