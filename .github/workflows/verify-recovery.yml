@@ -1,4 +1,4 @@
-name: Verify API recovery
+name: Verify API recovery v2
 on: workflow_dispatch
 jobs:
   verify:
@@ -6,7 +6,7 @@ jobs:
     steps:
       - run: |
           python3 - <<'PYEOF2'
-          import requests, re, os, json as J, urllib3
+          import requests, re, os, urllib3
           urllib3.disable_warnings()
           CPANEL = 'https://ind85.server.broker:2083'
           USER = os.environ['CPANEL_USER']; PASS = os.environ['CPANEL_PASS']
@@ -19,30 +19,44 @@ jobs:
           def uapi(mod, func, **params):
               r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
               return r.json()
-          # 1. cleanup leftover diag probe if present
+          # cleanup diag probe (try numbered param form)
+          j = uapi('Fileman', 'delete_files', dir='/home/shiarishta/public_html/api', **{'file-0': 'diag_jarvis.php'})
+          print('diag delete try2:', j.get('status'), (j.get('errors') or [None])[0] if j.get('errors') else '')
           j = uapi('Fileman', 'list_files', dir='/home/shiarishta/public_html/api')
           names = [f.get('file') for f in (j.get('data') or [])]
-          if 'diag_jarvis.php' in names:
-              j = uapi('Fileman', 'delete_files', dir='/home/shiarishta/public_html/api', files='diag_jarvis.php')
-              print('diag cleanup:', j.get('status'))
-          else:
-              print('diag cleanup: already gone')
-          # 2. health
+          print('diag still present:', 'diag_jarvis.php' in names)
+          # health
           r = s.get('https://shiarishta.com/api/health', verify=False, timeout=30)
-          print('health:', r.status_code, r.text[:120])
-          assert r.status_code == 200 and r.json().get('ok') is True, 'HEALTH FAILED'
-          # 3. login (was 500ing)
+          print('health:', r.status_code, r.text[:100])
+          assert r.status_code == 200 and r.json().get('ok') is True
+          # login with known QA credential
           r = s.post('https://shiarishta.com/api/auth/login', verify=False, timeout=30,
-                     json={'email': 'qatest02@example.com', 'password': 'Test1234!'})
+                     json={'email': 'qatest13@example.com', 'password': 'QaTest#2026-13'})
           print('login:', r.status_code, r.text[:160])
           assert r.status_code == 200, 'LOGIN FAILED'
-          tok = r.json().get('token') or r.json().get('session', {}).get('token', '')
-          assert tok, 'no token in login response'
-          # 4. authenticated me
-          r = s.get('https://shiarishta.com/api/users/me', verify=False, timeout=30,
-                    headers={'Authorization': f'Bearer {tok}'})
+          d = r.json()
+          tok = d.get('token') or d.get('session', {}).get('token', '')
+          assert tok, 'no token'
+          H = {'Authorization': f'Bearer {tok}'}
+          # me
+          r = s.get('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H)
           print('me:', r.status_code, r.text[:160])
-          assert r.status_code == 200, 'ME FAILED'
+          assert r.status_code == 200
+          orig_bio = (r.json().get('user') or r.json()).get('bio', '')
+          # profile bio save round-trip (the exact op that 500'd)
+          marker = 'RECOVERY-PROBE ' + 'ok'
+          r = s.put('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H,
+                    json={'bio': marker})
+          print('bio save:', r.status_code, r.text[:160])
+          assert r.status_code == 200, 'BIO SAVE FAILED'
+          r = s.get('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H)
+          saved = (r.json().get('user') or r.json()).get('bio', '')
+          print('bio persisted:', saved == marker)
+          assert saved == marker, 'BIO NOT PERSISTED'
+          # restore original bio
+          r = s.put('https://shiarishta.com/api/users/me', verify=False, timeout=30, headers=H,
+                    json={'bio': orig_bio})
+          print('bio restore:', r.status_code)
           print('RECOVERY_VERIFIED')
           PYEOF2
         env:
