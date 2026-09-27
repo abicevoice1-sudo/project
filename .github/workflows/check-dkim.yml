@@ -1,0 +1,16 @@
+name: Check DKIM DNS
+on:
+  workflow_dispatch:
+
+jobs:
+  check-dkim:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query DKIM selectors in DNS
+        run: |
+          for sel in default x dkim1 dkim mail; do
+            echo "=== ${sel}._domainkey.shiarishta.com ==="
+            dig +short TXT "${sel}._domainkey.shiarishta.com" @1.1.1.1 | head -3
+          done
+          echo "=== SPF ==="
+          dig +short TXT shiarishta.com @1.1.1.1 | head -3
