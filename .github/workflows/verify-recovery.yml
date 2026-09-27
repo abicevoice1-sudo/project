@@ -1,4 +1,4 @@
-name: Verify API recovery v5
+name: Verify API recovery v6
 on: workflow_dispatch
 jobs:
   verify:
@@ -19,12 +19,12 @@ jobs:
           def uapi(mod, func, **params):
               r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
               return r.json()
-          PHP = '<?php\nheader(\'Content-Type: text/plain; charset=utf-8\');\nrequire __DIR__ . \'/lib/bootstrap.php\';\nrequire __DIR__ . \'/lib/db.php\';\n$r = db()->query(\'SHOW CREATE TABLE profiles\')->fetch();\necho $r[\'Create Table\'] . "\\nDONE\\n";\n'
+          PHP = '<?php\nheader(\'Content-Type: text/plain; charset=utf-8\');\nrequire __DIR__ . \'/lib/bootstrap.php\';\nrequire __DIR__ . \'/lib/db.php\';\n$u = db()->prepare("SELECT id FROM users WHERE email=\'qatest13@example.com\' LIMIT 1");\n$u->execute(); $uid = $u->fetch()[\'id\'];\necho "uid_len=" . strlen($uid) . " uid_hex=" . bin2hex($uid) . "\\n";\n$p = db()->prepare(\'SELECT user_id, HEX(user_id) AS hx FROM profiles WHERE user_id=? LIMIT 1\');\n$p->execute([$uid]); $pr = $p->fetch();\necho "row_hex=" . ($pr[\'hx\'] ?? \'NONE\') . "\\n";\necho "equal=" . var_export($pr && $pr[\'user_id\'] === $uid, true) . "\\n";\ntry {\n    db()->prepare(\'INSERT INTO profiles (user_id, bio) VALUES (?, ?)\')->execute([$uid, \'x\']);\n    echo "PLAIN_INSERT_OK?!\\n";\n} catch (Throwable $e) { echo "PLAIN_INSERT: " . substr($e->getMessage(), 0, 200) . "\\n"; }\necho "DONE\\n";\n'
           uapi('Fileman', 'save_file_content', dir='/home/shiarishta/public_html/api',
                file='dbprobe_jarvis.php', content=PHP)
           time.sleep(2)
           r = s.get('https://shiarishta.com/api/dbprobe_jarvis.php', verify=False, timeout=40)
-          print(r.text[:3000])
+          print(r.text[:2000])
           PYEOF2
         env:
           CPANEL_USER: ${{ secrets.FTP_USERNAME }}
