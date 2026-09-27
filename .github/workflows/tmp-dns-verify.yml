@@ -1,0 +1,14 @@
+name: tmp-dns-verify
+on: { workflow_dispatch: {} }
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "=== NS via Google DNS ==="; dig +short @8.8.8.8 shiarishta.com NS
+          echo "=== A via Google DNS ==="; dig +short @8.8.8.8 shiarishta.com A
+          echo "=== A via Cloudflare DNS ==="; dig +short @1.1.1.1 shiarishta.com A
+          echo "=== www via Google DNS ==="; dig +short @8.8.8.8 www.shiarishta.com A
+          echo "=== site HTTPS ==="; curl -s -o /dev/null -w "apex %{http_code}\n" https://shiarishta.com/ --max-time 20
+          curl -s -o /dev/null -w "www %{http_code}\n" https://www.shiarishta.com/ --max-time 20
+          curl -s -o /dev/null -w "api %{http_code}\n" https://shiarishta.com/api/health --max-time 20
