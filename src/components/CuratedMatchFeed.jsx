@@ -22,11 +22,16 @@ export default function CuratedMatchFeed({ profiles = [], onExpressInterest }) {
   // Single source of truth for match scores: computed from the viewer's own
   // onboarding answers. No hardcoded fallback — when there isn't enough data
   // the badge is hidden rather than inventing a number.
-  const me = useMemo(() => getMyProfile(), []);
-  const matchScore = useMemo(
-    () => (current ? computeCompatibility(current, me)?.overall ?? null : null),
-    [current, me]
-  );
+  const me = useMemo(() => {
+    try { return getMyProfile(); } catch { return null; }
+  }, []);
+  const matchScore = useMemo(() => {
+    try {
+      return current ? computeCompatibility(current, me)?.overall ?? null : null;
+    } catch {
+      return null;
+    }
+  }, [current, me]);
 
   const handleDecision = useCallback((decision) => {
     if (exiting || !current) return;
@@ -114,13 +119,21 @@ export default function CuratedMatchFeed({ profiles = [], onExpressInterest }) {
           >
             {/* Photo */}
             <div className="relative" style={{ aspectRatio: '3/4', background: 'var(--color-surface)' }}>
-              <img
-                src={current.photo}
-                alt={`${current.displayName} — profile photo`}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                style={{ objectPosition: 'center top' }}
-              />
+              {current.photo ? (
+                <img
+                  src={current.photo}
+                  alt={`${current.displayName} — profile photo`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  style={{ objectPosition: 'center top' }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-6xl font-bold" style={{ color: 'var(--color-ink-tertiary)' }}>
+                    {(current.displayName || '?').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
               {/* Gradient scrim */}
               <div className="absolute inset-x-0 bottom-0 h-2/3" style={{ background: 'linear-gradient(to top, rgba(6,20,15,0.92), transparent)' }} />
 

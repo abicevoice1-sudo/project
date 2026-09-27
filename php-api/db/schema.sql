@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   height_cm          INT          DEFAULT NULL,
   timeline           VARCHAR(80)  DEFAULT NULL,
   photo_url          VARCHAR(500) DEFAULT NULL,
+  syed_status        VARCHAR(40)  DEFAULT NULL,
   created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

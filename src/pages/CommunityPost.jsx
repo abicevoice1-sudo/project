@@ -142,14 +142,14 @@ export default function CommunityPost() {
             <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" /> {post.replies} replies</span>
             <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {post.likes} likes</span>
             <ReportButton targetType="post" targetId={String(post.id)} />
-            {isAdmin && (
+            {(isAdmin || post.mine) && (
               <button
                 type="button"
                 disabled={moderating}
                 onClick={() => setConfirmDeletePost(true)}
                 className="flex items-center gap-1 hover:underline"
                 style={{ color: 'var(--color-danger)' }}
-                aria-label="Delete this post (moderation)"
+                aria-label={isAdmin ? "Delete this post (moderation)" : "Delete your post"}
               >
                 <Trash2 className="w-3.5 h-3.5" /> {moderating ? 'Deleting…' : 'Delete'}
               </button>

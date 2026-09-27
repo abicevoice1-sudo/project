@@ -30,13 +30,54 @@ const initialsOf = (name) => {
 };
 
 // ── Notifications — accessible popover ────────────────────────────────────────
-// There is no fake activity here: no fabricated "ID approved" or "wali accepted"
-// events. Items appear only when a real server-side notifications feed exists.
-// Until then the bell shows an honest empty state and no unread badge.
+// Real server-side notifications: interests, matches, etc.
 function NotificationsMenu() {
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const rootRef = useRef(null);
   const buttonRef = useRef(null);
+  const { isLoggedIn } = useAuth();
+
+  const fetchNotifications = async () => {
+    if (!isLoggedIn) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/profiles/notifications', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+        setUnreadCount(data.filter(n => !n.isRead).length);
+      }
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn]);
+
+  const markAllRead = async () => {
+    try {
+      await fetch('/api/profiles/notifications/read', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch { /* ignore */ }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -57,7 +98,7 @@ function NotificationsMenu() {
     };
   }, [open]);
 
-  const unreadCount = 0;
+  if (!isLoggedIn) return null;
 
   return (
     <div ref={rootRef} style={{ position: 'relative', display: 'inline-flex' }}>
@@ -94,10 +135,35 @@ function NotificationsMenu() {
         >
           <div className="flex items-center justify-between" style={{ padding: '6px 8px 10px' }}>
             <span className="text-xs font-bold" style={{ color: 'var(--color-ink)' }}>Notifications</span>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="text-xs" style={{ color: 'var(--color-primary)' }}>
+                Mark all read
+              </button>
+            )}
           </div>
-          <p className="text-xs" style={{ color: 'var(--color-ink-tertiary)', padding: '8px' }}>
-            You're all caught up — there are no notifications.
-          </p>
+          {loading ? (
+            <p className="text-xs" style={{ color: 'var(--color-ink-tertiary)', padding: '8px' }}>Loading...</p>
+          ) : notifications.length === 0 ? (
+            <p className="text-xs" style={{ color: 'var(--color-ink-tertiary)', padding: '8px' }}>
+              You're all caught up — there are no notifications.
+            </p>
+          ) : (
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {notifications.map(n => (
+                <div key={n.id} style={{
+                  padding: '8px',
+                  borderBottom: '1px solid var(--color-border)',
+                  background: n.isRead ? 'transparent' : 'var(--color-primary-subtle)'
+                }}>
+                  <p className="text-xs font-semibold" style={{ color: 'var(--color-ink)' }}>{n.title}</p>
+                  {n.body && <p className="text-xs" style={{ color: 'var(--color-ink-secondary)' }}>{n.body}</p>}
+                  <p className="text-[10px]" style={{ color: 'var(--color-ink-tertiary)' }}>
+                    {new Date(n.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

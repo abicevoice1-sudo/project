@@ -15,7 +15,8 @@ const RELIGIOSITY_FILTERS = ['Any level', 'Very practicing', 'Practicing', 'Mode
 const EDUCATION_FILTERS = ['Any education', "Bachelor's degree", "Master's degree", 'Doctorate', 'Some college'];
 // Marja' is the single most requested Shia filter — it decides which rulings
 // govern a shared household, so it belongs next to sect, not buried.
-const MARJA_FILTERS = ['Any marja', 'Sistani', 'Khamenei', 'Khoei', 'Tehrani', 'Shirazi', 'Other'];
+// Values MUST match MARJA_OPTIONS in onboardingData.js exactly.
+const MARJA_FILTERS = ['Any marja', 'Ayatollah al-Sistani', 'Ayatollah al-Khamenei', 'Ayatollah al-Shirazi', 'Ayatollah al-Hakim', 'Ayatollah al-Sadr (via wakeel)', 'Not following a specific Marja yet', 'Prefer not to say'];
 const SORTS = [
   { value: 'match', label: 'Best match' },
   { value: 'newest', label: 'Newest members' },
@@ -26,12 +27,12 @@ const SORTS = [
 const DEFAULT_FILTERS = {
   search: '', gender: '', minAge: '', maxAge: '', country: '',
   sect: 'Any sect', religiosity: 'Any level', education: 'Any education',
-  marja: 'Any marja', photo: 'any', verifiedOnly: false, sort: 'match'
+  marja: 'Any marja', syedStatus: 'Any', photo: 'any', verifiedOnly: false, sort: 'match'
 };
 
 // Placeholder sentinels must be stripped before hitting the API, otherwise the
 // server would filter for the literal string "Any sect" and return nothing.
-const sentinels = new Set(['Any sect', 'Any level', 'Any education', 'Any marja', 'any', '']);
+const sentinels = new Set(['Any sect', 'Any level', 'Any education', 'Any marja', 'Any', 'any', '']);
 const clean = (v) => (v === undefined || sentinels.has(String(v)) ? undefined : String(v));
 
 export default function Profiles() {
@@ -69,6 +70,7 @@ export default function Profiles() {
     religiosity: clean(filters.religiosity),
     education: clean(filters.education),
     marja: clean(filters.marja),
+    syedStatus: clean(filters.syedStatus),
     // The API param is `photoAccess`; the UI state key is `photo`.
     photoAccess: clean(filters.photo),
     verifiedOnly: filters.verifiedOnly,
@@ -190,6 +192,21 @@ export default function Profiles() {
               <div className="card p-5 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
+                    <label className="block mb-1.5 text-xs font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Looking for</label>
+                    <select value={filters.gender} onChange={e => setFilter('gender', e.target.value)} className="input" style={{ background: 'var(--color-surface)' }}>
+                      <option value="">Any</option>
+                      <option value="female">Brides</option>
+                      <option value="male">Grooms</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1.5 text-xs font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Age range</label>
+                    <div className="flex gap-2">
+                      <input type="number" min="18" max="100" placeholder="Min" value={filters.minAge} onChange={e => setFilter('minAge', e.target.value)} className="input" style={{ background: 'var(--color-surface)' }} aria-label="Minimum age" />
+                      <input type="number" min="18" max="100" placeholder="Max" value={filters.maxAge} onChange={e => setFilter('maxAge', e.target.value)} className="input" style={{ background: 'var(--color-surface)' }} aria-label="Maximum age" />
+                    </div>
+                  </div>
+                  <div>
                     <label className="block mb-1.5 text-xs font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Sect</label>
                     <select value={filters.sect} onChange={e => setFilter('sect', e.target.value)} className="input" style={{ background: 'var(--color-surface)' }}>
                       {SECT_FILTERS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -211,6 +228,15 @@ export default function Profiles() {
                     <label className="block mb-1.5 text-xs font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Marja&apos;</label>
                     <select value={filters.marja} onChange={e => setFilter('marja', e.target.value)} className="input" style={{ background: 'var(--color-surface)' }}>
                       {MARJA_FILTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1.5 text-xs font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Syed / Sadat</label>
+                    <select value={filters.syedStatus} onChange={e => setFilter('syedStatus', e.target.value)} className="input" style={{ background: 'var(--color-surface)' }}>
+                      <option value="Any">Any</option>
+                      <option value="sadat-both">Syed / Sadat — both sides</option>
+                      <option value="syed-paternal">Syed (paternal)</option>
+                      <option value="non-syed">Non-Syed</option>
                     </select>
                   </div>
                   <div>

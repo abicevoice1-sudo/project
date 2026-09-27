@@ -146,6 +146,21 @@ export default function ProfileCard({ profile, className = '' }) {
               <Shield className="w-3.5 h-3.5 text-white" />
             </div>
           )}
+
+          {/* Syed / Sadat badge */}
+          {(profile.syedStatus === 'sadat-both' || profile.syedStatus === 'syed-paternal') && (
+            <div
+              className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+              style={{
+                background: 'linear-gradient(135deg,#d4af37,#b8860b)',
+                color: '#1a1a1a',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              }}
+              title={profile.syedStatus === 'sadat-both' ? 'Syed / Sadat — both sides' : 'Syed (paternal)'}
+            >
+              Syed
+            </div>
+          )}
         </div>
 
         {/* Body */}

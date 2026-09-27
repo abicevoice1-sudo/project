@@ -110,10 +110,20 @@ function visibleProfile(array $row, ?array $viewer): ?array
         return null;
     }
     $ownerId = (string)($row['user_id'] ?? $row['id'] ?? '');
-    if (($row['visibility'] ?? 'members') === 'private' && ($viewer === null || (string)$viewer['uid'] !== $ownerId)) {
+    $isOwner = $viewer !== null && (string)$viewer['uid'] === $ownerId;
+    // Mutual interest unlocks private profiles — matches can see each other.
+    $isMutual = false;
+    if ($viewer !== null && !$isOwner) {
+        $pdo = db();
+        $s1 = $pdo->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
+        $s1->execute([$viewer['uid'], $ownerId]);
+        $s2 = $pdo->prepare('SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ? LIMIT 1');
+        $s2->execute([$ownerId, $viewer['uid']]);
+        $isMutual = (bool)$s1->fetch() && (bool)$s2->fetch();
+    }
+    if (($row['visibility'] ?? 'members') === 'private' && !$isOwner && !$isMutual) {
         return null;
     }
-    $isOwner = $viewer !== null && (string)$viewer['uid'] === $ownerId;
     $isAnonymous = $viewer === null;
 
     // P0: members-only profiles are invisible to anonymous visitors entirely.
@@ -165,6 +175,7 @@ function visibleProfile(array $row, ?array $viewer): ?array
             'religiosity' => $row['religiosity'] ?? null,
             'educationLevel' => $row['education_level'] ?? null,
             'marja' => $row['marja'] ?? null,
+            'syedStatus' => $row['syed_status'] ?? null,
             'prayer' => $row['prayer'] ?? null,
             'modesty' => $row['modesty'] ?? null,
             'diet' => $row['diet'] ?? null,

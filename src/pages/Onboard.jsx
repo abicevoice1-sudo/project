@@ -333,6 +333,7 @@ export default function Onboard() {
         visibility: data.profileVisibility,
         bio: data.bio,
         expectations: data.lookingFor,
+        syedStatus: data.syedStatus,
       };
       const clean = {};
       for (const [k, v] of Object.entries(payload)) {

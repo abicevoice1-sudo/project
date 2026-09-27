@@ -28,6 +28,7 @@ function migrateSchema(): void
     migrateAddContactTable();
     migrateAddSessionsTable();
     migrateAddEmailVerificationsTable();
+    migrateAddNotificationsTable();
 
     // Cheap "already migrated" probe. Must check a LATE table too: probing only
     // users.* would skip migration forever after a partial run (a lesson learned
@@ -105,6 +106,7 @@ function migrateAddProfileColumns(): void
         'timeline'         => "VARCHAR(80) DEFAULT NULL",
         'photo_url'        => "VARCHAR(500) DEFAULT NULL",
         'contact_visibility' => "VARCHAR(20) DEFAULT 'members'",
+        'syed_status'        => "VARCHAR(40) DEFAULT NULL",
     ];
 
     try {
@@ -181,5 +183,27 @@ function migrateAddEmailVerificationsTable(): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     } catch (Throwable $e) {
         error_log('[api] migration (email_verifications table) issue: ' . $e->getMessage());
+    }
+}
+
+// Notifications table. Created unconditionally (idempotent) so databases
+// created before this table existed still get it.
+function migrateAddNotificationsTable(): void
+{
+    try {
+        db()->exec("CREATE TABLE IF NOT EXISTS notifications (
+          id         CHAR(36)     NOT NULL PRIMARY KEY,
+          user_id    CHAR(36)     NOT NULL,
+          type       VARCHAR(40)  NOT NULL,
+          title      VARCHAR(255) NOT NULL,
+          body       TEXT         DEFAULT NULL,
+          ref_id     CHAR(36)     DEFAULT NULL,
+          is_read    TINYINT(1)   NOT NULL DEFAULT 0,
+          created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          KEY idx_notif_user (user_id, created_at),
+          KEY idx_notif_unread (user_id, is_read)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('[api] migration (notifications table) issue: ' . $e->getMessage());
     }
 }

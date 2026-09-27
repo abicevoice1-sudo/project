@@ -21,6 +21,9 @@ function routeProfiles(string $method, array $segments): void
     if ($method === 'POST' && $id === 'me' && $sub === 'photo') { photoUpload(); return; }
     if ($method === 'DELETE' && $id === 'me' && $sub === 'photo') { photoDelete(); return; }
     if ($method === 'GET' && $id === 'interests' && ($segments[1] ?? '') === 'received') { interestsReceived(); return; }
+    if ($method === 'GET' && $id === 'notifications') { notificationsList(); return; }
+    if ($method === 'POST' && $id === 'notifications' && ($segments[1] ?? '') === 'read') { notificationsRead(); return; }
+    if ($method === 'GET' && $id === 'notifications' && ($segments[1] ?? '') === 'unread-count') { notificationsUnreadCount(); return; }
     if ($method === 'GET' && $id !== null && $sub === 'photo') { photoServe($id); return; }
     if ($method === 'GET' && $id !== null) { profileById($id); return; }
     if ($method === 'POST' && $id !== null && ($segments[1] ?? '') === 'interest') { profileInterest($id); return; }
@@ -295,6 +298,7 @@ function profilesList(): void
     $religiosity = $_GET['religiosity'] ?? null;
     $education   = $_GET['education'] ?? null;
     $marja       = $_GET['marja'] ?? null;
+    $syedStatus  = $_GET['syedStatus'] ?? null;
     $country     = $_GET['country'] ?? null;
     $photoAccess = $_GET['photoAccess'] ?? null;   // public | members | private
     $searchable  = static fn($v, $label) => ($v !== null && $v !== '' && $v !== "Any $label" && $v !== "Any $label.");
@@ -305,6 +309,7 @@ function profilesList(): void
     if ($searchable($religiosity, 'level')) { $where[] = 'p.religiosity = ?'; $params[] = $religiosity; }
     if ($searchable($education, 'education')) { $where[] = 'p.education_level = ?'; $params[] = $education; }
     if ($searchable($marja, 'marja')) { $where[] = 'p.marja = ?'; $params[] = $marja; }
+    if ($searchable($syedStatus, 'syed')) { $where[] = 'p.syed_status = ?'; $params[] = $syedStatus; }
     if ($searchable($country, 'country')) { $where[] = 'p.country = ?'; $params[] = $country; }
     if ($searchable($photoAccess, 'photo')) { $where[] = 'p.photos_visibility = ?'; $params[] = $photoAccess; }
     $verifiedOnly = ($_GET['verifiedOnly'] ?? 'false') === 'true';
@@ -460,7 +465,7 @@ function profileUpdate(): void
         'religiosity', 'educationLevel', 'marja', 'prayer', 'modesty', 'diet',
         'languages', 'ethnicity', 'incomeRange', 'maritalStatus', 'children',
         'childrenPlans', 'relocation', 'familyInvolvement', 'heightCm', 'timeline',
-        'photoUrl'];
+        'photoUrl', 'syedStatus'];
 
     // Accept the same key under both shapes. The browse filter sends `education`
     // (that is the query-param name) while the onboarding form sends
@@ -498,6 +503,7 @@ function profileUpdate(): void
             'familyInvolvement' => 'family_involvement',
             'heightCm' => 'height_cm',
             'photoUrl' => 'photo_url',
+            'syedStatus' => 'syed_status',
             default => $key,
         };
         $v = in_array($key, ['age', 'heightCm'], true) && $b[$key] !== null && $b[$key] !== ''
@@ -572,6 +578,18 @@ function profileInterest(string $id): void
     $mutual->execute([$id, $user['uid']]);
     $mirrored = (bool)$mutual->fetch();
 
+    // Notify the recipient of the new interest (or the match, if mutual).
+    $fromName = db()->prepare('SELECT display_name FROM profiles WHERE user_id = ? LIMIT 1');
+    $fromName->execute([$user['uid']]);
+    $nameRow = $fromName->fetch();
+    $senderName = $nameRow['display_name'] ?? 'Someone';
+    if ($mirrored) {
+        notifyUser($id, 'match', 'It\'s a mutual match!', $senderName . ' also expressed interest. Start a conversation.', $user['uid']);
+        notifyUser($user['uid'], 'match', 'It\'s a mutual match!', 'You and ' . $senderName . ' both expressed interest.', $id);
+    } else {
+        notifyUser($id, 'interest', 'New interest received', $senderName . ' expressed interest in your profile.', $user['uid']);
+    }
+
     json(['success' => true, 'matched' => $mirrored]);
 }
 
@@ -618,5 +636,54 @@ function interestsReceived(): void
         ];
     }
     json($out);
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+// Create a notification. Idempotent on (user_id, type, ref_id) to avoid dupes.
+function notifyUser(string $userId, string $type, string $title, ?string $body = null, ?string $refId = null): void
+{
+    try {
+        $id = uuid();
+        $stmt = db()->prepare('INSERT INTO notifications (id, user_id, type, title, body, ref_id) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$id, $userId, $type, $title, $body, $refId]);
+    } catch (Throwable $e) {
+        error_log('[api] notify failed: ' . substr($e->getMessage(), 0, 120));
+    }
+}
+
+function notificationsList(): void
+{
+    $user = requireAuthUser();
+    $stmt = db()->prepare('SELECT id, type, title, body, ref_id AS refId, is_read AS isRead, created_at AS createdAt FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50');
+    $stmt->execute([$user['uid']]);
+    $rows = $stmt->fetchAll();
+    foreach ($rows as &$r) { $r['isRead'] = (bool)$r['isRead']; }
+    json($rows);
+}
+
+function notificationsRead(): void
+{
+    $user = requireAuthUser();
+    $b = requestJson();
+    $ids = $b['ids'] ?? null;
+    if (is_array($ids) && $ids) {
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = db()->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND id IN ($placeholders)");
+        $stmt->execute(array_merge([$user['uid']], $ids));
+    } else {
+        // Mark all as read
+        $stmt = db()->prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?');
+        $stmt->execute([$user['uid']]);
+    }
+    json(['success' => true]);
+}
+
+function notificationsUnreadCount(): void
+{
+    $user = requireAuthUser();
+    $stmt = db()->prepare('SELECT COUNT(*) AS c FROM notifications WHERE user_id = ? AND is_read = 0');
+    $stmt->execute([$user['uid']]);
+    $row = $stmt->fetch();
+    json(['unread' => (int)($row['c'] ?? 0)]);
 }
 

@@ -28,11 +28,17 @@ function routeCommunity(string $method, array $segments): void
 // replies in one transaction.
 function communityDeletePost(string $postId): void
 {
-    requireAdminUser();
-    $probe = db()->prepare('SELECT id FROM posts WHERE id = ? LIMIT 1');
+    $user = requireAuthUser();
+    $probe = db()->prepare('SELECT id, user_id FROM posts WHERE id = ? LIMIT 1');
     $probe->execute([$postId]);
-    if (!$probe->fetch()) {
+    $post = $probe->fetch();
+    if (!$post) {
         je('Post not found.', 404);
+    }
+    // Author can delete their own post; admins can delete any post.
+    $isAdmin = !empty($user['is_admin']);
+    if (!$isAdmin && (string)$post['user_id'] !== (string)$user['uid']) {
+        je('You can only delete your own posts.', 403);
     }
     $pdo = db();
     $pdo->beginTransaction();
