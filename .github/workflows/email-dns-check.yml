@@ -1,0 +1,24 @@
+name: Email DNS Check
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all email auth records in DNS
+        run: |
+          echo "=== SPF ==="
+          dig +short TXT shiarishta.com @1.1.1.1
+          dig +short TXT shiarishta.com @8.8.8.8
+          echo ""
+          echo "=== DKIM (default selector) ==="
+          dig +short TXT default._domainkey.shiarishta.com @1.1.1.1 | cut -c1-80
+          dig +short TXT default._domainkey.shiarishta.com @8.8.8.8 | cut -c1-80
+          echo ""
+          echo "=== DMARC ==="
+          dig +short TXT _dmarc.shiarishta.com @1.1.1.1
+          dig +short TXT _dmarc.shiarishta.com @8.8.8.8
+          echo ""
+          echo "=== MX ==="
+          dig +short MX shiarishta.com @1.1.1.1
