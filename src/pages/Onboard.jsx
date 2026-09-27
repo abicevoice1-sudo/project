@@ -228,6 +228,37 @@ export default function Onboard() {
     setDraftReady(true);
   }, [totalSteps]);
 
+  // Pre-fill from the server profile so republishing never wipes existing data
+  // (e.g. a bio saved in Settings). Draft values take precedence when present.
+  useEffect(() => {
+    if (!draftReady) return;
+    let cancelled = false;
+    api.getProfile('me').then(p => {
+      if (cancelled || !p || p.error) return;
+      setData(prev => {
+        // Only fill fields the wizard doesn't already have (from draft or user input)
+        const filled = { ...prev };
+        const map = {
+          displayName: p.displayName, age: p.age, gender: p.gender, city: p.city,
+          country: p.country, maritalStatus: p.maritalStatus, sect: p.sect,
+          religiosity: p.religiosity, prayer: p.prayer, marja: p.marja,
+          modesty: p.modesty, diet: p.diet, ethnicity: p.ethnicity,
+          educationLevel: p.educationLevel, profession: p.profession,
+          incomeRange: p.incomeRange, timeline: p.timeline, relocation: p.relocation,
+          familyInvolvement: p.familyInvolvement, bio: p.bio, lookingFor: p.expectations,
+        };
+        for (const [k, v] of Object.entries(map)) {
+          if ((filled[k] === '' || filled[k] == null) && v) filled[k] = v;
+        }
+        if (typeof p.languages === 'string' && p.languages && filled.languages.length === 0) {
+          filled.languages = p.languages.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        return filled;
+      });
+    }).catch(() => { /* no existing profile — start fresh */ });
+    return () => { cancelled = true; };
+  }, [draftReady]);
+
   // Autosave the draft on every change (post-restore only)
   useEffect(() => {
     if (!draftReady) return;
