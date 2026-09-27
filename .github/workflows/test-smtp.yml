@@ -1,0 +1,33 @@
+name: Test SendGrid SMTP
+on:
+  workflow_dispatch:
+
+jobs:
+  test-smtp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload SMTP test script via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./smtp-test-tmp/
+          server-dir: /public_html/api/
+
+      - name: Run SMTP test
+        run: |
+          echo "=== Calling test script ==="
+          curl -sk --max-time 60 "https://shiarishta.com/api/smtp-test.php"
+          echo ""
+          echo "=== Done ==="
+
+      - name: Delete test script via FTP
+        run: |
+          curl -sk --max-time 30 --ftp-ssl \
+            -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
+            "ftp://${{ secrets.FTP_SERVER }}/public_html/api/smtp-test.php" \
+            -Q "DELE /public_html/api/smtp-test.php" || echo "Delete attempted"
