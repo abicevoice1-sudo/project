@@ -1,0 +1,16 @@
+name: DKIM setup
+on: workflow_dispatch
+jobs:
+  dkim:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check email deliverability status
+        env:
+          CP_USER: ${{ secrets.FTP_USERNAME }}
+          CP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          echo "=== Checking DKIM status ==="
+          curl -sk -u "$CP_USER:$CP_PASS" \
+            "https://ind85.server.broker:2083/execute/Email/get_dkim_status?domain=shiarishta.com" \
+            | head -c 2000
+          echo ""
