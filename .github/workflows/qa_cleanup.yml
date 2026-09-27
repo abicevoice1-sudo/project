@@ -1,0 +1,35 @@
+name: QA cleanup
+on: workflow_dispatch
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload cleanup probe
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          cat > /tmp/qaclean.php <<'PHPEOF'
+          <?php
+          require __DIR__ . '/lib/bootstrap.php';
+          require __DIR__ . '/lib/db.php';
+          $pdo = db();
+          // Find QA accounts by email pattern - REPORT ONLY, no deletion yet
+          $stmt = $pdo->query("SELECT id, email, display_name FROM users WHERE email LIKE 'qatest%' OR email LIKE '%test.local' OR display_name LIKE 'QA Tester%' OR display_name LIKE 'QA Test%'");
+          $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+          echo json_encode(['count' => count($rows), 'users' => $rows], JSON_PRETTY_PRINT);
+          PHPEOF
+          curl -s --insecure --ftp-ssl "ftps://$FTP_USER:$FTP_PASS@$FTP_SERVER/public_html/api/qaclean.php" -T /tmp/qaclean.php
+          echo ""
+          echo "=== QA accounts found ==="
+          curl -sk "https://shiarishta.com/api/qaclean.php"
+          echo ""
+      - name: Cleanup probe
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          curl -s --insecure --ftp-ssl "ftps://$FTP_USER:$FTP_PASS@$FTP_SERVER/" -Q "DELE /public_html/api/qaclean.php" -o /dev/null || true
+          echo "cleaned"
