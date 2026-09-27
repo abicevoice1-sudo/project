@@ -509,6 +509,18 @@ function profileUpdate(): void
         $insertVals[] = $values[$i];
         $updateSets[] = "{$col} = VALUES({$col})";
     }
+    // Strict-mode guard: display_name is NOT NULL with no default, and MySQL
+    // validates INSERT defaults BEFORE the ON DUPLICATE KEY check — omitting
+    // it 500s every partial save (e.g. bio-only) even when the profile row
+    // already exists. Always carry it on the INSERT side.
+    if (!in_array('display_name', $insertCols, true)) {
+        $nm = db()->prepare('SELECT display_name FROM users WHERE id = ? LIMIT 1');
+        $nm->execute([$user['uid']]);
+        $fallback = trim((string)(($nm->fetch()['display_name'] ?? '')));
+        if ($fallback === '') $fallback = 'Member';
+        array_splice($insertCols, 1, 0, ['display_name']);
+        array_splice($insertVals, 1, 0, [$fallback]);
+    }
     $sql = 'INSERT INTO profiles (' . implode(', ', $insertCols) . ') VALUES (' .
         implode(', ', array_fill(0, count($insertVals), '?')) .
         ') ON DUPLICATE KEY UPDATE ' . implode(', ', $updateSets) . ', updated_at = UTC_TIMESTAMP()';
