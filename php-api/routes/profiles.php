@@ -336,10 +336,25 @@ function profilesList(): void
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
 
+    // Include interest state per card so the UI survives reloads (parity with profileById).
+    $sentStmt = null;
+    if ($viewer !== null) {
+        $sentStmt = db()->prepare('SELECT to_user_id FROM interests WHERE from_user_id = ?');
+        $sentStmt->execute([$viewer['uid']]);
+        $sentIds = [];
+        foreach ($sentStmt->fetchAll() as $s) { $sentIds[(string)$s['to_user_id']] = true; }
+    }
+
     $list = [];
     foreach ($rows as $row) {
         $view = visibleProfile($row, $viewer);
-        if ($view !== null) $list[] = $view;
+        if ($view === null) continue;
+        if ($viewer !== null) {
+            $view['interestSent'] = isset($sentIds[(string)($view['id'] ?? '')]);
+        } else {
+            $view['interestSent'] = false;
+        }
+        $list[] = $view;
     }
 
     json($list);
