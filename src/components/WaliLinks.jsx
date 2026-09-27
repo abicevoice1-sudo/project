@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link2, Copy, Check, Trash2, Plus } from 'lucide-react';
 import { http } from '../lib/api/transport';
+import ConfirmDialog from './ConfirmDialog';
 
 // Wali (guardian) invite links — the member generates a read-only link for a
 // family member, and can revoke it at any time. Listed here with revoke UI.
@@ -10,6 +11,8 @@ export default function WaliLinks() {
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState('');
   const [error, setError] = useState('');
+  const [revoking, setRevoking] = useState(null); // token awaiting confirmation
+  const [revokeBusy, setRevokeBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -39,13 +42,18 @@ export default function WaliLinks() {
     }
   };
 
-  const revoke = async (token) => {
-    if (!confirm('Revoke this guardian link? The person with the link will lose access immediately.')) return;
+  const revoke = async () => {
+    if (!revoking) return;
+    setRevokeBusy(true);
+    setError('');
     try {
-      await http.del(`/api/wali/link/${encodeURIComponent(token)}`);
+      await http.del(`/api/wali/link/${encodeURIComponent(revoking)}`);
+      setRevoking(null);
       await load();
     } catch (e) {
       setError(e.message || 'Could not revoke link.');
+    } finally {
+      setRevokeBusy(false);
     }
   };
 
@@ -101,9 +109,10 @@ export default function WaliLinks() {
                     {copied === l.url ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                   </button>
                   <button
-                    onClick={() => revoke(l.token)}
+                    onClick={() => setRevoking(l.token)}
                     className="p-2 rounded-lg hover:bg-black/5 text-danger"
                     title="Revoke link"
+                    aria-label="Revoke guardian link"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -122,6 +131,18 @@ export default function WaliLinks() {
         <Plus className="w-4 h-4" />
         {creating ? 'Creating…' : 'Generate guardian link'}
       </button>
+
+      {revoking && (
+        <ConfirmDialog
+          title="Revoke guardian link?"
+          message="The person with this link will lose access to your profile immediately. This cannot be undone."
+          confirmLabel="Revoke link"
+          danger
+          busy={revokeBusy}
+          onConfirm={revoke}
+          onCancel={() => { if (!revokeBusy) setRevoking(null); }}
+        />
+      )}
     </div>
   );
 }

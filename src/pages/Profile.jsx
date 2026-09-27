@@ -5,6 +5,7 @@ import { analytics } from '../lib/analytics';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth/AuthContext';
 import LoginGate from '../components/LoginGate';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { ArrowLeft, ShieldCheck, MapPin, Heart, MessageCircle, Bookmark, Lock, Users, Award, Sparkles, BadgeCheck } from 'lucide-react';
 import CompatibilityIndex from '../components/CompatibilityIndex';
 import { ReportFlag } from '../components/ReportFlag';
@@ -29,6 +30,9 @@ export default function Profile() {
   const [showLoginGate, setShowLoginGate] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [blockBusy, setBlockBusy] = useState(false);
+  // In-app block confirmation replaces window.confirm() (auto-dismissed by
+  // automated browsers, silently cancelling the block).
+  const [confirmBlock, setConfirmBlock] = useState(false);
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
@@ -83,7 +87,8 @@ export default function Profile() {
   const handleBlockToggle = async () => {
     if (!isLoggedIn) { setShowLoginGate(true); return; }
     if (blockBusy) return;
-    if (!blocked && !window.confirm(`Block ${profile.displayName}? You will not see each other, and messaging is disabled both ways.`)) return;
+    // Blocking is destructive — confirm in-app. Unblocking is safe, no prompt.
+    if (!blocked) { setConfirmBlock(true); return; }
     setBlockBusy(true);
     try {
       if (blocked) {
@@ -283,6 +288,29 @@ export default function Profile() {
         </div>
       </main>
       {showLoginGate && <LoginGate onClose={() => setShowLoginGate(false)} />}
+      {confirmBlock && (
+        <ConfirmDialog
+          title={`Block ${profile.displayName}?`}
+          message="You will not see each other, and messaging is disabled both ways."
+          confirmLabel="Block member"
+          danger
+          busy={blockBusy}
+          onConfirm={async () => {
+            setConfirmBlock(false);
+            setBlockBusy(true);
+            try {
+              await blockMember(String(profile.id || id));
+              setBlocked(true);
+              setActionNote({ ok: true, text: `${profile.displayName} is blocked — you won't see each other and messaging is off.` });
+            } catch (e) {
+              setActionNote({ ok: false, text: e.message || 'Could not update the block.' });
+            } finally {
+              setBlockBusy(false);
+            }
+          }}
+          onCancel={() => { if (!blockBusy) setConfirmBlock(false); }}
+        />
+      )}
     </Layout>
   );
 }

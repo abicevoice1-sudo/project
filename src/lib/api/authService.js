@@ -105,10 +105,26 @@ export const auth = {
       http.post('/api/auth/logout', {}).catch(() => {});
     }
     http.setToken(null);
-    // Wipe the session AND every per-user namespaced key so the next person
-    // on a shared device never sees the previous user's drafts, interests,
-    // messages, or profile data.
+    // Preserve the onboarding draft across sign-out: it is namespaced by the
+    // account UID (no other member on a shared device can read it), and wiping
+    // a member's own in-progress answers on every logout is a UX bug, not a
+    // privacy win. Everything else (messages, interests, profile cache) is
+    // still wiped so the next person on a shared device sees nothing.
+    let onboardingDraft = null;
+    let onboardingDraftKey = null;
+    try {
+      const uid = session?.uid;
+      if (uid) {
+        onboardingDraftKey = `shiarishta_onboarding_draft::${uid}`;
+        onboardingDraft = localStorage.getItem(onboardingDraftKey);
+      }
+    } catch { /* ignore */ }
     clearUserData(session?.uid || null);
+    try {
+      if (onboardingDraftKey && onboardingDraft) {
+        localStorage.setItem(onboardingDraftKey, onboardingDraft);
+      }
+    } catch { /* quota — non-fatal */ }
   },
 
   current() {

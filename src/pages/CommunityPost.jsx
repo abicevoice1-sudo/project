@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
 import LoginGate from '../components/LoginGate';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { useAuth } from '../lib/auth/AuthContext';
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, Trash2 } from 'lucide-react';
 import { addReply, getPost, listReplies, deletePost, deleteReply } from '../lib/communityData';
@@ -22,6 +23,10 @@ export default function CommunityPost() {
   const [saving, setSaving] = useState(false);
   const [showLoginGate, setShowLoginGate] = useState(false);
   const [moderating, setModerating] = useState(false);
+  // In-app confirmations replace window.confirm() (auto-dismissed by automated
+  // browsers, silently cancelling the action).
+  const [confirmDeletePost, setConfirmDeletePost] = useState(false);
+  const [confirmDeleteReply, setConfirmDeleteReply] = useState(null);
 
   // The app sets history.scrollRestoration = 'manual', so opening a post has to
   // put the reader at the top itself.
@@ -141,22 +146,7 @@ export default function CommunityPost() {
               <button
                 type="button"
                 disabled={moderating}
-                onClick={async () => {
-                  // Auth: the Bearer token rides along in transport headers.
-                  // The server requires an admin session and the exact post id.
-                  if (!window.confirm('Delete this post and all its replies? This cannot be undone.')) return;
-                  setModerating(true);
-                  try {
-                    await deletePost(post.id);
-                    // List refresh: the feed re-fetches from the server, so a
-                    // plain navigation shows the post gone.
-                    navigate(communityHref);
-                  } catch (e) {
-                    window.alert(e?.message || 'Could not delete this post.');
-                  } finally {
-                    setModerating(false);
-                  }
-                }}
+                onClick={() => setConfirmDeletePost(true)}
                 className="flex items-center gap-1 hover:underline"
                 style={{ color: 'var(--color-danger)' }}
                 aria-label="Delete this post (moderation)"
@@ -224,19 +214,7 @@ export default function CommunityPost() {
                     <button
                       type="button"
                       disabled={moderating}
-                      onClick={async () => {
-                        if (!window.confirm('Delete this reply? This cannot be undone.')) return;
-                        setModerating(true);
-                        try {
-                          await deleteReply(reply.id);
-                          // Refresh the reply list from the server after delete.
-                          setReplies(await listReplies(postId));
-                        } catch (e) {
-                          window.alert(e?.message || 'Could not delete this reply.');
-                        } finally {
-                          setModerating(false);
-                        }
-                      }}
+                      onClick={() => setConfirmDeleteReply(reply.id)}
                       className="flex items-center gap-1 text-xs hover:underline"
                       style={{ color: 'var(--color-danger)' }}
                       aria-label={`Delete reply by ${reply.author} (moderation)`}
@@ -257,6 +235,50 @@ export default function CommunityPost() {
         </section>
       </main>
       {showLoginGate && <LoginGate onClose={() => setShowLoginGate(false)} />}
+      {confirmDeletePost && (
+        <ConfirmDialog
+          title="Delete this post?"
+          message="The post and all its replies will be permanently removed. This cannot be undone."
+          confirmLabel="Delete post"
+          danger
+          busy={moderating}
+          onConfirm={async () => {
+            setModerating(true);
+            try {
+              await deletePost(post.id);
+              navigate(communityHref);
+            } catch (e) {
+              window.alert(e?.message || 'Could not delete this post.');
+            } finally {
+              setModerating(false);
+              setConfirmDeletePost(false);
+            }
+          }}
+          onCancel={() => { if (!moderating) setConfirmDeletePost(false); }}
+        />
+      )}
+      {confirmDeleteReply && (
+        <ConfirmDialog
+          title="Delete this reply?"
+          message="The reply will be permanently removed. This cannot be undone."
+          confirmLabel="Delete reply"
+          danger
+          busy={moderating}
+          onConfirm={async () => {
+            setModerating(true);
+            try {
+              await deleteReply(confirmDeleteReply);
+              setReplies(await listReplies(postId));
+            } catch (e) {
+              window.alert(e?.message || 'Could not delete this reply.');
+            } finally {
+              setModerating(false);
+              setConfirmDeleteReply(null);
+            }
+          }}
+          onCancel={() => { if (!moderating) setConfirmDeleteReply(null); }}
+        />
+      )}
     </Layout>
   );
 }

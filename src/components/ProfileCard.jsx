@@ -14,7 +14,28 @@ function excerptText(value, maxLength = 90) {
 
 export default function ProfileCard({ profile, className = '' }) {
   const [saved, setSaved] = useState(false);
-  const [interested, setInterested] = useState(false);
+  // Interest state is server truth: initialise from the profile payload when
+  // the API provides it, and persist every tap via the API — the button used
+  // to be a local-only toggle that silently dropped the interest on reload.
+  const [interested, setInterested] = useState(() => profile.interestSent === true);
+  const [interestBusy, setInterestBusy] = useState(false);
+  const [interestError, setInterestError] = useState('');
+
+  const handleInterest = async (e) => {
+    e.preventDefault();
+    if (interestBusy || interested) return;
+    setInterestBusy(true);
+    setInterestError('');
+    try {
+      const { api } = await import('../lib/api/client');
+      await api.expressInterest(profile.id);
+      setInterested(true);
+    } catch (err) {
+      setInterestError(err.message || 'Could not send interest.');
+    } finally {
+      setInterestBusy(false);
+    }
+  };
   // Real compatibility score — computed from the viewer's onboarding answers
   // vs this profile. Null when the viewer hasn't onboarded (no honest basis
   // for a score), so we show nothing rather than a fabricated number.
@@ -144,12 +165,14 @@ export default function ProfileCard({ profile, className = '' }) {
       {/* Actions */}
       <div className="px-3.5 pb-3.5 flex gap-2">
         <button
-          onClick={e => { e.preventDefault(); setInterested(!interested); }}
-          className={'flex-1 py-2.5 min-h-[38px] text-xs font-semibold flex items-center justify-center gap-1 rounded-lg transition-all ' + (interested ? '' : 'btn-primary')}
+          onClick={handleInterest}
+          disabled={interestBusy}
+          className={'flex-1 py-2.5 min-h-[38px] text-xs font-semibold flex items-center justify-center gap-1 rounded-lg transition-all disabled:opacity-60 ' + (interested ? '' : 'btn-primary')}
           style={{ minHeight: '38px', ...(interested ? { background: 'var(--color-primary-subtle)', color: 'var(--color-primary)', border: '1px solid var(--color-primary-subtle)' } : undefined) }}
+          title={interestError || undefined}
         >
           <Heart className={'w-3.5 h-3.5 ' + (interested ? 'fill-current' : '')} />
-          {interested ? 'Interested' : 'Interest'}
+          {interestBusy ? 'Sending…' : interested ? 'Interested' : 'Interest'}
         </button>
         <button
           onClick={e => { e.preventDefault(); setSaved(!saved); }}

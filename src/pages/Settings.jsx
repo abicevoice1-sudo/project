@@ -31,6 +31,8 @@ export default function Settings() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [bioSaving, setBioSaving] = useState(false);
   const [theme, setTheme] = useState(readIsDark() ? 'dark' : 'light');
 
   // Account identity (display name / email) — PUT /api/users/me, defensive 404.
@@ -176,15 +178,44 @@ export default function Settings() {
     }
   }, [user?.email]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem(settingsKey(), JSON.stringify({ privacy, notifications, profile, twoFactor }));
     // Appearance is global to this browser, not per member: every layout reads
     // the same versioned key through lib/theme.
     writeIsDark(theme === 'dark');
     applyIsDark(theme === 'dark');
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    // The bio textarea used to be decorative (uncontrolled, never sent
+    // anywhere). Persist it to the server profile so Save actually saves.
+    setSaveError('');
+    setBioSaving(true);
+    try {
+      const { api } = await import('../lib/api/client');
+      await api.updateProfile('me', { bio: profile.bio });
+      setSaved(true);
+    } catch (e) {
+      setSaveError(e.message || 'Could not save your bio.');
+      setSaved(false);
+    } finally {
+      setBioSaving(false);
+      setTimeout(() => { setSaved(false); setSaveError(''); }, 4000);
+    }
   };
+
+  // Populate the bio from the server profile on mount, so the field shows the
+  // real saved value instead of a blank box.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { api } = await import('../lib/api/client');
+        const me = await api.getProfile('me');
+        if (!cancelled && me && typeof me.bio === 'string') {
+          setProfile((pp) => ({ ...pp, bio: me.bio }));
+        }
+      } catch { /* profile may not exist yet — non-fatal */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User, desc: 'Personal information' },
@@ -245,8 +276,8 @@ export default function Settings() {
                   </button>
                   {accountSaved && <p className="text-sm mt-2" style={{ color: 'var(--color-ink-secondary)' }}>{accountSaved}</p>}
                 </div>
-                <div><label className="text-sm font-medium text-muted mb-1.5 block">Bio</label>
-                  <textarea rows={4} defaultValue="Tell others about yourself..." className="input w-full resize-none" />
+                <div><label htmlFor="settings-bio" className="text-sm font-medium text-muted mb-1.5 block">Bio</label>
+                  <textarea id="settings-bio" rows={4} value={profile.bio} onChange={e => setProfile(pp => ({ ...pp, bio: e.target.value }))} placeholder="Tell others about yourself..." className="input w-full resize-none" aria-label="Bio" />
                 </div>
               </div>
             )}
@@ -537,7 +568,8 @@ export default function Settings() {
 
             <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-line/10">
               {saved && <span className="text-sm text-success font-medium">Saved!</span>}
-              <button onClick={handleSave} className="button primary px-6 py-2.5 font-semibold">Save Changes</button>
+              {saveError && <span className="text-sm text-danger font-medium">{saveError}</span>}
+              <button onClick={handleSave} disabled={bioSaving} className="button primary px-6 py-2.5 font-semibold disabled:opacity-50">{bioSaving ? 'Saving…' : 'Save Changes'}</button>
             </div>
           </div>
         </div>

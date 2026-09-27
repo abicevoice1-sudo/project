@@ -25,6 +25,7 @@ const ICEBREAKERS = [
 import { api } from '../lib/api/client';
 import { blockMember } from '../lib/api/safety';
 import { ReportFlag } from '../components/ReportFlag';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 function initials(name) {
   const parts = String(name || 'M').trim().split(/\s+/);
@@ -77,6 +78,10 @@ export default function Messages() {
   const [tab, setTab] = useState('chats'); // 'chats' | 'requests'
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState(null); // { ok, text } — transient safety confirmations
+  // In-app block confirmation replaces window.confirm() (auto-dismissed by
+  // automated browsers, silently cancelling the block).
+  const [confirmBlock, setConfirmBlock] = useState(null); // convo awaiting confirmation
+  const [blockBusy, setBlockBusy] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Load real conversations + real intro requests from the API.
@@ -168,9 +173,13 @@ export default function Messages() {
 
   // Block the other participant from inside a conversation. The conversation is
   // removed from the inbox immediately and the server cuts messaging both ways.
-  const handleBlock = async (convo) => {
+  const handleBlock = (convo) => setConfirmBlock(convo);
+
+  const confirmBlockNow = async () => {
+    const convo = confirmBlock;
+    if (!convo || blockBusy) return;
     const name = convo.participantName || 'this member';
-    if (!window.confirm(`Block ${name}? The conversation is removed and messaging is disabled both ways.`)) return;
+    setBlockBusy(true);
     try {
       await blockMember(String(convo.participantId || ''));
       setConvos((prev) => prev.filter((c) => c.id !== convo.id));
@@ -182,8 +191,11 @@ export default function Messages() {
       if (activeId === convo.id) setActiveId(null);
       setNotice({ ok: true, text: `${name} is blocked — the conversation was removed and messaging is off.` });
       analytics.track('member_blocked', { thread: convo.id });
+      setConfirmBlock(null);
     } catch (e) {
       setNotice({ ok: false, text: e.message || 'Could not block this member.' });
+    } finally {
+      setBlockBusy(false);
     }
   };
 
@@ -257,6 +269,17 @@ export default function Messages() {
         </div>
         </div>
       </main>
+      {confirmBlock && (
+        <ConfirmDialog
+          title={`Block ${confirmBlock.participantName || 'this member'}?`}
+          message="The conversation will be removed and messaging disabled both ways."
+          confirmLabel="Block member"
+          danger
+          busy={blockBusy}
+          onConfirm={confirmBlockNow}
+          onCancel={() => { if (!blockBusy) setConfirmBlock(null); }}
+        />
+      )}
     </Layout>
   );
 }
