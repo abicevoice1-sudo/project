@@ -54,15 +54,24 @@
       ]
     }
     </script>
-    <!-- Font preloading for instant rendering — must match the @import in
-         src/styles/globals.css exactly, otherwise the browser downloads the
-         same families twice. The design system uses two families only:
-         Inter (UI/body) + Cormorant Garamond (display headings). -->
+    <!-- Font loading: preconnect + preload warm the cache; the stylesheet
+         below applies non-blocking (media=print swap) so fonts never delay
+         first paint. display=swap keeps text visible with system fallbacks.
+         The design system uses two families only: Inter (UI/body) +
+         Cormorant Garamond (display headings). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+    <!-- Non-blocking font stylesheet: applies after first paint instead of
+         delaying it (replaces the old render-blocking @import). display=swap
+         keeps text visible with fallback fonts until the webfonts arrive. -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700;800;900&display=swap" /></noscript>
+    <!-- LCP image preload: the hero is discovered only after JS executes;
+         preloading it here lets the browser fetch it during JS parse. -->
+    <link rel="preload" as="image" href="/hero-nikah.webp" type="image/webp" fetchpriority="high" />
     <title>Shia Matrimony | Find Shia Rishta for Nikah – ShiaRishta</title>
   </head>
   <body>
