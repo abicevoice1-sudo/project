@@ -29,21 +29,22 @@ RewriteEngine On
 RewriteCond %{HTTP_HOST} ^www\.shiarishta\.com$ [NC]
 RewriteRule ^ https://shiarishta.com%{REQUEST_URI} [R=301,L]
 
-# 2) Legacy WordPress URLs -> 410 Gone. The old WP install's routes
-#    (/members/*, /blog-post/*, /user-story/*, /testimonials/*, /profile/*,
-#    /sample-page*, /terms-and-conditions, /YYYY/MM/ archives, feeds, author /
-#    category / tag pages, and all wp-* internals) no longer exist as content.
-#    410 tells crawlers the removal is deliberate so they deindex fast instead
-#    of re-crawling soft-404s for months. None of these patterns collide with
+# 2) Legacy WordPress URLs. The old WP install's routes no longer exist as
+#    content. URLs that may carry backlink equity 301-redirect to the closest
+#    new page so link value transfers instead of dying. Pure junk with no
+#    equity (wp-* internals, feeds, author/category/tag archives) returns
+#    410 Gone so crawlers drop them fast. None of these patterns collide with
 #    real SPA routes (/profiles, /profile, /blog, /community, /api, ...).
-RewriteRule ^members/ - [G,L]
-RewriteRule ^blog-post/ - [G,L]
-RewriteRule ^user-story/ - [G,L]
-RewriteRule ^testimonials/ - [G,L]
-RewriteRule ^profile/ - [G,L]
-RewriteRule ^sample-page - [G,L]
-RewriteRule ^terms-and-conditions - [G,L]
-RewriteRule ^20[0-9]{2}/[0-9]{2}/ - [G,L]
+#    NOTE: ^profile/ requires the trailing slash, so the SPA's /profile page
+#    is untouched; same for ^members/ vs /profiles.
+RewriteRule ^blog-post/ /blog [R=301,L]
+RewriteRule ^user-story/ /success-stories [R=301,L]
+RewriteRule ^testimonials/ /success-stories [R=301,L]
+RewriteRule ^sample-page /about [R=301,L]
+RewriteRule ^terms-and-conditions /terms [R=301,L]
+RewriteRule ^members/ /profiles [R=301,L]
+RewriteRule ^profile/ /profiles [R=301,L]
+RewriteRule ^20[0-9]{2}/[0-9]{2}/ /blog [R=301,L]
 RewriteRule ^author/ - [G,L]
 RewriteRule ^category/ - [G,L]
 RewriteRule ^tag/ - [G,L]
