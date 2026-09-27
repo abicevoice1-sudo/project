@@ -17,6 +17,10 @@ const EDUCATION_FILTERS = ['Any education', "Bachelor's degree", "Master's degre
 // govern a shared household, so it belongs next to sect, not buried.
 // Values MUST match MARJA_OPTIONS in onboardingData.js exactly.
 const MARJA_FILTERS = ['Any marja', 'Ayatollah al-Sistani', 'Ayatollah al-Khamenei', 'Ayatollah al-Shirazi', 'Ayatollah al-Hakim', 'Ayatollah al-Sadr (via wakeel)', 'Not following a specific Marja yet', 'Prefer not to say'];
+// Modesty options MUST match MODESTY_OPTIONS_FEMALE/MALE in onboardingData.js exactly.
+// Shown as Hijab options when browsing brides, Beard options for grooms.
+const MODESTY_FILTERS_FEMALE = ['Any', 'Hijab — always observed', 'Hijab — working towards it', 'Modest dress, no hijab yet', 'Prefer not to say'];
+const MODESTY_FILTERS_MALE = ['Any', 'Beard — always kept', 'Beard — sometimes kept', 'Clean shaven', 'Prefer not to say'];
 const SORTS = [
   { value: 'match', label: 'Best match' },
   { value: 'newest', label: 'Newest members' },
@@ -27,7 +31,7 @@ const SORTS = [
 const DEFAULT_FILTERS = {
   search: '', gender: '', minAge: '', maxAge: '', country: '',
   sect: 'Any sect', religiosity: 'Any level', education: 'Any education',
-  marja: 'Any marja', syedStatus: 'Any', photo: 'any', verifiedOnly: false, sort: 'match'
+  marja: 'Any marja', syedStatus: 'Any', modesty: 'Any', photo: 'any', verifiedOnly: false, sort: 'match'
 };
 
 // Placeholder sentinels must be stripped before hitting the API, otherwise the
@@ -71,6 +75,7 @@ export default function Profiles() {
     education: clean(filters.education),
     marja: clean(filters.marja),
     syedStatus: clean(filters.syedStatus),
+    modesty: clean(filters.modesty),
     // The API param is `photoAccess`; the UI state key is `photo`.
     photoAccess: clean(filters.photo),
     verifiedOnly: filters.verifiedOnly,
@@ -237,6 +242,12 @@ export default function Profiles() {
                       <option value="sadat-both">Syed / Sadat — both sides</option>
                       <option value="syed-paternal">Syed (paternal)</option>
                       <option value="non-syed">Non-Syed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1.5 text-xs font-medium" style={{ color: 'var(--color-ink-secondary)' }}>Hijab / Modesty</label>
+                    <select value={filters.modesty} onChange={e => setFilter('modesty', e.target.value)} className="input" style={{ background: 'var(--color-surface)' }}>
+                      {(filters.gender === 'male' ? MODESTY_FILTERS_MALE : MODESTY_FILTERS_FEMALE).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>

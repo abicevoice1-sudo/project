@@ -299,6 +299,7 @@ function profilesList(): void
     $education   = $_GET['education'] ?? null;
     $marja       = $_GET['marja'] ?? null;
     $syedStatus  = $_GET['syedStatus'] ?? null;
+    $modesty     = $_GET['modesty'] ?? null;
     $country     = $_GET['country'] ?? null;
     $photoAccess = $_GET['photoAccess'] ?? null;   // public | members | private
     $searchable  = static fn($v, $label) => ($v !== null && $v !== '' && $v !== "Any $label" && $v !== "Any $label.");
@@ -310,6 +311,7 @@ function profilesList(): void
     if ($searchable($education, 'education')) { $where[] = 'p.education_level = ?'; $params[] = $education; }
     if ($searchable($marja, 'marja')) { $where[] = 'p.marja = ?'; $params[] = $marja; }
     if ($searchable($syedStatus, 'syed')) { $where[] = 'p.syed_status = ?'; $params[] = $syedStatus; }
+    if ($modesty !== null && $modesty !== '' && $modesty !== 'Any') { $where[] = 'p.modesty = ?'; $params[] = $modesty; }
     if ($searchable($country, 'country')) { $where[] = 'p.country = ?'; $params[] = $country; }
     if ($searchable($photoAccess, 'photo')) { $where[] = 'p.photos_visibility = ?'; $params[] = $photoAccess; }
     $verifiedOnly = ($_GET['verifiedOnly'] ?? 'false') === 'true';
