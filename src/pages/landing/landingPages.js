@@ -450,6 +450,7 @@ Object.assign(LANDING_PAGES, {
       'A nikah is too important to leave to memory and momentum. This checklist walks your family through every stage — from the first search to the signed contract — so nothing that matters gets missed in the excitement.',
       'Share it freely: print it, send it to relatives, or link it from your center\u2019s resource page. It exists to serve Shia families, wherever they find it.',
     ],
+    download: { href: '/nikah-checklist.pdf', label: 'Download the printable PDF — made for family WhatsApp groups' },
     sections: [
       {
         h2: 'Stage 1: Before the search',
@@ -496,6 +497,111 @@ Object.assign(LANDING_PAGES, {
       { to: '/shia-marriage', label: 'Shia marriage, explained' },
       { to: '/guardians', label: 'How wali workflows work' },
       { to: '/safety', label: 'Safety standards' },
+    ],
+  },
+
+  'duas-for-marriage': {
+    title: 'Duas for Marriage | Qur\u2019anic Duas to Find a Righteous Spouse – ShiaRishta',
+    desc: 'Powerful duas for marriage from the Qur\u2019an — Arabic, transliteration, and translation — plus the practices scholars recommend while searching for a Shia spouse.',
+    h1: 'Duas for Marriage',
+    breadcrumb: 'Duas for Marriage',
+    intro: [
+      'Before the profiles and the phone calls, there is dua. Asking Allah for a righteous spouse is the first step of the search — not the last resort. These are the Qur\u2019anic supplications scholars most often recommend to those seeking marriage, with Arabic, simple transliteration, and translation.',
+      'Dua and effort go together: pray, then take the means. When you are ready to search with a family that shares your values, ShiaRishta is free to join.',
+    ],
+    sections: [
+      {
+        h2: 'The dua of Musa (AS) — Qur\u2019an 28:24',
+        body: [
+          'When Prophet Musa (AS) arrived in Madyan with nothing — no home, no family, no provision — he turned to Allah with a short, honest dua. Shortly after, Allah opened the door to both sustenance and marriage. Scholars recommend this dua especially for those seeking a spouse.',
+          'Arabic: \u0631\u064e\u0628\u0650\u0651 \u0625\u0650\u0646\u0650\u0651\u064a \u0644\u0650\u0645\u064e\u0627 \u0623\u064e\u0646\u0632\u064e\u0644\u0652\u062a\u064e \u0625\u0650\u0644\u064e\u064a\u0651\u064e \u0645\u0650\u0646\u0652 \u062e\u064e\u064a\u0652\u0631\u064d \u0641\u064e\u0642\u0650\u064a\u0631\u064c',
+          'Transliteration: "Rabbi innee limaa anzalta ilayya min khayrin faqeer."',
+          'Translation: "My Lord, indeed I am in need of whatever good You send down to me." (28:24)',
+          'Recite it after your daily prayers, and mean it the way Musa (AS) meant it — as someone with empty hands and a full heart.',
+        ],
+      },
+      {
+        h2: 'Dua for a righteous spouse and family — Qur\u2019an 25:74',
+        body: [
+          'This is the dua of the servants of the Most Merciful, asking not just for any spouse, but for one who brings coolness to the eyes — and for children who continue the path.',
+          'Arabic: \u0631\u064e\u0628\u064e\u0651\u0646\u064e\u0627 \u0647\u064e\u0628\u0652 \u0644\u064e\u0646\u064e\u0627 \u0645\u0650\u0646\u0652 \u0623\u064e\u0632\u0652\u0648\u064e\u0627\u062c\u0650\u0646\u064e\u0627 \u0648\u064e\u0630\u064f\u0631\u0650\u0651\u064a\u064e\u0651\u0627\u062a\u0650\u0646\u064e\u0627 \u0642\u064f\u0631\u064e\u0651\u0629\u064e \u0623\u064e\u0639\u0652\u064a\u064f\u0646\u064d \u0648\u064e\u0627\u062c\u0652\u0639\u064e\u0644\u0652\u0646\u064e\u0627 \u0644\u0650\u0644\u0652\u0645\u064f\u062a\u064e\u0651\u0642\u0650\u064a\u0646\u064e \u0627\u0650\u0645\u064e\u0627\u0645\u064b\u0627',
+          'Transliteration: "Rabbanaa hab lanaa min azwaajinaa wa dhurriyyaatinaa qurrata a\u2019yunin waj\u2019alnaa lil-muttaqeena imaamaa."',
+          'Translation: "Our Lord, grant us from among our spouses and offspring comfort to our eyes, and make us leaders of the righteous." (25:74)',
+        ],
+      },
+      {
+        h2: 'Practices scholars recommend alongside dua',
+        body: [
+          'Dua is the foundation; these are the practices most often mentioned with it: pray two rak\u2019at and make dua afterward with presence of heart; send abundant salawat upon Muhammad and his family; give sadaqah, even small and regular; increase istighfar; and make dua in qunut and after obligatory prayers, when supplications are most hoped to be answered.',
+          'Just as important is the state of the heart: sincerity, patience, and trust that what is written will come at its appointed time. Desperation leads to bad decisions; tawakkul leads to clear ones.',
+        ],
+      },
+      {
+        h2: 'Then take the means',
+        body: [
+          'The Prophet\u2019s tradition pairs dua with action. Tell righteous people you are looking. Let your family and wali be involved early. And search in a place built for Shia nikah — with verified profiles, marja-aware filters, and privacy your family controls.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Which dua is best for getting married soon?', a: 'Scholars most often recommend the dua of Musa (AS) in Qur\u2019an 28:24 and the dua for a righteous spouse in 25:74, recited regularly after prayers with sincerity — alongside taking practical steps in your search.' },
+      { q: 'Are these duas specific to Shia Islam?', a: 'These are Qur\u2019anic supplications, shared across Muslims. We present them as commonly recommended by scholars; confirm any specific practice with the marja or alim your family follows.' },
+      { q: 'Does dua replace searching for a spouse?', a: 'No — the Islamic tradition pairs dua with effort. Pray, then take the means: involve your family, vet prospects carefully, and search in trustworthy places.' },
+      { q: 'Where can I search for a Shia spouse?', a: 'ShiaRishta is a free platform built for Shia Muslims seeking nikah — verified profiles, privacy tiers your family controls, and wali involvement from the first conversation.' },
+    ],
+    related: [
+      { to: '/shia-nikah', label: 'The Shia nikah, explained' },
+      { to: '/nikah-checklist', label: 'The Shia nikah checklist' },
+      { to: '/shia-marriage', label: 'Shia marriage, explained' },
+    ],
+  },
+
+  'shia-matrimony-toronto': {
+    title: 'Shia Matrimony in Toronto | Find a Desi Shia Rishta – ShiaRishta',
+    desc: 'Shia matrimony for Toronto\u2019s desi community — verified Shia brides and grooms, family-involved rishta process, photo privacy, and wali workflows. Free to join.',
+    h1: 'Shia Matrimony in Toronto',
+    breadcrumb: 'Toronto',
+    intro: [
+      'Toronto is home to one of the largest desi Shia communities outside South Asia — Hyderabadi, Pakistani, and Indian families who want a rishta process that feels like home: family involved, deen first, and izzat protected.',
+      'ShiaRishta was built for exactly this: a nikah-first platform where verified Shia brides and grooms meet the desi way — with parents and wali in the loop from day one, and photo privacy your family controls.',
+    ],
+    sections: [
+      {
+        h2: 'A rishta process your parents will trust',
+        body: [
+          'In desi families, a rishta is a family affair — and it should be. ShiaRishta keeps parents and guardians involved from the first conversation: wali workflows, family-to-family introductions, and no behind-the-back messaging. The process mirrors the way respectable rishtas have always worked, just online.',
+        ],
+      },
+      {
+        h2: 'Photo privacy for daughters and sisters',
+        body: [
+          'One of the biggest worries desi parents have about matrimonial sites is photos circulating freely. ShiaRishta\u2019s privacy tiers let families control exactly who sees photos — visible to verified matches only, or shared by the family when they choose. Izzat is not a feature here; it is the foundation.',
+        ],
+      },
+      {
+        h2: 'Filters that matter to desi Shia families',
+        body: [
+          'Search by what your family actually asks about: marja followed, sect and practice level, language (Urdu, Hindi, Dakhni, English), education, profession, and whether the family prefers a Syed rishta. Every filter exists because real desi families asked for it.',
+        ],
+      },
+      {
+        h2: 'From Toronto to Hyderabad, Karachi, and beyond',
+        body: [
+          'Whether your family is settled in the GTA or you are open to a rishta from back home, ShiaRishta connects desi Shia singles across the US, Canada, the UK, and South Asia. Distance is handled the desi way — families talk first, on video, with everyone present.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Is ShiaRishta free for Toronto members?', a: 'Yes — creating a profile and searching is free. The platform is built to serve the community, not to charge families for the search.' },
+      { q: 'How do my parents stay involved?', a: 'Guardians can be linked to a profile from the start, join family-to-family conversations, and control photo visibility. Nothing happens behind the family\u2019s back.' },
+      { q: 'Can I search for a Syed rishta specifically?', a: 'Yes — lineage preferences, including Syed rishta, are part of the search filters, alongside marja, practice level, language, and location.' },
+      { q: 'Who can see my photos?', a: 'You and your family decide. Photos can be kept private until you choose to share them with a verified match — never public by default.' },
+    ],
+    related: [
+      { to: '/syed-rishta', label: 'Syed rishta, explained' },
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony in the USA' },
+      { to: '/shia-brides', label: 'Browse Shia brides' },
+      { to: '/guardians', label: 'How wali workflows work' },
     ],
   },
 });

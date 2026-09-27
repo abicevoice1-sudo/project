@@ -4,6 +4,7 @@ import Layout from '../layouts/MainLayout';
 import { useAuth } from '../lib/auth/AuthContext';
 import { api } from '../lib/api/client';
 import { apiUrl, http } from '../lib/api/transport';
+import { useAuthedImage } from '../lib/api/useAuthedImage';
 import { computeProfileCompleteness } from '../lib/onboardingData';
 import { getMyProfile } from '../lib/storage';
 import { computeCompatibility } from '../lib/compatibility';
@@ -12,6 +13,43 @@ import { motion } from 'framer-motion';
 import {
   User, MessageCircle, Eye, Users, Sparkles, Flame, ArrowRight, ShieldCheck
 } from 'lucide-react';
+
+// Match card with authenticated photo loading and monogram fallback.
+function MatchCard({ p, i }) {
+  const { url: photoUrl } = useAuthedImage(p.photo);
+  const hasPhoto = Boolean(photoUrl);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: i * 0.06, duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <Link to={'/profiles/' + p.id} className="card card-interactive overflow-hidden block group">
+        <div className="aspect-[4/3] overflow-hidden relative" style={{ background: 'var(--color-surface)' }}>
+          {hasPhoto ? (
+            <img src={photoUrl} alt={p.displayName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" onError={e => { e.currentTarget.style.display = 'none'; }} />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold select-none"
+              role="img" aria-label={`${p.displayName} has not added a photo`}
+              style={{ background: 'linear-gradient(160deg, #134e39 0%, #0c1220 70%)', color: 'rgba(212,175,105,0.35)' }}>
+              {(p.displayName || '?').trim()[0]?.toUpperCase()}
+            </div>
+          )}
+        </div>
+        <div className="p-3">
+          <p className="font-medium text-sm truncate" style={{ color: 'var(--color-ink)' }}>{p.displayName}, {p.age}</p>
+          <p className="text-xs truncate" style={{ color: 'var(--color-ink-secondary)' }}>{p.city}, {p.country}</p>
+          <div className="mt-2 flex items-center gap-1">
+            {typeof p.score === 'number' && !Number.isNaN(p.score) && (
+              <span className="badge badge-success text-xs font-bold">{p.score}%</span>
+            )}
+            {p.is_verified && <ShieldCheck className="w-3 h-3" style={{ color: 'var(--color-warning)' }} />}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
 
 export default function Dashboard() {
   usePageTitle('Dashboard');
@@ -221,28 +259,7 @@ export default function Dashboard() {
             ) : (
               <div className="grid grid-cols-2 gap-4">
                 {profiles.slice(0, 4).map((p, i) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                     <Link to={'/profiles/' + p.id} className="card card-interactive overflow-hidden block group">
-                       <div className="aspect-[4/3] overflow-hidden" style={{ background: 'var(--color-surface)' }}>
-                         <img src={apiUrl(p.photo)} alt={p.displayName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" onError={e => { e.currentTarget.style.display = 'none'; }} />
-                       </div>
-                      <div className="p-3">
-                        <p className="font-medium text-sm truncate" style={{ color: 'var(--color-ink)' }}>{p.displayName}, {p.age}</p>
-                        <p className="text-xs truncate" style={{ color: 'var(--color-ink-secondary)' }}>{p.city}, {p.country}</p>
-                        <div className="mt-2 flex items-center gap-1">
-                          {typeof p.score === 'number' && !Number.isNaN(p.score) && (
-                            <span className="badge badge-success text-xs font-bold">{p.score}%</span>
-                          )}
-                          {p.is_verified && <ShieldCheck className="w-3 h-3" style={{ color: 'var(--color-warning)' }} />}
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
+                  <MatchCard key={p.id} p={p} i={i} />
                 ))}
               </div>
             )}

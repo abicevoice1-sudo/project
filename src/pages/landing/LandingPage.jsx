@@ -78,6 +78,16 @@ export default function LandingPage() {
           <p key={i} style={{ color: 'var(--color-ink-secondary)', lineHeight: 1.8, fontSize: '1.0625rem', marginBottom: '1.25rem' }}>{p}</p>
         ))}
 
+        {page.download && (
+          <div className="my-8 p-6 rounded-2xl text-center" style={{ background: 'var(--color-surface)', border: '1px dashed var(--color-border)' }}>
+            <p className="font-bold text-lg mb-1" style={{ color: 'var(--color-ink)' }}>Take it with you</p>
+            <p className="text-sm mb-4" style={{ color: 'var(--color-ink-secondary)' }}>{page.download.label}</p>
+            <a href={page.download.href} download className="button secondary px-6 py-2.5 font-semibold inline-flex items-center gap-2">
+              Download PDF
+            </a>
+          </div>
+        )}
+
         <div className="my-8 p-6 rounded-2xl text-center" style={{ background: 'var(--color-primary-subtle)', border: '1px solid var(--color-border)' }}>
           <p className="font-bold text-lg mb-1" style={{ color: 'var(--color-ink)' }}>Begin your search — free</p>
           <p className="text-sm mb-4" style={{ color: 'var(--color-ink-secondary)' }}>Verified profiles. Wali workflows. Privacy you control.</p>
