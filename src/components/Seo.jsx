@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { LANDING_PAGES } from '../pages/landing/landingPages.js';
-import { articles } from '../data/articles.js';
+import { LANDING_PAGE_META } from '../pages/landing/landingPageMeta.js';
+import { ARTICLE_META } from '../data/articleMeta.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-route SEO for the SPA. index.html ships the homepage <head>; this
@@ -121,11 +121,11 @@ function upsertLinkCanonical(href) {
 function resolveMeta(pathname) {
   if (PUBLIC_META[pathname]) return { ...PUBLIC_META[pathname], index: true };
   // SEO landing pages — meta comes from the hand-written page data.
-  const landing = LANDING_PAGES[pathname.replace(/^\/+/, '')];
+  const landing = LANDING_PAGE_META[pathname.replace(/^\/+/, '')];
   if (landing) return { title: landing.title, desc: landing.desc, index: true };
   // Blog articles — each has a crawlable URL and unique meta.
   if (pathname.startsWith('/blog/')) {
-    const article = articles.find((a) => `/blog/${a.slug}` === pathname);
+    const article = ARTICLE_META.find((a) => `/blog/${a.slug}` === pathname);
     if (article) {
       return {
         title: `${article.title} | ShiaRishta Blog`,

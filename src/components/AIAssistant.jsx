@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Shield, Sparkles, BadgeCheck, MessageCircleHeart } from 'lucide-react';
 import { SUGGESTIONS, getReply, WELCOME } from '../lib/aiAssistantBrain';
+import { AI_OPEN_EVENT } from '../lib/aiAssistant';
 
-/** Broadcast name any header/menu button can use to open the assistant. */
-export const AI_OPEN_EVENT = 'open-ai-assistant';
-
-export function openAIAssistant() {
-  window.dispatchEvent(new CustomEvent(AI_OPEN_EVENT));
-}
+// Re-exported for existing import sites; new code should import from
+// '../lib/aiAssistant' so the header button doesn't pull this component
+// (and the assistant brain) into the shared entry chunk.
+export { AI_OPEN_EVENT, openAIAssistant } from '../lib/aiAssistant';
 
 export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);

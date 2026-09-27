@@ -1,18 +1,27 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import Layout from '../../layouts/LandingLayout';
 import FaqSection from '../../components/FaqSection.jsx';
-import { LANDING_PAGES } from './landingPages.js';
 import NotFound from '../NotFound';
 
-// Template for programmatic SEO landing pages (/shia-matrimony-usa, city
-// pages, /shia-brides, /syed-rishta …). Each page's copy is hand-written in
-// landingPages.js — this renders it with breadcrumbs, FAQ schema, and
-// internal links so every page earns its place in the index.
+// landingPages.js holds all eight hand-written landing pages — dynamically
+// imported so it ships as its own async chunk instead of bloating the
+// shared entry chunk.
 export default function LandingPage() {
   const { slug } = useParams();
-  const page = LANDING_PAGES[slug];
+  const [pages, setPages] = useState(null);
+  useEffect(() => {
+    let on = true;
+    import('./landingPages.js').then((m) => { if (on) setPages(m.LANDING_PAGES); });
+    return () => { on = false; };
+  }, []);
+  const page = pages?.[slug];
+
+  // Template for programmatic SEO landing pages (/shia-matrimony-usa, city
+  // pages, /shia-brides, /syed-rishta …). Each page's copy is hand-written in
+  // landingPages.js — this renders it with breadcrumbs, FAQ schema, and
+  // internal links so every page earns its place in the index.
 
   useEffect(() => {
     if (!page) return;
@@ -31,6 +40,20 @@ export default function LandingPage() {
     document.head.appendChild(el);
     return () => document.getElementById('breadcrumb-jsonld')?.remove();
   }, [page, slug]);
+
+  if (!pages) {
+    return (
+      <Layout>
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+          <div className="animate-pulse">
+            <div className="h-8 rounded-xl mb-4" style={{ background: 'var(--color-surface)' }} />
+            <div className="h-4 rounded-xl w-2/3 mb-8" style={{ background: 'var(--color-surface)' }} />
+            <div className="h-40 rounded-2xl" style={{ background: 'var(--color-surface)' }} />
+          </div>
+        </main>
+      </Layout>
+    );
+  }
 
   if (!page) return <NotFound />;
 

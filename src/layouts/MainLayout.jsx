@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth/AuthContext';
 import { readIsDark, writeIsDark, applyIsDark } from '../lib/theme';
@@ -9,7 +9,8 @@ import {
   Shield, BarChart3, MessageSquare, HandHeart, BadgeCheck, KeyRound
 } from 'lucide-react';
 import ThemeMenu from '../components/ThemeMenu';
-import AIAssistant from '../components/AIAssistant';
+// Lazy: the assistant widget + brain load on demand, not in the entry chunk.
+const AIAssistant = lazy(() => import('../components/AIAssistant'));
 import BrandLockup from '../components/BrandLockup';
 
 // ── Command Palette — Full-text search across navigation + actions ───────────
@@ -410,7 +411,9 @@ export default function MainLayout({ children }) {
       </AnimatePresence>
 
       {/* AI Assistant FAB + drawer — member pages get it too, not just landing */}
-      <AIAssistant />
+      <Suspense fallback={null}>
+        <AIAssistant />
+      </Suspense>
     </div>
   );
 }

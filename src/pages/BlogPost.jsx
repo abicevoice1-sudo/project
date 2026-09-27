@@ -1,15 +1,28 @@
 import { Link, useParams } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../layouts/LandingLayout';
 import { Clock, ArrowLeft } from 'lucide-react';
-import { articles } from '../data/articles.js';
 import NotFound from './NotFound';
+
+// articles.js holds all eight full-length articles — dynamically imported so
+// it ships as its own async chunk instead of bloating the shared entry chunk.
+const MONTHS = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+function toISO(display) {
+  const m = /^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/.exec(display || '');
+  return m ? `${m[3]}-${MONTHS[m[1]]}-${m[2].padStart(2, '0')}` : undefined;
+}
 
 // Individual article page: /blog/:slug — crawlable URL, unique meta (via Seo),
 // and Article structured data for rich results.
 export default function BlogPost() {
   const { slug } = useParams();
-  const article = articles.find((a) => a.slug === slug);
+  const [articles, setArticles] = useState(null);
+  useEffect(() => {
+    let on = true;
+    import('../data/articles.js').then((m) => { if (on) setArticles(m.articles); });
+    return () => { on = false; };
+  }, []);
+  const article = articles?.find((a) => a.slug === slug);
 
   useEffect(() => {
     if (!article) return;
@@ -19,7 +32,8 @@ export default function BlogPost() {
       headline: article.title,
       description: article.excerpt,
       image: `https://shiarishta.com${article.image}`,
-      datePublished: '2026-07-01',
+      datePublished: toISO(article.date),
+      dateModified: toISO(article.date),
       author: {
         '@type': 'Organization',
         name: 'ShiaRishta',
@@ -40,6 +54,20 @@ export default function BlogPost() {
     document.head.appendChild(el);
     return () => document.getElementById('article-jsonld')?.remove();
   }, [article]);
+
+  if (!articles) {
+    return (
+      <Layout>
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+          <div className="animate-pulse">
+            <div className="h-8 rounded-xl mb-4" style={{ background: 'var(--color-surface)' }} />
+            <div className="h-4 rounded-xl w-2/3 mb-8" style={{ background: 'var(--color-surface)' }} />
+            <div className="h-64 rounded-2xl" style={{ background: 'var(--color-surface)' }} />
+          </div>
+        </main>
+      </Layout>
+    );
+  }
 
   if (!article) return <NotFound />;
 

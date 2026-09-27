@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth/AuthContext';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -8,7 +8,9 @@ import {
   Shield, User, Lock,
 } from 'lucide-react';
 import ThemeMenu from '../components/ThemeMenu';
-import AIAssistant, { openAIAssistant } from '../components/AIAssistant';
+import { openAIAssistant } from '../lib/aiAssistant';
+// Lazy: the assistant widget + brain load on demand, not in the entry chunk.
+const AIAssistant = lazy(() => import('../components/AIAssistant'));
 import SiteFooter from '../components/SiteFooter';
 import BrandLockup from '../components/BrandLockup';
 import { applyIsDark, readIsDark, writeIsDark } from '../lib/theme';
@@ -529,7 +531,9 @@ export default function LandingLayout({ children }) {
       <SiteFooter />
 
       {/* AI Assistant FAB */}
-      <AIAssistant />
+      <Suspense fallback={null}>
+        <AIAssistant />
+      </Suspense>
 
       {/* Mobile nav styles */}
       <style>{`
