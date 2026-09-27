@@ -1,0 +1,7 @@
+name: tmp-hdr
+on: { workflow_dispatch: {} }
+jobs:
+  hdr:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -sI https://shiarishta.com/ --max-time 20 | grep -iE "^(server|cf-ray|cf-cache-status|HTTP)" 
