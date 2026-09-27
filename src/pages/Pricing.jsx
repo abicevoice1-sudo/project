@@ -1,5 +1,5 @@
 ﻿import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
 import { Check, Sparkles, Shield, Heart, ArrowRight, CircleOff } from 'lucide-react';
@@ -44,6 +44,26 @@ const FAQS = [
 
 export default function Pricing() {
   const [openFaq, setOpenFaq] = useState(0);
+
+  // FAQPage JSON-LD — answers are visible on the page, so this is eligible
+  // for FAQ rich results.
+  useEffect(() => {
+    const data = {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: FAQS.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    };
+    const el = document.createElement('script');
+    el.type = 'application/ld+json';
+    el.id = 'faq-jsonld-pricing';
+    el.textContent = JSON.stringify(data);
+    document.head.appendChild(el);
+    return () => document.getElementById('faq-jsonld-pricing')?.remove();
+  }, []);
 
   return (
     <Layout>

@@ -7,8 +7,20 @@ import {
 } from 'lucide-react';
 import Layout from '../layouts/LandingLayout';
 import ProfileCard from '../components/ProfileCard.jsx';
+import FaqSection from '../components/FaqSection.jsx';
 import { useAuth } from '../lib/auth/AuthContext';
 import { useProfiles } from '../lib/api/client';
+
+// Homepage FAQs — genuine questions, keyword-aware, visible on the page so
+// the FAQPage JSON-LD in FaqSection is eligible for rich results.
+const HOME_FAQS = [
+  { q: 'What is ShiaRishta?', a: 'ShiaRishta is a nikah-first matchmaking platform built specifically for Shia Muslims and their families. Unlike generic dating apps, every profile is created with marriage intent, identity verification is built in, and wali/family workflows are part of the journey from the start.' },
+  { q: 'Is ShiaRishta free?', a: 'Yes. Creating a profile, browsing, expressing interest, and using guardian tools are all free during early access. There is no payment system today, and core access is intended to stay free — paid tiers, if they ever arrive, would only add convenience features.' },
+  { q: 'How does ShiaRishta protect my privacy?', a: 'You control exactly who sees your photos: everyone, only after mutual interest, or only after matching. Your contact details are never shown publicly, conversations require mutual interest, and you can block anyone instantly.' },
+  { q: 'Can my family or wali be involved?', a: 'Yes — that is the point. ShiaRishta has built-in wali and guardian workflows: approvals, family-to-family introductions, and chaperoned communication. In Shia fiqh a virgin woman\u2019s nikah requires her wali\u2019s consent, so the platform is designed around that from day one.' },
+  { q: 'Who can join ShiaRishta?', a: 'Shia Muslims who are seriously seeking nikah, along with their parents, guardians, and trusted matchmakers acting on their behalf. Profiles are reviewed for genuine marriage intent.' },
+  { q: 'How is this different from other matrimonial sites?', a: 'Three things: it is Shia-specific (marja, sect, and practice filters that generic sites don\u2019t have), privacy-first (photo tiers instead of public galleries), and nikah-first (no swiping culture — conversations are limited and purposeful).' },
+];
 
 // ── Reference-parity copy (shiarishta12.netlify.app) ────────────────────────
 const HERO_CHIPS = [
@@ -208,6 +220,9 @@ export default function Home() {
             </Reveal>
           </div>
         </section>
+
+        {/* ── FAQ (visible + FAQPage JSON-LD for rich results) ── */}
+        <FaqSection heading="Shia matrimony, answered" items={HOME_FAQS} id="home" />
 
         {/* ── Guidance band ── */}
         <section className="hp-section">

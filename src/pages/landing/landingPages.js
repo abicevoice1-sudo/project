@@ -1,0 +1,310 @@
+// Programmatic SEO landing pages. Each page is hand-written, unique, and
+// genuinely useful — never spun. Keys become routes: /<key>.
+
+export const LANDING_PAGES = {
+  'shia-matrimony-usa': {
+    title: 'Shia Matrimony USA | Find Shia Rishta for Nikah in America – ShiaRishta',
+    desc: 'The Shia matrimony platform for the USA. Verified Shia brides and grooms across America, with wali workflows and privacy-first profiles. Join free.',
+    h1: 'Shia Matrimony in the USA',
+    breadcrumb: 'Shia Matrimony USA',
+    intro: [
+      'Finding a Shia rishta in America comes with challenges the old country never had. The community is spread across fifty states, the local mosque might have a handful of eligible families, and generic matrimonial sites bury Shia-specific needs — marja, sect, Muharram observance — under filters built for someone else.',
+      'ShiaRishta was built for exactly this situation: a nikah-first platform where every profile is Shia, every filter understands Shia practice, and your wali and family are part of the process from the first conversation — whether they live in Houston, Chicago, or Hyderabad.',
+    ],
+    sections: [
+      {
+        h2: 'Why Shia-specific matchmaking matters in America',
+        body: [
+          'On mainstream platforms, "Muslim" is one checkbox. But a Twelver Shia family in Dallas and a Sunni family in the same city are looking for fundamentally different things: different marja, different expectations around Muharram, different family structures around nikah. ShiaRishta filters on what actually decides compatibility — sect, marja, and level of practice — so you never waste months discovering a mismatch that a proper filter would have caught on day one.',
+        ],
+      },
+      {
+        h2: 'Built for distance',
+        body: [
+          'American Shia matchmaking is often long-distance: she is in New York, his family is in Chicago, her wali is overseas. The platform is designed for that reality — video introductions kept private, family-to-family communication tools, and guardian approvals that work across time zones. Distance becomes logistics, not a barrier.',
+          'Photo privacy tiers matter more here too. In a small community where everyone knows everyone, controlling exactly who sees your photos — everyone, only after mutual interest, or only after matching — is not a luxury. It is dignity.',
+        ],
+      },
+      {
+        h2: 'How to start',
+        body: [
+          'Create a free profile with honest detail about your practice, family expectations, and timeline. Browse verified profiles across the USA, express interest where there is genuine alignment, and bring your wali in early — the strongest matches on the platform are the ones where families were involved from the start.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Is ShiaRishta available across the USA?', a: 'Yes. Members join from every state, and search filters let you narrow by location — from your metro area to nationwide — so long-distance matches are practical, not accidental.' },
+      { q: 'Can my parents in another country be involved?', a: 'Yes. Wali and guardian workflows work across borders and time zones: approvals, introductions, and family-to-family messaging are built into the platform.' },
+      { q: 'How do I know profiles are genuine?', a: 'Profiles go through identity and marriage-intention checks before sensitive access opens, and photo privacy tiers mean you reveal yourself gradually to serious prospects only.' },
+    ],
+    related: [
+      { to: '/shia-matrimony-chicago', label: 'Shia matrimony in Chicago' },
+      { to: '/shia-matrimony-houston', label: 'Shia matrimony in Houston' },
+      { to: '/shia-matrimony-new-york', label: 'Shia matrimony in New York' },
+      { to: '/shia-brides', label: 'Find a Shia bride' },
+      { to: '/shia-grooms', label: 'Find a Shia groom' },
+    ],
+  },
+
+  'shia-brides': {
+    title: 'Shia Brides for Nikah | Verified Shia Rishta Profiles – ShiaRishta',
+    desc: 'Meet verified Shia brides seeking nikah. Privacy-first profiles, wali-involved introductions, and genuine marriage intent. Browse free.',
+    h1: 'Shia Brides Seeking Nikah',
+    breadcrumb: 'Shia Brides',
+    intro: [
+      'Every family searching for a Shia bride wants the same thing: a genuine, pious, compatible match — found with dignity, not desperation. ShiaRishta exists so that search happens in a space built for it: verified profiles, photo privacy the bride controls, and her wali involved from the very first introduction.',
+      'Browse profiles of Shia women seriously seeking nikah. Filter by what actually matters — marja, practice, education, family values, location — and begin with a respectful introduction, not a swipe.',
+    ],
+    sections: [
+      {
+        h2: 'Dignity by design',
+        body: [
+          'A bride\u2019s photos are hers to control. She chooses whether they are visible to everyone, only after mutual interest, or only after matching. Her contact details are never public. Conversations begin only when interest is mutual, and her wali can be part of every step — approvals, introductions, and family meetings.',
+          'This is deliberate. The platform treats a woman\u2019s privacy as a right, not a premium feature, because the families we serve expect nothing less.',
+        ],
+      },
+      {
+        h2: 'What to look for',
+        body: [
+          'Beyond the profile, look for consistency: does her description of her practice match how she describes her daily life? Is her family involved early, or kept at arm\u2019s length? Are her timeline and expectations stated clearly? The clearest profiles — honest about deen, family, and hopes — consistently lead to the most serious conversations.',
+          'And bring your own clarity. A complete, honest profile from the groom\u2019s side — with family details and wali contact readiness — is what serious brides and their families respond to first.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Are the brides\u2019 profiles verified?', a: 'Yes. Identity and marriage-intention checks run before sensitive access opens, and every profile is created with nikah as its stated purpose.' },
+      { q: 'Who sees a bride\u2019s photos?', a: 'She decides: everyone, only after mutual interest, or only after matching. Her choice can be changed at any time.' },
+      { q: 'How does the wali get involved?', a: 'The bride can connect her wali or guardian to her account. He can review introductions, approve next steps, and communicate family-to-family — all inside the platform.' },
+    ],
+    related: [
+      { to: '/shia-grooms', label: 'Find a Shia groom' },
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony in the USA' },
+      { to: '/syed-rishta', label: 'Syed rishta profiles' },
+      { to: '/guardians', label: 'How wali workflows work' },
+    ],
+  },
+
+  'shia-grooms': {
+    title: 'Shia Grooms for Nikah | Verified Shia Rishta Profiles – ShiaRishta',
+    desc: 'Meet verified Shia grooms seeking nikah. Check practice, family values, and intent upfront — with wali-involved introductions. Browse free.',
+    h1: 'Shia Grooms Seeking Nikah',
+    breadcrumb: 'Shia Grooms',
+    intro: [
+      'For a bride\u2019s family, the search for a groom is the highest-stakes decision they will make together. ShiaRishta makes it structured: verified Shia grooms with clear statements of practice, family background, and intent — so the first conversation starts from knowledge, not guesswork.',
+      'Filter by marja, sect, education, profession, and location. Every introduction is mutual, every step can include the wali, and privacy runs both ways.',
+    ],
+    sections: [
+      {
+        h2: 'What serious families check first',
+        body: [
+          'Deen before dunya — but dunya matters too. Look for specifics, not adjectives: which marja he follows, how he describes his daily practice, how his family observes Muharram. Then the practical: settled career or clear trajectory, housing plans, and where he sees the couple living. Vague profiles deserve patient questions; evasive answers deserve a polite goodbye.',
+          'Green flags are quiet: prompt involvement of his family, respect for your timeline, and direct answers to direct questions. The grooms who thrive here are the ones who treat the process with the gravity it deserves.',
+        ],
+      },
+      {
+        h2: 'For grooms: stand out honestly',
+        body: [
+          'Complete every section of your profile. State your practice specifically, describe your family honestly, and say what you are looking for with clarity. Profiles with clear photos, specific deen detail, and visible family involvement get the first replies from serious families — because they signal exactly what those families are screening for: sincerity.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'How are grooms verified?', a: 'Identity and marriage-intention checks run before sensitive access opens. Profiles that are incomplete or evasive don\u2019t get far — serious families filter them out fast.' },
+      { q: 'Can we involve both families early?', a: 'Yes. Family-to-family communication tools and wali approvals are built in, so both households can be part of the process from the first serious conversation.' },
+      { q: 'Is there a fee to contact a groom?', a: 'No. Expressing interest and messaging are free during early access. There is no payment system on the platform today.' },
+    ],
+    related: [
+      { to: '/shia-brides', label: 'Find a Shia bride' },
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony in the USA' },
+      { to: '/syed-rishta', label: 'Syed rishta profiles' },
+      { to: '/safety', label: 'Safety standards' },
+    ],
+  },
+
+  'syed-rishta': {
+    title: 'Syed Rishta for Nikah | Find Syed & Syeda Matches – ShiaRishta',
+    desc: 'Syed and Syeda rishta profiles for nikah — verified, privacy-first, with family and wali involvement. The dignified way to find a Sayyid match. Join free.',
+    h1: 'Syed Rishta for Nikah',
+    breadcrumb: 'Syed Rishta',
+    intro: [
+      'For Sayyid families, lineage is part of identity — and finding a Syed or Syeda match with equal seriousness about deen has traditionally depended on who your family happens to know. ShiaRishta changes the geometry: verified Sayyid profiles, searchable by the criteria that matter, with family involvement built in from the start.',
+      'Whether you are a Syed groom or a Syeda bride — or a family searching on their behalf — this is the dignified, structured way to find a match where lineage and piety go together.',
+    ],
+    sections: [
+      {
+        h2: 'Lineage and kufw, handled with care',
+        body: [
+          'Many scholars discuss kufw — compatibility — in marriage, and for Sayyid families this often includes lineage alongside deen, character, and life goals. The platform lets families state these preferences honestly in profiles and filters, so conversations begin between people whose expectations already align.',
+          'But lineage alone never carried a marriage. The strongest Syed rishta matches pair shared background with shared practice: marja, daily deen, and family values stated specifically, not assumed.',
+        ],
+      },
+      {
+        h2: 'Privacy for prominent families',
+        body: [
+          'Sayyid families are often well-known in their communities, which makes discretion essential. Photo privacy tiers let a Syeda bride\u2019s photos stay visible only to mutual matches. Contact details are never public. And wali workflows mean her father or guardian oversees introductions — exactly as tradition expects, with modern tools.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Can I filter for Syed/Syeda profiles?', a: 'Yes. Lineage and family background are part of profiles and search, so Sayyid families can find each other directly instead of relying on word of mouth.' },
+      { q: 'Is this only for Sayyids?', a: 'No. ShiaRishta serves all Shia Muslims seeking nikah. The Syed rishta search is one path within a platform built for the whole community.' },
+      { q: 'How is a bride\u2019s privacy protected?', a: 'She controls photo visibility tier by tier, her contact details are never public, and her wali can be involved in every introduction.' },
+    ],
+    related: [
+      { to: '/shia-brides', label: 'Find a Shia bride' },
+      { to: '/shia-grooms', label: 'Find a Shia groom' },
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony in the USA' },
+      { to: '/guardians', label: 'Wali workflows' },
+    ],
+  },
+};
+
+Object.assign(LANDING_PAGES, {
+  'shia-matrimony-chicago': {
+    title: 'Shia Matrimony Chicago | Find Shia Rishta for Nikah – ShiaRishta',
+    desc: 'Shia rishta in Chicago: verified Shia brides and grooms in the Windy City with wali-involved introductions and privacy-first profiles. Join free.',
+    h1: 'Shia Matrimony in Chicago',
+    breadcrumb: 'Chicago',
+    intro: [
+      'Chicago is home to one of America\u2019s largest and most established Shia communities — yet even here, finding the right rishta often comes down to chance encounters at majalis or a family friend who happens to know someone. ShiaRishta gives Chicago\u2019s Shia families a better way: a nikah-first platform where every profile is verified, Shia-specific, and serious.',
+      'Search Shia brides and grooms across the Chicago metro — from the suburbs to the city — filter by marja, practice, and family values, and involve your wali from the first introduction.',
+    ],
+    sections: [
+      {
+        h2: 'A big community, a small search pool',
+        body: [
+          'Chicago\u2019s Shia community is large but fragmented across neighborhoods, centers, and cultural backgrounds — Desi, Arab, Persian, and converts, each with their own networks. A platform that unites them in one searchable, verified pool multiplies every family\u2019s options overnight.',
+          'That matters most for the criteria generic sites ignore: which marja a family follows, how they observe Muharram, what role the extended family plays. In Chicago, these differences decide compatibility — so they are front and center in every profile.',
+        ],
+      },
+      {
+        h2: 'Local, but not limited',
+        body: [
+          'Start your search in the Chicago metro, and expand nationwide when the right match is worth the distance. Many Chicago families find their match in Houston, New York, or Toronto — the platform\u2019s video introductions and family-to-family tools make long-distance courtship structured instead of stressful.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Can I search only within Chicago?', a: 'Yes. Location filters let you focus on the Chicago metro area — or widen to the Midwest, the USA, or worldwide as you prefer.' },
+      { q: 'Are there really Shia profiles in Chicago?', a: 'Chicago has one of the largest Shia populations in America, and the platform grows city by city. Create a free profile today — early members shape the community they want to see.' },
+      { q: 'Can our families meet through the platform?', a: 'Yes. Wali approvals, family-to-family messaging, and private video introductions are built in, whether families are across town or across the country.' },
+    ],
+    related: [
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony across the USA' },
+      { to: '/shia-matrimony-houston', label: 'Shia matrimony in Houston' },
+      { to: '/shia-matrimony-new-york', label: 'Shia matrimony in New York' },
+      { to: '/shia-brides', label: 'Find a Shia bride' },
+    ],
+  },
+
+  'shia-matrimony-houston': {
+    title: 'Shia Matrimony Houston | Find Shia Rishta for Nikah – ShiaRishta',
+    desc: 'Shia rishta in Houston: verified Shia brides and grooms across Texas with wali-involved introductions and privacy-first profiles. Join free.',
+    h1: 'Shia Matrimony in Houston',
+    breadcrumb: 'Houston',
+    intro: [
+      'Houston\u2019s Shia community has grown into one of the most vibrant in the country — large, diverse, and deeply rooted. But growth brings its own problem: the community is now too big for everyone to know everyone, and the old word-of-mouth networks don\u2019t reach far enough. ShiaRishta closes that gap.',
+      'Find verified Shia brides and grooms across the Greater Houston area. Filter by what decides real compatibility — marja, sect, practice, family values — and move from introduction to family meeting with dignity.',
+    ],
+    sections: [
+      {
+        h2: 'Built for Houston\u2019s diversity',
+        body: [
+          'Houston\u2019s Shia community spans South Asian, Arab, Persian, African, and convert families — a richness that generic matrimonial sites flatten into a single checkbox. ShiaRishta\u2019s filters respect the differences: cultural background, language, marja, and practice level are all searchable, so a Hyderabadi family and a Lebanese family can each find exactly what they are looking for.',
+        ],
+      },
+      {
+        h2: 'From match to family meeting',
+        body: [
+          'Houston families take the wali\u2019s role seriously, and so does the platform. Guardian approvals, chaperoned communication, and family-to-family introductions are built into the journey — so when both families sit down together, usually over chai in Sugar Land or Clear Lake, the groundwork of trust is already laid.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Can I limit my search to Houston?', a: 'Yes — search the Greater Houston area specifically, or expand across Texas and the USA whenever you\u2019re ready.' },
+      { q: 'Does the platform suit Desi Shia families?', a: 'Absolutely. Cultural background, language, and family-structure preferences are part of profiles and filters, alongside marja and practice.' },
+      { q: 'How do walis get involved?', a: 'A member can connect their wali to their account for approvals and family-to-family communication — built for exactly how Houston families already operate.' },
+    ],
+    related: [
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony across the USA' },
+      { to: '/shia-matrimony-chicago', label: 'Shia matrimony in Chicago' },
+      { to: '/shia-grooms', label: 'Find a Shia groom' },
+      { to: '/syed-rishta', label: 'Syed rishta profiles' },
+    ],
+  },
+
+  'shia-matrimony-new-york': {
+    title: 'Shia Matrimony New York | Find Shia Rishta for Nikah – ShiaRishta',
+    desc: 'Shia rishta in New York: verified Shia brides and grooms across the NYC metro with wali-involved introductions. Join free.',
+    h1: 'Shia Matrimony in New York',
+    breadcrumb: 'New York',
+    intro: [
+      'New York moves fast — and that is precisely the problem for Shia families seeking rishta here. Between careers, commutes, and scattered communities across five boroughs and New Jersey, the traditional networks that once produced matches have thinned. ShiaRishta rebuilds them digitally.',
+      'Search verified Shia profiles across the New York metro. Every filter understands Shia practice — marja, sect, Muharram observance — and every introduction can include your wali, no matter how busy the city gets.',
+    ],
+    sections: [
+      {
+        h2: 'Serious search for a fast city',
+        body: [
+          'New York rewards efficiency, and the platform is built for it: complete profiles with specific deen detail, so you can assess compatibility in minutes rather than months. Mutual-interest messaging keeps conversations purposeful — no endless chatting with no direction, which is the failure mode of every generic app in this city.',
+          'For professionals with demanding schedules, the structured process is a feature: clear stages from interest to family introduction, each with guardian visibility, so nothing stalls and nothing rushes.',
+        ],
+      },
+      {
+        h2: 'Tri-state and beyond',
+        body: [
+          'Many New York matches span the tri-state area — Brooklyn to Edison, Queens to Long Island. Location filters cover the full metro, and when the right person is in Chicago or London instead, private video introductions and family-to-family tools make distance manageable.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Does it cover New Jersey and Long Island too?', a: 'Yes. Search the full NYC metro including New Jersey, Long Island, and Connecticut — set your own radius.' },
+      { q: 'I\u2019m a busy professional. How much time does this take?', a: 'Less than the apps you\u2019ve tried. Structured profiles and mutual-interest-only messaging mean every conversation starts from genuine alignment, not small talk.' },
+      { q: 'Can my parents back home be involved?', a: 'Yes. Wali and guardian workflows operate across time zones, so family in another country stays part of every step.' },
+    ],
+    related: [
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony across the USA' },
+      { to: '/shia-matrimony-chicago', label: 'Shia matrimony in Chicago' },
+      { to: '/shia-brides', label: 'Find a Shia bride' },
+      { to: '/shia-matrimony-london', label: 'Shia matrimony in London' },
+    ],
+  },
+
+  'shia-matrimony-london': {
+    title: 'Shia Matrimony London | Find Shia Rishta for Nikah – ShiaRishta',
+    desc: 'Shia rishta in London: verified Shia brides and grooms across the UK with wali-involved introductions and privacy-first profiles. Join free.',
+    h1: 'Shia Matrimony in London',
+    breadcrumb: 'London',
+    intro: [
+      'London\u2019s Shia community is among the largest in Europe — concentrated in pockets across the city, rich in scholars and centers, yet surprisingly hard to navigate when it comes to rishta. Families often search within a single mosque network and miss compatible matches two boroughs away. ShiaRishta unites them.',
+      'Find verified Shia brides and grooms across London and the UK. Shia-specific filters, wali workflows, and photo privacy the member controls — the dignified structure British Shia families expect.',
+    ],
+    sections: [
+      {
+        h2: 'One community, many networks',
+        body: [
+          'London\u2019s Shia landscape includes long-established communities and newer arrivals, multiple languages, and a range of practice — from the very observant to the culturally connected. The platform\u2019s detailed filters let each family search on their own terms: marja, sect, background, and practice level, stated honestly upfront.',
+        ],
+      },
+      {
+        h2: 'UK–international matches',
+        body: [
+          'London is a natural hub for international matches — with the USA, the Gulf, and South Asia. Time-zone-friendly guardian tools, private video introductions, and staged information sharing make a London–Houston or London–Dubai courtship as structured as one across the Thames.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Is ShiaRishta UK-friendly?', a: 'Yes. Search London and the wider UK specifically, with worldwide expansion whenever you want it. The platform works across borders and time zones.' },
+      { q: 'How is privacy handled?', a: 'Members control photo visibility in tiers, contact details are never public, and conversations require mutual interest. Block and report tools are one tap away.' },
+      { q: 'Can our wali approve from abroad?', a: 'Yes — guardian approvals and family-to-family messaging work internationally, which suits the many London families with relatives overseas.' },
+    ],
+    related: [
+      { to: '/shia-matrimony-usa', label: 'Shia matrimony in the USA' },
+      { to: '/shia-matrimony-new-york', label: 'Shia matrimony in New York' },
+      { to: '/shia-grooms', label: 'Find a Shia groom' },
+      { to: '/syed-rishta', label: 'Syed rishta profiles' },
+    ],
+  },
+});
+
+export default LANDING_PAGES;

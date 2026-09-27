@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { LANDING_PAGES } from '../pages/landing/landingPages.js';
+import { articles } from '../data/articles.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-route SEO for the SPA. index.html ships the homepage <head>; this
@@ -118,6 +120,21 @@ function upsertLinkCanonical(href) {
 
 function resolveMeta(pathname) {
   if (PUBLIC_META[pathname]) return { ...PUBLIC_META[pathname], index: true };
+  // SEO landing pages — meta comes from the hand-written page data.
+  const landing = LANDING_PAGES[pathname.replace(/^\/+/, '')];
+  if (landing) return { title: landing.title, desc: landing.desc, index: true };
+  // Blog articles — each has a crawlable URL and unique meta.
+  if (pathname.startsWith('/blog/')) {
+    const article = articles.find((a) => `/blog/${a.slug}` === pathname);
+    if (article) {
+      return {
+        title: `${article.title} | ShiaRishta Blog`,
+        desc: article.excerpt,
+        index: true,
+      };
+    }
+    return { title: 'Page Not Found | ShiaRishta', desc: '', index: false };
+  }
   if (pathname.startsWith('/profiles/')) {
     return {
       title: 'Shia Profile for Nikah | ShiaRishta',

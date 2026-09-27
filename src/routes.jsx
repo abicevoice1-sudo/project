@@ -9,6 +9,8 @@ const Home = lazy(() => import('./pages/Home'));
 const Profiles = lazy(() => import('./pages/Profiles'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
+const LandingPage = lazy(() => import('./pages/landing/LandingPage'));
 const Community = lazy(() => import('./pages/Community'));
 const CommunityPost = lazy(() => import('./pages/CommunityPost'));
 const Contact = lazy(() => import('./pages/Contact'));
@@ -116,6 +118,17 @@ const router = createBrowserRouter([
   { path: '/profiles', element: <LazyRoute component={Profiles} /> },
   { path: '/profiles/:id', element: <LazyRoute component={Profile} /> },
   { path: '/blog', element: <LazyRoute component={Blog} /> },
+  { path: '/blog/:slug', element: <LazyRoute component={BlogPost} /> },
+  // SEO landing pages (hand-written, unique copy) — one route each so every
+  // page has a crawlable URL, unique meta, and FAQ schema.
+  { path: '/shia-matrimony-usa', element: <LazyRoute component={LandingPage} /> },
+  { path: '/shia-brides', element: <LazyRoute component={LandingPage} /> },
+  { path: '/shia-grooms', element: <LazyRoute component={LandingPage} /> },
+  { path: '/syed-rishta', element: <LazyRoute component={LandingPage} /> },
+  { path: '/shia-matrimony-chicago', element: <LazyRoute component={LandingPage} /> },
+  { path: '/shia-matrimony-houston', element: <LazyRoute component={LandingPage} /> },
+  { path: '/shia-matrimony-new-york', element: <LazyRoute component={LandingPage} /> },
+  { path: '/shia-matrimony-london', element: <LazyRoute component={LandingPage} /> },
     { path: '/community', element: <LazyRoute component={Community} /> },
   { path: '/community/:slug', element: <LazyRoute component={Community} /> },
   { path: '/community/:slug/post/:postId', element: <LazyRoute component={CommunityPost} /> },
