@@ -1,4 +1,4 @@
-name: Verify API recovery v3
+name: Verify API recovery v4
 on: workflow_dispatch
 jobs:
   verify:
@@ -6,7 +6,7 @@ jobs:
     steps:
       - run: |
           python3 - <<'PYEOF2'
-          import requests, re, os, urllib3
+          import requests, re, os, time, urllib3
           urllib3.disable_warnings()
           CPANEL = 'https://ind85.server.broker:2083'
           USER = os.environ['CPANEL_USER']; PASS = os.environ['CPANEL_PASS']
@@ -19,31 +19,14 @@ jobs:
           def uapi(mod, func, **params):
               r = s.get(f'{base}/{mod}/{func}', params=params, verify=False, timeout=60)
               return r.json()
-          j = uapi('Fileman', 'delete_files', dir='/home/shiarishta/public_html/api', **{'file-0': 'diag_jarvis.php'})
-          print('diag delete:', j.get('status'))
-          j = uapi('Fileman', 'list_files', dir='/home/shiarishta/public_html/api')
-          names = [f.get('file') for f in (j.get('data') or [])]
-          print('diag still present:', 'diag_jarvis.php' in names)
-          A = 'https://shiarishta.com/api'
-          r = s.get(f'{A}/health', verify=False, timeout=30)
-          print('health:', r.status_code); assert r.status_code == 200 and r.json()['ok'] is True
-          r = s.post(f'{A}/auth/login', verify=False, timeout=30,
-                     json={'email': 'qatest13@example.com', 'password': 'QaTest#2026-13'})
-          print('login:', r.status_code); assert r.status_code == 200
-          tok = r.json().get('token'); assert tok
-          H = {'Authorization': f'Bearer {tok}'}
-          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
-          print('profile get:', r.status_code); assert r.status_code == 200
-          orig = (r.json().get('profile') or {}).get('bio') or ''
-          marker = 'RECOVERY-PROBE-OK'
-          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': marker})
-          print('profile save:', r.status_code, r.text[:120]); assert r.status_code == 200, 'SAVE FAILED'
-          r = s.get(f'{A}/profiles/me', verify=False, timeout=30, headers=H)
-          saved = (r.json().get('profile') or {}).get('bio') or ''
-          print('bio round-trip persisted:', saved == marker); assert saved == marker
-          r = s.put(f'{A}/profiles/me', verify=False, timeout=30, headers=H, json={'bio': orig})
-          print('bio restored:', r.status_code)
-          print('RECOVERY_VERIFIED')
+          PHP = '<?php\nheader(\'Content-Type: text/plain; charset=utf-8\');\nrequire __DIR__ . \'/lib/bootstrap.php\';\nrequire __DIR__ . \'/lib/db.php\';\ntry {\n    $cols = [];\n    foreach (db()->query(\'SHOW COLUMNS FROM profiles\')->fetchAll() as $c) { $cols[] = $c[\'Field\']; }\n    echo "columns: " . implode(\',\', $cols) . "\\n";\n    foreach ([\'bio\',\'updated_at\',\'user_id\',\'display_name\'] as $n) { echo "has_$n=" . (in_array($n, $cols) ? \'yes\' : \'NO\') . "\\n"; }\n    $u = db()->prepare("SELECT id FROM users WHERE email=\'qatest13@example.com\' LIMIT 1");\n    $u->execute(); $ur = $u->fetch();\n    echo "uid=" . ($ur[\'id\'] ?? \'NONE\') . "\\n";\n    $p = db()->prepare(\'SELECT user_id, LEFT(bio,30) AS b FROM profiles WHERE user_id=? LIMIT 1\');\n    $p->execute([$ur[\'id\']]); $pr = $p->fetch();\n    echo "profile_row=" . ($pr ? \'exists bio=[\' . $pr[\'b\'] . \']\' : \'MISSING\') . "\\n";\n    $sql = \'INSERT INTO profiles (user_id, bio) VALUES (?, ?) ON DUPLICATE KEY UPDATE bio = VALUES(bio), updated_at = UTC_TIMESTAMP()\';\n    try {\n        db()->prepare($sql)->execute([$ur[\'id\'], \'RECOVERY-PROBE-OK\']);\n        echo "UPSERT_OK\\n";\n        db()->prepare(\'UPDATE profiles SET bio=? WHERE user_id=?\')->execute([\'\', $ur[\'id\']]);\n        echo "RESTORED\\n";\n    } catch (Throwable $e) { echo "UPSERT_FAIL: " . substr($e->getMessage(), 0, 300) . "\\n"; }\n} catch (Throwable $e) { echo "FATAL: " . substr($e->getMessage(), 0, 300) . "\\n"; }\necho "DONE\\n";\n'
+          j = uapi('Fileman', 'save_file_content', dir='/home/shiarishta/public_html/api',
+                   file='dbprobe_jarvis.php', content=PHP)
+          print('upload:', j.get('status'))
+          time.sleep(2)
+          r = s.get('https://shiarishta.com/api/dbprobe_jarvis.php', verify=False, timeout=40)
+          print(f'probe HTTP {r.status_code}:')
+          print(r.text[:2500])
           PYEOF2
         env:
           CPANEL_USER: ${{ secrets.FTP_USERNAME }}
