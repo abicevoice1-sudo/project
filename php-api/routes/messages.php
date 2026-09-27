@@ -127,7 +127,6 @@ function startConversation(): void
     if ($other === (string)$user['uid']) {
         je('You cannot start a conversation with yourself.', 400);
     }
-    }
 
     $target = db()->prepare('SELECT id FROM users WHERE id = ? LIMIT 1');
     $target->execute([$other]);

@@ -24,6 +24,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: PHP syntax gate (blocks deploy on parse errors)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - name: Lint all deployed PHP files
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            php -l "$f" >/dev/null 2>&1 || { echo "SYNTAX ERROR: $f"; fail=1; }
+          done < <(find php-api -name '*.php' -not -path '*/tests/*')
+          if [ "$fail" = "1" ]; then echo "Failing deploy: PHP syntax errors present."; exit 1; fi
+          echo "PHP lint clean"
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
