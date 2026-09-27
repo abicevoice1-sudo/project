@@ -14,4 +14,5 @@ export const LANDING_PAGE_META = {
   'shia-matrimonial': { title: 'Shia Matrimonial | Verified Shia Marriage Profiles – ShiaRishta', desc: 'A Shia matrimonial platform built for nikah: verified Shia brides and grooms, marja-aware matching, wali involvement, and privacy-first profiles. Join free.' },
   'shia-marriage': { title: 'Shia Marriage | Nikah, Process & Finding a Shia Spouse – ShiaRishta', desc: 'Understanding Shia marriage: the nikah process, the wali\u2019s role, and how ShiaRishta helps Shia families find verified, compatible matches. Join free.' },
   'shia-nikah': { title: 'Shia Nikah | Meaning, Process & Finding Your Match – ShiaRishta', desc: 'What is a Shia nikah? The contract, mahr, and process explained — plus how ShiaRishta helps you find a verified Shia spouse for nikah. Join free.' },
+  'nikah-checklist': { title: 'Shia Nikah Checklist | A Family\u2019s Step-by-Step Guide – ShiaRishta', desc: 'A practical Shia nikah checklist for families: vetting a prospect, the families\u2019 meeting, the contract, and after. Free to use and share.' },
 };

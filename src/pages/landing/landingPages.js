@@ -401,8 +401,7 @@ Object.assign(LANDING_PAGES, {
     title: 'Shia Nikah | Meaning, Process & Finding Your Match – ShiaRishta',
     desc: 'What is a Shia nikah? The contract, mahr, and process explained — plus how ShiaRishta helps you find a verified Shia spouse for nikah. Join free.',
     h1: 'The Shia Nikah: Meaning and Process',
-    breadcrumb: 'Shia Nikah',
-    intro: [
+    breadcrumb: 'Shia Nikah',    intro: [
       'Nikah is the Islamic marriage contract — and in Shia fiqh, it is a precise, deliberate covenant: an offer and acceptance, a mahr gifted to the bride, and conditions the couple agrees upon together. It is both a legal bond and a spiritual one, entered with clarity and witnessed with intention.',
       'But a nikah needs two people who are right for each other. Finding that person — a Shia spouse of genuine deen and compatible life — is the harder half of the journey. That is where ShiaRishta comes in.',
     ],
@@ -439,6 +438,64 @@ Object.assign(LANDING_PAGES, {
       { to: '/shia-matrimonial', label: 'Shia matrimonial profiles' },
       { to: '/shia-matrimony-usa', label: 'Shia matrimony in the USA' },
       { to: '/guardians', label: 'How wali workflows work' },
+    ],
+  },
+
+  'nikah-checklist': {
+    title: 'Shia Nikah Checklist | A Family\u2019s Step-by-Step Guide – ShiaRishta',
+    desc: 'A practical Shia nikah checklist for families: vetting a prospect, the families\u2019 meeting, the contract, and after. Free to use and share.',
+    h1: 'The Shia Nikah Checklist',
+    breadcrumb: 'Nikah Checklist',
+    intro: [
+      'A nikah is too important to leave to memory and momentum. This checklist walks your family through every stage — from the first search to the signed contract — so nothing that matters gets missed in the excitement.',
+      'Share it freely: print it, send it to relatives, or link it from your center\u2019s resource page. It exists to serve Shia families, wherever they find it.',
+    ],
+    sections: [
+      {
+        h2: 'Stage 1: Before the search',
+        body: [
+          'Clarify what your family is looking for before any profile is browsed: the marja whose rulings you follow, expectations around practice and Muharram observance, education and career direction, location flexibility, and timeline. Write these down — alignment on paper prevents arguments later.',
+          'Decide who is involved and how: who acts as wali or guardian, how families will communicate, and what level of privacy the prospect\u2019s family should expect. Everyone should know the process before the process starts.',
+        ],
+      },
+      {
+        h2: 'Stage 2: Vetting a prospect',
+        body: [
+          'Look for consistency between the profile and the person: does their description of daily practice match how they actually live? Is their family involved early and openly? Are timeline and expectations stated, or evasive? Ask direct questions and note direct versus evasive answers.',
+          'Verify the practical: identity, education and employment claims, marital history, and — through trusted mutual contacts where possible — character and reputation. On ShiaRishta, identity and intention checks cover the first layer; your family\u2019s diligence covers the rest.',
+        ],
+      },
+      {
+        h2: 'Stage 3: The families meet',
+        body: [
+          'Move from messages to family-to-family conversation deliberately: exchange family backgrounds honestly, discuss expectations around living arrangements, finances, and religious practice in the household, and let both sides ask anything. The questions that feel awkward now are the ones that prevent regret later.',
+          'If distance separates the families, use video and keep the wali in the loop at every step. Seriousness is measured by family involvement, not by speed.',
+        ],
+      },
+      {
+        h2: 'Stage 4: The nikah contract',
+        body: [
+          'Agree the mahr clearly — amount, form, and timing — before the ceremony, and put any additional lawful conditions in writing as part of the contract. Confirm the particulars (witnesses, recitation, the wali\u2019s role) with the scholar or marja your family follows, since rulings vary.',
+          'Arrange the nikah nama documentation your locality requires, and keep copies with both families. The contract protects everyone it names — treat its details with the same care as the relationship itself.',
+        ],
+      },
+      {
+        h2: 'Stage 5: After the nikah',
+        body: [
+          'Plan the transition practically: housing, finances, and how the couple will establish their household\u2019s religious life together. Keep communication open between the families in the early months — most new-marriage friction is logistical, not fundamental, and early support prevents small issues from hardening.',
+        ],
+      },
+    ],
+    faqs: [
+      { q: 'Can our mosque or center share this checklist?', a: 'Yes — please do. It is free for any Shia family, center, or organization to print, share, or link to. A link back to this page helps other families find it.' },
+      { q: 'Does this replace scholarly guidance?', a: 'No. This is a practical family organizer, not a fiqh manual. Confirm all religious particulars — witnesses, conditions, the wali\u2019s role — with the marja your family follows.' },
+      { q: 'Where do we find a Shia spouse to begin with?', a: 'ShiaRishta exists for exactly that: verified Shia brides and grooms seeking nikah, with marja and practice filters, privacy tiers, and wali involvement built in.' },
+    ],
+    related: [
+      { to: '/shia-nikah', label: 'The Shia nikah, explained' },
+      { to: '/shia-marriage', label: 'Shia marriage, explained' },
+      { to: '/guardians', label: 'How wali workflows work' },
+      { to: '/safety', label: 'Safety standards' },
     ],
   },
 });

@@ -132,6 +132,7 @@ const router = createBrowserRouter([
   { path: '/shia-matrimonial', element: <LazyRoute component={LandingPage} /> },
   { path: '/shia-marriage', element: <LazyRoute component={LandingPage} /> },
   { path: '/shia-nikah', element: <LazyRoute component={LandingPage} /> },
+  { path: '/nikah-checklist', element: <LazyRoute component={LandingPage} /> },
     { path: '/community', element: <LazyRoute component={Community} /> },
   { path: '/community/:slug', element: <LazyRoute component={Community} /> },
   { path: '/community/:slug/post/:postId', element: <LazyRoute component={CommunityPost} /> },
