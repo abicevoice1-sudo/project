@@ -4,18 +4,16 @@ jobs:
   diagnose:
     runs-on: ubuntu-latest
     steps:
-      - name: Check error logs via cPanel UAPI
+      - name: Check files via FTP
         env:
-          CPANEL_USER: ${{ secrets.FTP_USERNAME }}
-          CPANEL_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: |
-          # Get the last 50 lines of error log
-          echo "=== Error Log ==="
-          curl -s -u "$CPANEL_USER:$CPANEL_PASS" \
-            "https://ind85.server.broker:2083/execute/Logs/get_error_log" \
-            | head -c 5000
+          echo "=== Checking API files ==="
+          # List the api directory
+          curl -s --insecure "ftp://$FTP_USER:$FTP_PASS@$FTP_SERVER/public_html/api/" | head -20
           echo ""
-          echo "=== Disk Usage ==="
-          curl -s -u "$CPANEL_USER:$CPANEL_PASS" \
-            "https://ind85.server.broker:2083/execute/DiskUsage/get_disk_usage" \
-            | head -c 2000
+          echo "=== Trying to get error log ==="
+          curl -s --insecure "ftp://$FTP_USER:$FTP_PASS@$FTP_SERVER/logs/error_log" 2>&1 | tail -30 || echo "No error_log at /logs/"
+          curl -s --insecure "ftp://$FTP_USER:$FTP_PASS@$FTP_SERVER/public_html/error_log" 2>&1 | tail -30 || echo "No error_log at /public_html/"
