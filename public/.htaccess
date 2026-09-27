@@ -16,6 +16,12 @@
 </IfModule>
 
 # ── ShiaRishta SEO: canonical host + legacy cleanup + SPA fallback ──────────
+# Serve the React app for "/". The old WordPress index.php is still on disk in
+# public_html; without this, Apache's default DirectoryIndex can prefer it and
+# serve the legacy WP homepage (placeholder text, old testimonials) at "/".
+DirectoryIndex index.html
+# Never show auto-generated directory listings (e.g. "Index of /blog/").
+Options -Indexes
 RewriteEngine On
 
 # 1) Canonical host: www -> apex, permanent. One host = one copy of every
@@ -54,6 +60,9 @@ RewriteRule ^wp-sitemap-posts- - [G,L]
 
 # 3) ShiaRishta SPA — Apache fallback for client-side routes.
 #    Every non-file request serves index.html so React Router can take over.
+#    /blog/ is a real directory on disk (article images), so the !-d guard
+#    would skip the fallback and expose the folder — route it explicitly.
+RewriteRule ^blog/?$ index.html [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
