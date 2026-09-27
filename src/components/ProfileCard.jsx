@@ -175,6 +175,7 @@ export default function ProfileCard({ profile, className = '' }) {
           className={'flex-1 py-2.5 min-h-[38px] text-xs font-semibold flex items-center justify-center gap-1 rounded-lg transition-all disabled:opacity-60 ' + (interested ? '' : 'btn-primary')}
           style={{ minHeight: '38px', ...(interested ? { background: 'var(--color-primary-subtle)', color: 'var(--color-primary)', border: '1px solid var(--color-primary-subtle)' } : undefined) }}
           title={interestError || (interested ? 'Click to withdraw interest' : undefined)}
+          aria-label={interested ? `Withdraw interest in ${profile.displayName}` : `Express interest in ${profile.displayName}`}
         >
           <Heart className={'w-3.5 h-3.5 ' + (interested ? 'fill-current' : '')} />
           {interestBusy ? (interested ? 'Withdrawing…' : 'Sending…') : interested ? 'Interested' : 'Interest'}
@@ -182,7 +183,7 @@ export default function ProfileCard({ profile, className = '' }) {
         <button
           onClick={e => { e.preventDefault(); setSaved(!saved); }}
           className="btn-secondary p-2.5"
-          aria-label="Save"
+          aria-label={`Save ${profile.displayName} to favorites`}
           style={{ minWidth: '38px', minHeight: '38px' }}
         >
           <Bookmark
