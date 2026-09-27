@@ -17,20 +17,3 @@ jobs:
           echo "=== Trying to get error log ==="
           curl -s --insecure "ftp://$FTP_USER:$FTP_PASS@$FTP_SERVER/logs/error_log" 2>&1 | tail -30 || echo "No error_log at /logs/"
           curl -s --insecure "ftp://$FTP_USER:$FTP_PASS@$FTP_SERVER/public_html/error_log" 2>&1 | tail -30 || echo "No error_log at /public_html/"
-
-      - name: TEMP homepage content check
-        run: |
-          echo "=== public_html root listing (FTP) ==="
-          curl -s --insecure "ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_SERVER }}/public_html/" | head -40
-          echo ""
-          echo "=== live / homepage markers ==="
-          html=$(curl -sk --max-time 40 https://shiarishta.com/)
-          echo "bytes: $(echo -n "$html" | wc -c)"
-          echo "$html" | grep -c "Add Your Heading Text Here" | xargs echo "WP placeholder count:"
-          echo "$html" | grep -c 'id="root"' | xargs echo "React root count:"
-          echo "$html" | grep -o "<title>[^<]*</title>" | head -2
-          echo "=== live /blog/ ==="
-          code=$(curl -sk --max-time 40 -o /dev/null -w "%{http_code}" https://shiarishta.com/blog/)
-          echo "blog/ HTTP $code"
-          echo "=== live .htaccess check via DirectoryIndex ==="
-          curl -sk --max-time 40 -o /dev/null -w "homepage HTTP %{http_code}\n" https://shiarishta.com/
