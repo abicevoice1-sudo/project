@@ -17,3 +17,11 @@ jobs:
           echo "=== Trying to get error log ==="
           curl -s --insecure "ftp://$FTP_USER:$FTP_PASS@$FTP_SERVER/logs/error_log" 2>&1 | tail -30 || echo "No error_log at /logs/"
           curl -s --insecure "ftp://$FTP_USER:$FTP_PASS@$FTP_SERVER/public_html/error_log" 2>&1 | tail -30 || echo "No error_log at /public_html/"
+
+      - name: TEMP redirect check
+        run: |
+          for u in "blog-post/how-to-make-a-marriage-successful/" "members/Sumaira/" "sample-page-2/" "terms-and-conditions/" "user-story/" "2021/09/" "wp-login.php" "feed/"; do
+            code=$(curl -sk --max-time 20 -o /dev/null -w "%{http_code}" "https://shiarishta.com/$u")
+            loc=$(curl -sk --max-time 20 -o /dev/null -w "%{redirect_url}" "https://shiarishta.com/$u")
+            echo "$u -> $code ${loc:+[loc: $loc]}"
+          done
