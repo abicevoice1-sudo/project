@@ -1,0 +1,11 @@
+name: tmp-v2
+on: { workflow_dispatch: {} }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          HTML=$(curl -s https://shiarishta.com/ --max-time 20)
+          JS=$(echo "$HTML" | grep -oE '/assets/index-[^"]+\.js' | head -1)
+          echo "ENTRY:$JS"
+          curl -s "https://shiarishta.com$JS" --max-time 30 | grep -c "shia-nikah" || echo 0
