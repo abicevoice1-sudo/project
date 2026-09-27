@@ -1,0 +1,29 @@
+name: Debug PageSpeed API
+on: workflow_dispatch
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PageSpeed Insights API
+        run: |
+          for strategy in mobile desktop; do
+            echo "===== $strategy ====="
+            curl -s --max-time 120 "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=https://shiarishta.com/&strategy=$strategy&category=performance&category=accessibility&category=best-practices&category=seo" -o /tmp/psi-$strategy.json
+            python3 - "$strategy" <<'EOF'
+          import json, sys
+          s = sys.argv[1]
+          d = json.load(open(f'/tmp/psi-{s}.json'))
+          cats = d.get('lighthouseResult', {}).get('categories', {})
+          for k in ['performance','accessibility','best-practices','seo']:
+              v = cats.get(k, {}).get('score')
+              print(f"{k}: {round(v*100) if v is not None else 'n/a'}")
+          audits = d.get('lighthouseResult', {}).get('audits', {})
+          for m in ['largest-contentful-paint','interaction-to-next-paint','cumulative-layout-shift','total-blocking-time','speed-index','first-contentful-paint']:
+              a = audits.get(m, {})
+              print(f"{m}: {a.get('displayValue','n/a')}")
+          print('--- top opportunities ---')
+          opps = [(a.get('details',{}).get('overallSavingsMs',0), k, (a.get('displayValue') or '')[:60]) for k,a in audits.items() if a.get('details',{}).get('type')=='opportunity']
+          for ms,k,dv in sorted(opps, reverse=True)[:6]:
+              print(f"{k}: save {int(ms)}ms {dv}")
+          EOF
+          done
