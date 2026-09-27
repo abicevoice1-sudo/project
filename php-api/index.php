@@ -107,6 +107,7 @@ try {
             rateCheck('login:acct', cip() . ':' . $emailKey, 5, 900, 'Too many attempts for this account. Try again in 15 minutes.');
         }
         rateCheck('auth:ip', cip(), 30, 900, 'Too many sign-up/sign-in attempts from your network. Try again in 15 minutes.');
+        if ($method === 'POST' && $action === 'register') rateCheck('register:ip', cip(), 3, 3600, 'Too many accounts created from your network. Try again in an hour.');
         if ($action === 'forgot')  rateCheck('forgot:ip', cip(), 5, 3600, 'Too many reset requests. Check your inbox, or try again in an hour.');
         if ($action === 'reset')   rateCheck('reset:ip', cip(), 10, 3600, 'Too many attempts. Try again in an hour.');
         if ($action === 'resend-verification') rateCheck('resend:ip', cip(), 5, 3600, 'Too many verification requests. Try again in an hour.');

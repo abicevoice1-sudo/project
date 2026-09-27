@@ -137,6 +137,7 @@ function visibleProfile(array $row, ?array $viewer): ?array
             'photosLocked' => true,
             'locked' => true,
             'teaser' => true,
+            'gallery' => [],
         ];
     }
 
@@ -202,5 +203,6 @@ function visibleProfile(array $row, ?array $viewer): ?array
         'photosVisibility' => (string)($row['photos_visibility'] ?? 'members'),
         'photosLocked' => !$isOwner,
         'locked' => true,
+        'gallery' => [],
     ];
 }
