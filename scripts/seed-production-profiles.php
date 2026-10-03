@@ -552,11 +552,17 @@ $AVATAR_GRADIENTS = [
 // ═══════════════════════════════════════════════════════════════════════════
 //  PURGE — remove QA/test accounts left by past E2E runs
 // ═══════════════════════════════════════════════════════════════════════════
-// WHY THIS MATTERS: profilesList() caps the anonymous teaser at 6 rows
-// (profiles.php:332). Five of the six currently shown to every logged-out
-// visitor of shiarishta.com are E2E leftovers ("TEST PROFILE FOR QA — please
-// ignore.", "Desi Test 01", "DATA-09 City", ...). Real profiles cannot appear
-// in the teaser until those are gone.
+// READ THIS BEFORE RUNNING --purge
+// ---------------------------
+// Two of the predicates are deliberately broad:
+//   • email LIKE '%@example.com'  removes EVERY placeholder account, which
+//     includes the demo profiles that --seed creates. That is intentional and
+//     is what you want before real families use the site: no account with a
+//     known public password may remain. Run `--all` to wipe and re-seed in one
+//     pass, or run `--purge` alone to clear everything and seed later.
+//   • the 'QA Test%' / 'qatest%' / 'Sec Test%' / 'Probe L1-%' prefixes sweep up
+//     the ~50 empty shells that accumulated from E2E runs and which are
+//     currently served to every signed-in member on /profiles.
 //
 // Child rows are deleted before parents in the same order as authDeleteAccount()
 // at routes/auth.php:353, and messages are cleared for BOTH sender and
@@ -573,9 +579,21 @@ function purgeJunk(PDO $pdo, string $photoBase, bool $dryRun): int
         "SELECT user_id FROM profiles WHERE display_name LIKE 'TEST PROFILE%'",
         "SELECT user_id FROM profiles WHERE display_name LIKE 'Desi Test%'",
         "SELECT user_id FROM profiles WHERE display_name LIKE 'Life Test%'",
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'Data-%'",
         "SELECT user_id FROM profiles WHERE city LIKE 'TEST PROFILE%'",
         "SELECT user_id FROM profiles WHERE city LIKE 'DATA-% City'",
         "SELECT user_id FROM profiles WHERE profession LIKE 'probe-%'",
+        // The accumulated E2E run left ~50 empty shells visible to real members
+        // on /profiles ("QA Test 07", "qatest15", "QATest Alpha", "Sec Test 03",
+        // "QA Tester 53", "Probe L1-1", "QA Verify C", ...). Matching on the
+        // prefixes below clears them all in one pass.
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'QA Test%'",
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'QATest%'",
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'qatest%'",
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'QA Tester%'",
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'QA Verify%'",
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'Sec Test%'",
+        "SELECT user_id FROM profiles WHERE display_name LIKE 'Probe L1-%'",
     ];
 
     $ids = [];

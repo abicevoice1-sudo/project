@@ -61,7 +61,12 @@ export default function ProfileCard({ profile, className = '' }) {
   // Authorization header, so a members/private tier would 401 and render broken.
   const { url: photoUrl } = useAuthedImage(photoLocked ? null : profile.photo);
   const hasPhoto = Boolean(photoUrl);
-  const about = excerptText(profile.about);
+  // The API returns `bio` (and `expectations` / `aboutFamily`). There is no
+  // `about` field on the payload — reading it made excerptText() fall through
+  // to "No profile summary yet." for EVERY member, no matter what they wrote.
+  // Fall back to aboutFamily so a member who only filled that in still shows
+  // something meaningful on the card.
+  const about = excerptText(profile.bio || profile.aboutFamily);
 
   return (
     <motion.article
@@ -172,10 +177,16 @@ export default function ProfileCard({ profile, className = '' }) {
             <Sparkles className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-primary)', opacity: 0.7 }} />
           </div>
           <p className="flex items-center gap-1 text-xs truncate" style={{ color: 'var(--color-ink-secondary)' }}>
-            <MapPin className="w-3 h-3 flex-shrink-0" /> {profile.city}, {profile.country}
+            <MapPin className="w-3 h-3 flex-shrink-0" />
+            {/* Both fields were interpolated unconditionally, so a member with
+                no city rendered a bare ", " next to the pin. */}
+            {[profile.city, profile.country].filter(Boolean).join(', ') || 'Location not shared'}
           </p>
           <p className="flex items-center gap-1 text-xs" style={{ color: 'var(--color-ink-secondary)' }}>
-            <Briefcase className="w-3 h-3 flex-shrink-0" /> {profile.profession || 'Marriage-minded'}
+            <Briefcase className="w-3 h-3 flex-shrink-0" />
+            {/* "Marriage-minded" read like a location next to the MapPin line
+                above and confused members. Say plainly that it is unknown. */}
+            {profile.profession || 'Occupation not shared'}
           </p>
           <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--color-ink-secondary)' }}>{about}</p>
           {profile.religiosity && <span className="badge-primary text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>{profile.religiosity}</span>}

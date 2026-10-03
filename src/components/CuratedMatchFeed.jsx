@@ -185,7 +185,9 @@ export default function CuratedMatchFeed({ profiles = [], onExpressInterest }) {
 
               {/* About excerpt */}
               <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--color-ink-secondary)' }}>
-                {current.about || 'No profile summary yet.'}
+                {/* Same payload mismatch ProfileCard had: the API sends `bio`,
+                    never `about`, so this always showed the placeholder. */}
+                {current.bio || current.aboutFamily || 'No profile summary yet.'}
               </p>
 
               {/* Privacy note */}
