@@ -21,6 +21,10 @@ build/
 *.tmp
 npm-debug.log*
 
+# Seed tooling runtime state (which demo accounts have been created).
+# The scripts themselves ARE tracked; this file is regenerated on every run.
+scripts/seed-created.json
+
 # OS
 .DS_Store
 Thumbs.db

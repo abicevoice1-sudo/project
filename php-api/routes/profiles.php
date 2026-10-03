@@ -93,10 +93,20 @@ function photoUpload(): void
     //    client filename is never used, so traversal is impossible.
     $dir = photoBaseDir() . '/' . $user['uid'];
     if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
-        je('Could not create photo directory.', 500);
+        // Log the real reason: a per-member dir failing while the parent works
+        // almost always means a permissions or quota problem on the account,
+        // not a bug in this code.
+        error_log(sprintf(
+            '[api] photo mkdir failed for uid=%s dir=%s parent_writable=%s free=%s',
+            $user['uid'], $dir,
+            is_writable(photoBaseDir()) ? 'yes' : 'no',
+            (string)@disk_free_space(dirname($dir))
+        ));
+        je('Could not save your photo — server storage is not writable. Please contact support.', 500);
     }
     $path = $dir . '/' . uuid() . '.' . $ext;
     if (@file_put_contents($path, $bytes) === false) {
+        error_log(sprintf('[api] photo write failed path=%s bytes=%d', $path, strlen($bytes)));
         je('Could not save your photo.', 500);
     }
 
@@ -197,11 +207,71 @@ function photoServe(string $id): void
     exit;
 }
 
+/**
+ * Resolve a WRITABLE photo directory that lives OUTSIDE the web root.
+ *
+ * WHY THIS IS NOT JUST `getenv('UPLOAD_DIR') ?: __DIR__.'/../uploads'`
+ * ------------------------------------------------------------------
+ * The old one-liner silently swallowed mkdir failure with `@`, so a bad
+ * UPLOAD_DIR surfaced much later as an opaque 500 from photoUpload(). That is
+ * exactly what happened in production: deploy.yml hardcoded
+ * UPLOAD_DIR=/home/shiarishta/uploads, but the cPanel account is a different
+ * username, so /home/shiarishta could not be created and every photo upload
+ * died with "Internal server error".
+ *
+ * Two further traps this guards against:
+ *   1. The repo-local fallback (__DIR__.'/../uploads') becomes
+ *      public_html/api/uploads once deployed — INSIDE the web root. Member
+ *      photos would then be fetchable by direct URL, bypassing every privacy
+ *      check in photoServe(). We only accept it when the app is NOT running
+ *      from a public_html directory.
+ *   2. Result is cached per-request so photoUpload() and photoServe() can never
+ *      resolve to two different directories and strand a file.
+ */
 function photoBaseDir(): string
 {
-    $dir = trim((string)(getenv('UPLOAD_DIR') ?: (__DIR__ . '/../uploads'))) . '/photos';
-    if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
-    return $dir;
+    static $resolved = null;
+    if ($resolved !== null) {
+        return $resolved;
+    }
+
+    $candidates = [];
+
+    $configured = trim((string)(getenv('UPLOAD_DIR') ?: ''));
+    if ($configured !== '') {
+        $candidates[] = $configured;
+    }
+
+    // cPanel/Cpanel sets HOME to the account home (/home/<user>), which is
+    // always writable by the PHP process and always above public_html.
+    $home = trim((string)(getenv('HOME') ?: ''));
+    if ($home !== '') {
+        $candidates[] = $home . '/uploads';
+    }
+
+    // Dev-only fallback: acceptable solely when we are not under public_html.
+    $appRoot = dirname(__DIR__);
+    if (strpos(str_replace('\\', '/', $appRoot), 'public_html') === false) {
+        $candidates[] = $appRoot . '/uploads';
+    }
+
+    $tried = [];
+    foreach ($candidates as $base) {
+        $dir = rtrim($base, '/') . '/photos';
+        $tried[] = $dir;
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+        if (is_dir($dir) && is_writable($dir)) {
+            $resolved = $dir;
+            return $resolved;
+        }
+    }
+
+    // Nothing was usable. Log the exact paths so the cause is diagnosable from
+    // the PHP error log, and fail loudly instead of returning a broken path.
+    error_log('[api] photo storage unavailable; tried: ' . implode(' | ', $tried));
+    je('Photo storage is not available on this server. Please contact support.', 500);
 }
 
 // Accepts multipart/form-data (what a browser sends) and a base64 JSON body

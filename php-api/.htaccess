@@ -7,6 +7,26 @@ RewriteEngine On
     Require all denied
 </FilesMatch>
 
+# ── Block direct access to internal source files ───────────────────────────
+# Found by an audit of the live site: /api/lib/db.php returned 200 and
+# /api/db/schema.sql shipped the entire schema. The rewrite below only forwards
+# NON-file requests to index.php, so any real file inside /api/ was executable
+# or downloadable by URL. That bypasses every privacy check in photoServe() and
+# exposes DB/JWT internals.
+#
+# We block the internal DIRECTORIES rather than every .php on purpose: a blanket
+# <FilesMatch "\.php$"> would also deny index.php, which is the front controller
+# that serves the entire API.
+RedirectMatch 404 "^/(lib|db|routes|tests|storage|uploads)/"
+
+# Non-PHP source/data files must never be served either.
+<FilesMatch "\.(sql|md|log|ini|lock|example|bak|old|dist|map)$">
+    Require all denied
+</FilesMatch>
+
+# Defence in depth: the api tree should never be browsable as a listing.
+Options -Indexes
+
 # Route every non-file request through the front controller.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

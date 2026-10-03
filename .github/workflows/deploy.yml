@@ -92,6 +92,12 @@ jobs:
 
       - name: Generate production .env
         run: |
+          # UPLOAD_DIR must point at the cPanel account home (e.g. /home/<user>/
+          # uploads), which is writable and sits ABOVE public_html. It was
+          # previously hardcoded to /home/shiarishta/uploads, which does not
+          # exist for this account — photo upload then died with a 500 because
+          # mkdir() silently failed.
+          UPLOAD_BASE="/home/${{ secrets.FTP_USERNAME }}/uploads"
           cat > php-api/.env <<EOF
           APP_ENV=production
           DB_HOST=localhost
@@ -102,7 +108,7 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           DATA_ENCRYPTION_KEY=${{ secrets.DATA_ENCRYPTION_KEY }}
           CLIENT_URL=https://shiarishta.com
-          UPLOAD_DIR=/home/shiarishta/uploads
+          UPLOAD_DIR=${UPLOAD_BASE}
           MAIL_TRANSPORT=${{ secrets.SMTP_HOST != '' && 'smtp' || '' }}
           MAIL_ENABLED=true
           MAIL_FROM=ShiaRishta <no-reply@shiarishta.com>
@@ -115,6 +121,7 @@ jobs:
           TZ=America/New_York
           EOF
           echo ".env generated with $(wc -l < php-api/.env) lines (values from secrets, not shown)"
+          echo "UPLOAD_DIR=${UPLOAD_BASE}"
 
       - name: Deploy frontend to public_html
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -144,14 +151,6 @@ jobs:
             tests/**
             scripts/**
 
-      - name: Ensure uploads directory exists
-        continue-on-error: true
-        run: |
-          curl -s --max-time 30 "ftp://${{ secrets.FTP_SERVER }}/" \
-            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-            -Q "MKD /uploads" -o /dev/null \
-            && echo "uploads dir ready" || echo "uploads dir already exists or MKD skipped"
-
       - name: Verify deployment
         run: |
           echo "--- API health ---"
@@ -163,3 +162,17 @@ jobs:
           code=$(curl -sk --max-time 40 -o /dev/null -w "%{http_code}" https://shiarishta.com/api/.env)
           echo ".env HTTP $code"
           test "$code" = "403" -o "$code" = "404" && echo "OK: .env blocked" || echo "WARN: .env returned $code"
+
+          # The audit that prompted this fix: internal PHP libraries were
+          # directly reachable at /api/lib/db.php and the schema shipped at
+          # /api/db/schema.sql. Fail the deploy if that regresses.
+          echo "--- internal API sources must be blocked ---"
+          for path in /api/lib/db.php /api/lib/jwt.php /api/routes/auth.php /api/db/schema.sql; do
+            c=$(curl -sk --max-time 40 -o /dev/null -w "%{http_code}" "https://shiarishta.com${path}")
+            echo "${path} -> HTTP ${c}"
+            if [ "$c" != "403" ] && [ "$c" != "404" ]; then
+              echo "FAIL: ${path} is reachable. Check the RedirectMatch rule in php-api/.htaccess."
+              exit 1
+            fi
+          done
+          echo "OK: internal sources blocked"
