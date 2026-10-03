@@ -11,7 +11,7 @@ import CompatibilityIndex from '../components/CompatibilityIndex';
 import { ReportFlag } from '../components/ReportFlag';
 import { blockMember, unblockMember } from '../lib/api/safety';
 import { computeCompatibility } from '../lib/compatibility';
-import { apiUrl } from '../lib/api/transport';
+import { apiUrl, http } from '../lib/api/transport';
 
 // No stock/placeholder photo is injected into the gallery. A member who hides
 // their photos gets an honest "photos are private" state, never someone else's
@@ -28,6 +28,11 @@ export default function Profile() {
   const [messageBusy, setMessageBusy] = useState(false);
   const [actionNote, setActionNote] = useState(null);
   const [showLoginGate, setShowLoginGate] = useState(false);
+  // Distinct from actionNote (interest/message feedback) — this drives the
+  // email-verification interstitial when the server gates the profile view.
+  const [verifyNote, setVerifyNote] = useState('');
+  const [verifyUrl, setVerifyUrl] = useState('');
+  const [verifySending, setVerifySending] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [blockBusy, setBlockBusy] = useState(false);
   // In-app block confirmation replaces window.confirm() (auto-dismissed by
@@ -121,13 +126,83 @@ export default function Profile() {
         setInterestSent(!!p.interestSent);
         analytics.track('profile_viewed', { id });
       })
-      .catch(() => setError('Not found'))
+      .catch((e) => {
+        // Three genuinely different failures used to collapse into one
+        // "Not found" screen. Telling an unverified member that a profile
+        // "doesn't exist" is simply false — it does exist, the email gate is
+        // what is blocking the view — and on a privacy product it reads as a
+        // dead end with no way forward.
+        if (e?.status === 403 && e?.payload?.emailVerificationRequired) {
+          setError({ kind: 'verify' });
+        } else if (e?.status === 404) {
+          setError({ kind: 'notfound' });
+        } else {
+          setError({ kind: 'unavailable' });
+        }
+      })
       .finally(() => { setLoading(false); setActivePhoto(0); });
   }, [id]);
 
+  const resendVerification = async () => {
+    setVerifySending(true);
+    setVerifyNote('');
+    setVerifyUrl('');
+    try {
+      const res = await http.post('/api/auth/verify/request', {});
+      if (res?.devMode && res?.verifyUrl) {
+        setVerifyUrl(res.verifyUrl);
+        setVerifyNote('Email sending is not configured yet — use this link to verify:');
+      } else if (res?.alreadyVerified) {
+        setVerifyNote('Your email is already verified — reload this page.');
+      } else {
+        setVerifyNote(res?.message || 'Verification email sent — check your inbox.');
+      }
+    } catch (e) {
+      setVerifyNote(e?.message || 'Could not send the verification email. Try again shortly.');
+    } finally {
+      setVerifySending(false);
+    }
+  };
+
   const compat = profile ? computeCompatibility(profile) : null;
   if (loading) return (<Layout><main className="max-w-5xl mx-auto px-6 py-10"><div className="aspect-[3/4] rounded-2xl skeleton" style={{ maxWidth: '340px' }} /></main></Layout>);
-  if (error || !profile) return (<Layout><main className="max-w-4xl mx-auto px-6 py-10"><div className="empty-state"><div className="empty-state-icon"><Users className="w-16 h-16" /></div><h1 className="empty-state-title">{error || 'Profile not found'}</h1><p className="empty-state-text">The profile you're looking for doesn't exist or may be private.</p><Link to="/profiles" className="button primary mt-4 inline-flex">Browse Profiles</Link></div></main></Layout>);
+  if (error?.kind === 'verify') return (
+    <Layout><main className="max-w-3xl mx-auto px-6 py-16"><div className="empty-state">
+      <div className="empty-state-icon"><ShieldCheck className="w-16 h-16" /></div>
+      <h1 className="empty-state-title">Verify your email to view this profile</h1>
+      <p className="empty-state-text">
+        This profile exists. We ask every member to confirm their email before
+        opening full profiles and messaging, so no one can browse people who
+        never verified. It takes one click — the link is already in your inbox.
+      </p>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <button type="button" className="button primary inline-flex" onClick={resendVerification} disabled={verifySending}>
+          {verifySending ? 'Sending…' : 'Resend verification email'}
+        </button>
+        <Link to="/settings" className="button inline-flex">Account settings</Link>
+      </div>
+      {verifyNote && <p className="mt-4 text-sm" style={{ color: 'var(--color-ink-secondary)' }}>{verifyNote}</p>}
+      {verifyUrl && (
+        <p className="mt-3 text-sm">
+          <a href={verifyUrl} style={{ color: 'var(--color-primary)' }}>Open the verification link</a>
+        </p>
+      )}
+    </div></main></Layout>
+  );
+
+  if (error?.kind === 'unavailable') return (
+    <Layout><main className="max-w-3xl mx-auto px-6 py-16"><div className="empty-state">
+      <div className="empty-state-icon"><Users className="w-16 h-16" /></div>
+      <h1 className="empty-state-title">We couldn't load this profile</h1>
+      <p className="empty-state-text">
+        Something went wrong on our side — this isn't a missing profile. Please
+        try again, and if it keeps happening let us know.
+      </p>
+      <Link to="/profiles" className="button primary mt-4 inline-flex">Back to profiles</Link>
+    </div></main></Layout>
+  );
+
+  if (error || !profile) return (<Layout><main className="max-w-4xl mx-auto px-6 py-10"><div className="empty-state"><div className="empty-state-icon"><Users className="w-16 h-16" /></div><h1 className="empty-state-title">Not found</h1><p className="empty-state-text">The profile you're looking for doesn't exist or may be private.</p><Link to="/profiles" className="button primary mt-4 inline-flex">Browse Profiles</Link></div></main></Layout>);
 
   const verificationLabel = profile.verificationLevel === 'premium' ? 'ID verified' : profile.is_verified ? 'Verified' : null;
   const isGuardianManaged = profile.managementMode === 'guardian' || profile.guardian;

@@ -39,7 +39,16 @@ function headers(extra = {}) {
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, { ...options, headers: headers(options.headers) });
   const data = await readApiResponse(res);
-  if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+  if (!res.ok) {
+    // Carry `status` and the parsed payload on the Error. Several routes answer
+    // with a structured flag rather than a bare 403 — notably
+    // `emailVerificationRequired` on profile/messaging gates — and callers need
+    // to tell "verify your email" apart from a genuine 404.
+    const err = new Error(data?.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    err.payload = data;
+    throw err;
+  }
   return data;
 }
 

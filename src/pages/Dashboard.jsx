@@ -145,7 +145,11 @@ export default function Dashboard() {
     setVerifyMsg('');
     setVerifyUrl('');
     try {
-      const res = await http.post('/auth/verify/request', {});
+      // Must be /api-prefixed. transport.js resolves paths against VITE_API_URL
+      // (https://shiarishta.com in production), so a bare '/auth/verify/request'
+      // hit the SPA fallback and returned index.html with a 200 — the resend
+      // button reported success while sending no email at all.
+      const res = await http.post('/api/auth/verify/request', {});
       if (res?.devMode && res?.verifyUrl) {
         setVerifyUrl(res.verifyUrl);
         setVerifyMsg('Email sending is not configured yet — use this link to verify:');

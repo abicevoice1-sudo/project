@@ -8,8 +8,15 @@ import { profilesRepo, messagesRepo, matchesRepo, ticketsRepo } from './reposito
 async function unwrap(promise, message) {
   try {
     return await promise;
-  } catch {
-    throw new Error(message);
+  } catch (e) {
+    // Keep the deliberate per-call copy above, but preserve the server's
+    // structured signal so a page can branch on status / payload instead of
+    // collapsing every failure into one generic message.
+    const err = new Error(message);
+    if (e?.status !== undefined) err.status = e.status;
+    if (e?.payload) err.payload = e.payload;
+    err.cause = e;
+    throw err;
   }
 }
 
