@@ -45,6 +45,44 @@ const PHOTO_ALLOWED = [
     'image/webp' => 'webp',
 ];
 
+/**
+ * Sniff the MIME type from the ACTUAL bytes.
+ *
+ * The client-supplied Content-Type and any data: URI prefix are attacker-
+ * controlled and must never decide this, so detection is always byte-based.
+ *
+ * finfo (ext-fileinfo) is the accurate route, but it is NOT guaranteed on
+ * minimal shared hosting — and `new finfo()` throws Error when the extension is
+ * absent, which surfaced to members as an opaque 500 "Internal server error"
+ * on every single photo upload. When it is unavailable we fall back to reading
+ * the format's magic bytes directly, which is unambiguous for exactly the three
+ * formats we accept.
+ */
+function sniffImageMime(string $bytes): string
+{
+    if (class_exists('finfo')) {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = (string)$finfo->buffer($bytes);
+        if ($mime !== '') {
+            return $mime;
+        }
+    }
+
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if (strncmp($bytes, "\x89PNG\r\n\x1a\n", 8) === 0) {
+        return 'image/png';
+    }
+    // JPEG: FF D8 FF
+    if (strncmp($bytes, "\xFF\xD8\xFF", 3) === 0) {
+        return 'image/jpeg';
+    }
+    // WebP: "RIFF" ????  "WEBP"
+    if (strlen($bytes) >= 12 && strncmp($bytes, 'RIFF', 4) === 0 && substr($bytes, 8, 4) === 'WEBP') {
+        return 'image/webp';
+    }
+    return '';
+}
+
 function photoUpload(): void
 {
     $user = requireAuthUser();
@@ -57,10 +95,8 @@ function photoUpload(): void
         je('Photo must be under 5 MB.', 400);
     }
 
-    // 1. Sniff the ACTUAL bytes. The browser's Content-Type and any data: URI
-    //    prefix are attacker-controlled and must never decide this.
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = (string)$finfo->buffer($bytes);
+    // 1. Sniff the ACTUAL bytes.
+    $mime = sniffImageMime($bytes);
     if (!isset(PHOTO_ALLOWED[$mime])) {
         je('Photo must be a JPEG, PNG or WebP image.', 400);
     }
@@ -195,7 +231,12 @@ function photoServe(string $id): void
         je('Photo unavailable.', 404);
     }
 
-    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($real) ?: 'application/octet-stream';
+    // Same ext-fileinfo dependency as the sniffer: never call finfo unguarded.
+    // Serving a wrong Content-Type here would also be a nosniff-adjacent risk, so
+    // an unrecognised file falls back to the safest generic binary type.
+    $mime = class_exists('finfo')
+        ? ((new finfo(FILEINFO_MIME_TYPE))->file($real) ?: 'application/octet-stream')
+        : (sniffImageMime((string)@file_get_contents($real)) ?: 'application/octet-stream');
     $size = filesize($real);
 
     header('Content-Type: ' . $mime);

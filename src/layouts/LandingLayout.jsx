@@ -14,6 +14,7 @@ const AIAssistant = lazy(() => import('../components/AIAssistant'));
 import SiteFooter from '../components/SiteFooter';
 import BrandLockup from '../components/BrandLockup';
 import { applyIsDark, readIsDark, writeIsDark } from '../lib/theme';
+import { http } from '../lib/api/transport';
 
 const landingLinks = [
   { href: '/profiles', label: 'Profiles' },
@@ -44,14 +45,14 @@ function NotificationsMenu() {
     if (!isLoggedIn) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/profiles/notifications', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.isRead).length);
-      }
+      // Uses the shared http helper. This previously called bare fetch() and
+      // read localStorage.getItem('token'), but transport.js stores the session
+      // under 'sh_token' — so the header sent "Bearer null" and every poll
+      // 401'd, silently, every 30 seconds. Notifications never worked.
+      const data = await http.get('/api/profiles/notifications');
+      const list = Array.isArray(data) ? data : [];
+      setNotifications(list);
+      setUnreadCount(list.filter(n => !n.isRead).length);
     } catch { /* ignore */ }
     setLoading(false);
   };
@@ -66,14 +67,8 @@ function NotificationsMenu() {
 
   const markAllRead = async () => {
     try {
-      await fetch('/api/profiles/notifications/read', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({})
-      });
+      // Same token-key bug as fetchNotifications above.
+      await http.post('/api/profiles/notifications/read', {});
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch { /* ignore */ }
