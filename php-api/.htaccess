@@ -17,7 +17,12 @@ RewriteEngine On
 # We block the internal DIRECTORIES rather than every .php on purpose: a blanket
 # <FilesMatch "\.php$"> would also deny index.php, which is the front controller
 # that serves the entire API.
-RedirectMatch 404 "^/(lib|db|routes|tests|storage|uploads)/"
+#
+# mod_rewrite ([F] -> 403) rather than RedirectMatch: in per-directory context
+# the URL path arrives WITHOUT a leading slash, so a `^/(lib|...)/` pattern
+# silently matched nothing and every file stayed reachable. The `^/?` keeps it
+# correct either way.
+RewriteRule ^/?(?:lib|db|routes|tests|storage|uploads)/ - [F,L]
 
 # Non-PHP source/data files must never be served either.
 <FilesMatch "\.(sql|md|log|ini|lock|example|bak|old|dist|map)$">
