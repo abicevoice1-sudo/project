@@ -17,7 +17,18 @@ function routeProfiles(string $method, array $segments): void
 
     if ($method === 'GET' && $id === null) { profilesList(); return; }
     if ($method === 'GET' && $id === 'me') { profileMe(); return; }
-    if ($method === 'PUT' && $id === 'me') { profileUpdate(); return; }
+    // POST is accepted as an alias for PUT. Only PUT was ever routed, so a
+    // client sending POST got a 404 and every profile save silently failed --
+    // while writeRateCheck() had already charged the request against the
+    // 30/min bucket. Both verbs hit the same handler and the same validation.
+    //
+    // $sub MUST be null here: POST /profiles/me/photo is the upload route and
+    // is matched further down. Without this guard the alias swallows it and
+    // breaks photo upload.
+    if (($method === 'PUT' || $method === 'POST') && $id === 'me' && $sub === null) {
+        profileUpdate();
+        return;
+    }
     if ($method === 'POST' && $id === 'me' && $sub === 'photo') { photoUpload(); return; }
     if ($method === 'DELETE' && $id === 'me' && $sub === 'photo') { photoDelete(); return; }
     if ($method === 'GET' && $id === 'interests' && ($segments[1] ?? '') === 'received') { interestsReceived(); return; }
@@ -28,6 +39,20 @@ function routeProfiles(string $method, array $segments): void
     if ($method === 'GET' && $id !== null) { profileById($id); return; }
     if ($method === 'POST' && $id !== null && ($segments[1] ?? '') === 'interest') { profileInterest($id); return; }
     if ($method === 'DELETE' && $id !== null && ($segments[1] ?? '') === 'interest') { profileUninterest($id); return; }
+
+    // A known path with the wrong verb is a 405, not a 404. Returning "endpoint
+    // not found" for e.g. PATCH /profiles/me hides the fact that the route
+    // exists and tells the caller to go looking somewhere that cannot work.
+    $allowed = match ($id) {
+        'me' => 'GET, PUT, POST',
+        'notifications' => 'GET, POST',
+        null => 'GET, POST',
+        default => 'GET, POST, DELETE',
+    };
+    if ($id === 'me') {
+        header('Allow: ' . $allowed);
+        json(['error' => 'Method not allowed on /api/profiles/me.', 'allowed' => explode(', ', $allowed)], 405);
+    }
 
     json(['error' => 'Profile endpoint not found'], 404);
 }
