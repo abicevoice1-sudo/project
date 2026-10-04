@@ -460,12 +460,23 @@ function profilesList(): void
     }
 
     if ($viewer === null) {
-        // P0: anonymous visitors see ONLY explicitly public profiles.
-        // Members-only profiles are invisible to logged-out callers.
+        // Members-only profiles are invisible to logged-out callers. This is the
+        // real privacy boundary and it is unchanged.
         $where[] = "p.visibility = 'public'";
-        // Anonymous visitors see a small teaser sample, not the full roster.
-        // Full browsing requires an account — this prevents enumeration.
-        $limit = 6;
+
+        // Signed-out visitors previously got a hard LIMIT 6 ("a teaser sample,
+        // prevents enumeration"). That capped the whole public roster at six
+        // cards while the page's own copy promised "every profile represents a
+        // real person" — the browse felt broken rather than gated. Logged-out
+        // visitors now page through the same public roster a member sees.
+        //
+        // They still receive the reduced teaser payload from visibleProfile()
+        // (no bio, expectations, family background, contact details or photos)
+        // and private/members-only profiles remain invisible, so this widens
+        // browsing without exposing anyone's private data. Enumeration of the
+        // public tier is now possible; that is the accepted trade for a
+        // browsable public listing.
+        $limit = 100;
     } else {
         $where[] = "(p.visibility <> 'private' OR p.user_id = ?)";
         $params[] = $viewer['uid'];
