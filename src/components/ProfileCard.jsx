@@ -67,6 +67,9 @@ export default function ProfileCard({ profile, className = '' }) {
   // Fall back to aboutFamily so a member who only filled that in still shows
   // something meaningful on the card.
   const about = excerptText(profile.bio || profile.aboutFamily);
+  // The API marks the minimal signed-out payload with teaser:true. Everything
+  // below the name is withheld in that mode, so the card must not try to draw it.
+  const isTeaser = profile.teaser === true;
 
   return (
     <motion.article
@@ -182,14 +185,29 @@ export default function ProfileCard({ profile, className = '' }) {
                 no city rendered a bare ", " next to the pin. */}
             {[profile.city, profile.country].filter(Boolean).join(', ') || 'Location not shared'}
           </p>
-          <p className="flex items-center gap-1 text-xs" style={{ color: 'var(--color-ink-secondary)' }}>
-            <Briefcase className="w-3 h-3 flex-shrink-0" />
-            {/* "Marriage-minded" read like a location next to the MapPin line
-                above and confused members. Say plainly that it is unknown. */}
-            {profile.profession || 'Occupation not shared'}
-          </p>
-          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--color-ink-secondary)' }}>{about}</p>
-          {profile.religiosity && <span className="badge-primary text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>{profile.religiosity}</span>}
+
+          {/* A teaser payload (what a signed-out visitor gets) carries only
+              name/age/location — no profession, bio or religiosity. Rendering
+              those rows unconditionally stamped the same three fallback
+              strings onto every card, which read as a broken page rather than
+              as a gated one. Hide what we were never sent and say plainly why. */}
+          {isTeaser ? (
+            <p className="text-[11px] leading-relaxed" style={{ color: 'var(--color-ink-tertiary)' }}>
+              Sign in to see occupation, background and expectations.
+            </p>
+          ) : (
+            <>
+              {profile.profession && (
+                <p className="flex items-center gap-1 text-xs" style={{ color: 'var(--color-ink-secondary)' }}>
+                  <Briefcase className="w-3 h-3 flex-shrink-0" /> {profile.profession}
+                </p>
+              )}
+              <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--color-ink-secondary)' }}>{about}</p>
+              {profile.religiosity && (
+                <span className="badge-primary text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'var(--color-primary-subtle)', color: 'var(--color-primary)' }}>{profile.religiosity}</span>
+              )}
+            </>
+          )}
         </div>
       </Link>
 
