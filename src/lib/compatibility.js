@@ -97,7 +97,16 @@ export function computeCompatibility(profile, me = getMyProfile()) {
   const reasons = [];
   if (me?.sect && profile.sect && me.sect === profile.sect) reasons.push(`Same sect — ${profile.sect}`);
   if (myR !== null && theirR !== null && Math.abs(myR - theirR) <= 1) reasons.push('Closely matched religiosity');
-  const sharedLangs = (profile.languages || []).filter(l => (me?.languages || []).map(x => x.toLowerCase()).includes(l.toLowerCase()));
+  // languages is stored as a comma-separated STRING (profiles.languages is
+  // VARCHAR(255) — "Urdu, English, Arabic"), but the onboarding draft keeps it
+  // as an array. `(profile.languages || [])` therefore handed a string to
+  // .filter() and threw "languages.filter is not a function", crashing the whole
+  // profile page. Normalise both sides through one helper.
+  const toLangList = (v) => (Array.isArray(v)
+    ? v.filter((x) => typeof x === 'string' && x.trim())
+    : String(v || '').split(',').map((s) => s.trim()).filter(Boolean));
+  const myLangs = toLangList(me?.languages).map((x) => x.toLowerCase());
+  const sharedLangs = toLangList(profile.languages).filter((l) => myLangs.includes(l.toLowerCase()));
   if (sharedLangs.length) reasons.push(`Shares ${sharedLangs.join(' & ')}`);
   if (profile.is_verified) reasons.push('ID-verified member');
   if (timeline >= 80) reasons.push('Aligned nikah timelines');
