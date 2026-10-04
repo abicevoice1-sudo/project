@@ -11,7 +11,7 @@ const root = 'C:/Users/Mitchell/Downloads/migration';
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     await page.goto('http://localhost:5173/');
-    await page.getByRole('heading', { name: 'Shiarishta' }).waitFor();
+    await page.getByRole('heading', { name: 'Shia Rishta' }).waitFor();
     assert.match(await page.locator('body').innerText(), /Create free account/);
     await page.goto('http://localhost:5173/auth/login');
     await page.locator('#email').waitFor();

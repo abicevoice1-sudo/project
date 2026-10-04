@@ -1,6 +1,6 @@
 name: Deploy to cPanel
 
-# Deploys the Shiarishta app to shared cPanel hosting on every push to main.
+# Deploys the Shia Rishta app to shared cPanel hosting on every push to main.
 #   Frontend (Vite dist/)      -> /public_html/            (https://shiarishta.com)
 #   PHP API (php-api/)         -> /public_html/api/        (https://shiarishta.com/api)
 #   Production .env is generated from GitHub Secrets at deploy time and is

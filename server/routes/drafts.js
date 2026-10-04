@@ -122,7 +122,7 @@ router.post('/', authRequired, async (req, res, next) => {
       },
       shareUrl: `${publicBase()}/claim/${d.claim_token}`,
       whatsappUrl: `https://wa.me/?text=${encodeURIComponent(
-        `Assalamu Alaikum — I have set up a private profile for you on Shiarishta (nikah-first matchmaking). Review it and make it yours here (valid ${CLAIM_DAYS} days): ${publicBase()}/claim/${d.claim_token}\n\nShort code if the link expires: ${d.short_code}`,
+        `Assalamu Alaikum — I have set up a private profile for you on Shia Rishta (nikah-first matchmaking). Review it and make it yours here (valid ${CLAIM_DAYS} days): ${publicBase()}/claim/${d.claim_token}\n\nShort code if the link expires: ${d.short_code}`,
       )}`,
       quota: await quotaFor(req.user.uid, role),
     });
@@ -144,8 +144,8 @@ router.post('/:id/send', authRequired, async (req, res, next) => {
     const link = `${publicBase()}/claim/${d.claim_token}`;
     await sendMail({
       to: d.contact_email,
-      subject: `${by} set up a private profile for you on Shiarishta`,
-      text: `Assalamu Alaikum ${d.display_name},\n\n${by}, a verified ${d.creator_role} on Shiarishta (nikah-first matchmaking), set up a private profile for you and confirmed they have your permission to share your details.\n\nReview it and make it yours (valid ${CLAIM_DAYS} days):\n${link}\n\nShort code if the link does not work: ${d.short_code}\n\nNot you, or do not want this? Decline and erase everything:\n${link}?decline=1\n\nNothing is public. Your photo is not included — you add it yourself if you claim the profile.`,
+      subject: `${by} set up a private profile for you on Shia Rishta`,
+      text: `Assalamu Alaikum ${d.display_name},\n\n${by}, a verified ${d.creator_role} on Shia Rishta (nikah-first matchmaking), set up a private profile for you and confirmed they have your permission to share your details.\n\nReview it and make it yours (valid ${CLAIM_DAYS} days):\n${link}\n\nShort code if the link does not work: ${d.short_code}\n\nNot you, or do not want this? Decline and erase everything:\n${link}?decline=1\n\nNothing is public. Your photo is not included — you add it yourself if you claim the profile.`,
     }).catch((e) => console.error('[mail] draft invite failed:', e.message));
     await pool.query(
       `UPDATE profile_drafts SET last_sent_at = now(), send_count = send_count + 1 WHERE id = $1`, [d.id]);
@@ -245,7 +245,7 @@ router.post('/claim/:token/decline', async (req, res, next) => {
         claim_token = 'dead-' || gen_random_uuid()
        WHERE id = $1`, [d.id]);
     await logEvent(d.id, null, 'declined', 'subject declined, fields scrubbed');
-    res.json({ ok: true, message: 'Declined and erased. Nothing of yours remains on Shiarishta.' });
+    res.json({ ok: true, message: 'Declined and erased. Nothing of yours remains on Shia Rishta.' });
   } catch (e) { next(e); }
 });
 /*__PART5__*/

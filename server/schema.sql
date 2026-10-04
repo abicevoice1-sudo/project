@@ -1,4 +1,4 @@
--- Shiarishta core schema. Idempotent: safe to run on every boot.
+-- Shia Rishta core schema. Idempotent: safe to run on every boot.
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "citext";
 

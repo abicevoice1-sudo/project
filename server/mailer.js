@@ -21,7 +21,7 @@ export async function sendMail({ to, subject, text, html }) {
     return { dev: true };
   }
   return transporter.sendMail({
-    from: process.env.MAIL_FROM || 'Shiarishta <no-reply@shiarishta.com>',
+    from: process.env.MAIL_FROM || 'Shia Rishta <no-reply@shiarishta.com>',
     to,
     subject,
     text,

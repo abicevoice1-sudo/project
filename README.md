@@ -1,4 +1,4 @@
-# Shiarishta — Nikah-First Matchmaking
+# Shia Rishta — Nikah-First Matchmaking
 
 A refined nikah-first platform where serious families can discover verified, privacy-protected profiles with clarity, dignity, and intention.
 
@@ -75,4 +75,4 @@ Every claim in the UI is backed by code:
 
 ---
 
-© Shiarishta. Licensed under the [MIT License](LICENSE).
+© Shia Rishta. Licensed under the [MIT License](LICENSE).

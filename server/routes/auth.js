@@ -53,7 +53,7 @@ router.post('/register', async (req, res, next) => {
       );
       sendMail({
         to: email,
-        subject: 'Verify your Shiarishta email',
+        subject: 'Verify your Shia Rishta email',
         text: `Assalamu Alaikum ${displayName},\n\nConfirm your email to finish creating your account:\n${publicBase()}/verify-email?token=${verifyToken}\n\nThis link expires in 24 hours.`,
       }).catch((e) => console.error('[mail] verify send failed:', e.message));
 
@@ -117,7 +117,7 @@ router.post('/forgot', async (req, res, next) => {
         );
         sendMail({
           to: email,
-          subject: 'Reset your Shiarishta password',
+          subject: 'Reset your Shia Rishta password',
           text: `Assalamu Alaikum,\n\nReset your password with this link (valid 1 hour):\n${publicBase()}/auth/reset?token=${token}\n\nIf you did not request this, ignore this email — your account is safe.`,
         }).catch((e) => console.error('[mail] reset send failed:', e.message));
       }
@@ -170,7 +170,7 @@ router.post('/resend-verification', async (req, res, next) => {
     if (!rows[0]) return res.json({ ok: true, alreadyVerified: true });
     sendMail({
       to: rows[0].email,
-      subject: 'Verify your Shiarishta email',
+      subject: 'Verify your Shia Rishta email',
       text: `Assalamu Alaikum ${rows[0].display_name},\n\nConfirm your email to finish creating your account:\n${publicBase()}/verify-email?token=${token}\n\nThis link expires in 24 hours.`,
     }).catch((e) => console.error('[mail] verify send failed:', e.message));
     res.json({ ok: true, message: 'Verification email sent — check your inbox.' });
