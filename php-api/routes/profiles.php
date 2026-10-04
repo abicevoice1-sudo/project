@@ -607,6 +607,25 @@ function profileUpdate(): void
         je('Bio must be under 2000 characters.', 400);
     }
 
+    // Public handle. Optional, member-chosen, and unique across the platform so
+    // it can be used to address someone. Validated here rather than trusted:
+    // it is rendered in links and shown to other members.
+    if (array_key_exists('username', $b)) {
+        $raw = strtolower(trim((string)$b['username']));
+        if ($raw === '') {
+            $b['username'] = null;                 // clearing a handle is allowed
+        } elseif (!preg_match('/^[a-z0-9][a-z0-9._-]{2,31}$/', $raw)) {
+            je('Username must be 3–32 characters, start with a letter or number, and use only letters, numbers, dots, dashes or underscores.', 400);
+        } else {
+            $taken = db()->prepare('SELECT user_id FROM profiles WHERE username = ? AND user_id <> ? LIMIT 1');
+            $taken->execute([$raw, (string)$user['uid']]);
+            if ($taken->fetch()) {
+                je('That username is already taken. Try another.', 409);
+            }
+            $b['username'] = $raw;
+        }
+    }
+
     $cols = ['display_name', 'displayName', 'age', 'gender', 'city', 'country',
         'sect', 'profession', 'bio', 'expectations', 'aboutFamily',
         'visibility', 'photos_visibility', 'photosVisibility',
@@ -617,7 +636,7 @@ function profileUpdate(): void
         'religiosity', 'educationLevel', 'marja', 'prayer', 'modesty', 'diet',
         'languages', 'ethnicity', 'incomeRange', 'maritalStatus', 'children',
         'childrenPlans', 'relocation', 'familyInvolvement', 'heightCm', 'timeline',
-        'photoUrl', 'syedStatus'];
+        'photoUrl', 'syedStatus', 'username'];
 
     // Accept the same key under both shapes. The browse filter sends `education`
     // (that is the query-param name) while the onboarding form sends

@@ -58,8 +58,12 @@ CREATE TABLE IF NOT EXISTS profiles (
   timeline           VARCHAR(80)  DEFAULT NULL,
   photo_url          VARCHAR(500) DEFAULT NULL,
   syed_status        VARCHAR(40)  DEFAULT NULL,
+  -- Public handle chosen by the member, distinct from display_name. Unique
+  -- where present; many members may leave it NULL.
+  username           VARCHAR(32)  DEFAULT NULL,
   created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_profiles_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS interests (

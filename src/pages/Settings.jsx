@@ -36,6 +36,46 @@ export default function Settings() {
   const [bioSaving, setBioSaving] = useState(false);
   const [theme, setTheme] = useState(readIsDark() ? 'dark' : 'light');
 
+  // Public handle — the member-chosen username (e.g. "zainab.h") they can be
+  // addressed by. Optional; enforced unique server-side.
+  const [username, setUsername] = useState('');
+  const [usernameNote, setUsernameNote] = useState('');
+  const [usernameSaving, setUsernameSaving] = useState(false);
+
+  // Load the current handle once so the field is not blank for members who
+  // already set one.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { api } = await import('../lib/api/client');
+        const me = await api.getProfile(user?.uid);
+        if (!cancelled && me?.username) setUsername(me.username);
+      } catch { /* leave blank — a missing handle is not an error */ }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.uid]);
+
+  const saveUsername = async () => {
+    const value = username.trim();
+    // Mirror the server rule so the member gets an answer before a round-trip.
+    if (value && !/^[a-z0-9][a-z0-9._-]{2,31}$/i.test(value)) {
+      setUsernameNote('Use 3–32 characters: letters, numbers, dots, dashes or underscores, starting with a letter or number.');
+      return;
+    }
+    setUsernameSaving(true);
+    setUsernameNote('');
+    try {
+      const { api } = await import('../lib/api/client');
+      await api.updateProfile(user?.uid, { username: value });
+      setUsernameNote(value ? `Saved — other members can now use @${value}.` : 'Handle removed.');
+    } catch (e) {
+      setUsernameNote(e?.message || 'Could not save your username.');
+    } finally {
+      setUsernameSaving(false);
+    }
+  };
+
   // Account identity (display name / email) — PUT /api/users/me, defensive 404.
   const [accountSaved, setAccountSaved] = useState('');
   const [accountSaving, setAccountSaving] = useState(false);
@@ -293,6 +333,41 @@ export default function Settings() {
                     {accountSaving ? 'Saving…' : 'Save name & email'}
                   </button>
                   {accountSaved && <p className="text-sm mt-2" style={{ color: 'var(--color-ink-secondary)' }}>{accountSaved}</p>}
+                </div>
+
+                {/* Public handle. Optional — a member can be addressed by their
+                    display name alone. Kept separate from Display Name because
+                    it is the part meant to be published and shared. */}
+                <div>
+                  <label htmlFor="settings-username" className="text-sm font-medium text-muted mb-1.5 block">
+                    Username
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      id="settings-username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="e.g. zainab.h"
+                      className="input flex-1 min-w-[180px]"
+                      aria-label="Username"
+                      aria-describedby="settings-username-help"
+                    />
+                    <button
+                      onClick={saveUsername}
+                      disabled={usernameSaving}
+                      className="button px-5 py-2 font-semibold text-sm"
+                    >
+                      {usernameSaving ? 'Saving…' : 'Save username'}
+                    </button>
+                  </div>
+                  <p id="settings-username-help" className="text-xs text-muted mt-1.5">
+                    Optional. 3–32 characters — letters, numbers, dots, dashes or underscores.
+                    Must be unique across the platform.
+                  </p>
+                  {usernameNote && (
+                    <p className="text-sm mt-2" style={{ color: 'var(--color-ink-secondary)' }}>{usernameNote}</p>
+                  )}
                 </div>
                 <div><label htmlFor="settings-bio" className="text-sm font-medium text-muted mb-1.5 block">Bio</label>
                   <textarea id="settings-bio" rows={4} value={profile.bio} onChange={e => setProfile(pp => ({ ...pp, bio: e.target.value }))} placeholder="Tell others about yourself..." className="input w-full resize-none" aria-label="Bio" />
