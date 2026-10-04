@@ -100,7 +100,14 @@ export default function Profiles() {
     // Filtering is server-side now. Only the sort stays local, plus a guard that
     // never lets a private row reach the grid even if the server were to change.
     let list = profiles.filter(p => {
-      if (p.locked) return false;
+      // A signed-out visitor receives teasers, and the server marks every teaser
+      // locked:true because the payload is withheld. Filtering on `locked` alone
+      // therefore discarded the ENTIRE anonymous roster — the API returned the
+      // profiles and the grid threw all of them away, so /profiles looked empty
+      // to anyone not signed in. Only genuinely locked rows (members-only,
+      // viewed by someone not entitled) are dropped; a teaser is a public
+      // profile that is meant to be browsed.
+      if (p.locked && !p.teaser) return false;
       if (p.visibility === 'private' && !p.isOwner) return false;
       return true;
     });

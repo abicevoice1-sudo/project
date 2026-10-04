@@ -541,11 +541,14 @@ function profileById(string $id): void
         je('Profile not found.', 404);
     }
 
-    // P0: full (non-teaser) profile views require a verified email.
-    // Deliberately NOT gated: anonymous teasers and the owner's own view.
-    if ($viewer !== null && (string)$viewer['uid'] !== (string)$id && empty($view['teaser'])) {
-        requireVerifiedEmail((string)$viewer['uid']);
-    }
+    // Full-profile reads are deliberately NOT gated on a verified email.
+    // The gate used to live here, so every unverified member hit a dead end the
+    // instant they clicked any card -- the exact moment the product most needs
+    // to earn trust. Verification is a gate on CONTACT, not on LOOKING: it is
+    // enforced where a real action happens (POST /messages to start a
+    // conversation, and the interest write path). An unverified member can
+    // browse, read profiles and express interest, but cannot message until they
+    // verify.
 
     // Include interest state so the UI survives reloads.
     if ($viewer !== null) {
