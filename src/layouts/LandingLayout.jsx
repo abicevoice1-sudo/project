@@ -405,7 +405,7 @@ function LandingHeader({ dark, setDark }) {
       <header className="landing-header" ref={headerRef}>
         <div className="landing-header-inner">
           {/* Logo */}
-          <Link to="/" className="landing-brand" aria-label="ShiaRishta — home">
+          <Link to="/" className="landing-brand" aria-label="Shia Rishta — home">
             <BrandLockup iconSize={36} />
           </Link>
 

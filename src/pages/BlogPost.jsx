@@ -36,12 +36,12 @@ export default function BlogPost() {
       dateModified: toISO(article.date),
       author: {
         '@type': 'Organization',
-        name: 'ShiaRishta',
+        name: 'Shia Rishta',
         url: 'https://shiarishta.com/',
       },
       publisher: {
         '@type': 'Organization',
-        name: 'ShiaRishta',
+        name: 'Shia Rishta',
         logo: { '@type': 'ImageObject', url: 'https://shiarishta.com/icon-512.png' },
       },
       mainEntityOfPage: `https://shiarishta.com/blog/${article.slug}`,

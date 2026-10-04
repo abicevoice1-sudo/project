@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Canonical domain options for ShiaRishta.
+// Canonical domain options for Shia Rishta.
 // Single source of truth so the onboarding wizard, advanced search filters,
 // and profile pages never drift apart. Culturally precise, not generic.
 // ─────────────────────────────────────────────────────────────────────────────

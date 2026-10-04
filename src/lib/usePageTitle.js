@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const SITE = 'ShiaRishta';
+const SITE = 'Shia Rishta';
 
 /**
  * Sets document.title for the current page. Call at the top of each page

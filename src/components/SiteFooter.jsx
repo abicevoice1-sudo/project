@@ -65,7 +65,7 @@ export default function SiteFooter({ compact = false }) {
         <div className="site-footer-grid">
           {/* Brand */}
           <div className="site-footer-brand">
-            <Link to="/" className="site-footer-logo" aria-label="ShiaRishta — home">
+            <Link to="/" className="site-footer-logo" aria-label="Shia Rishta — home">
               <BrandLockup iconSize={40} />
             </Link>
             <p className="site-footer-tagline">
@@ -140,7 +140,7 @@ export default function SiteFooter({ compact = false }) {
 
         {/* ── Bottom bar ── */}
         <div className="site-footer-bottom">
-          <span className="site-footer-copy">© {new Date().getFullYear()} ShiaRishta. All rights reserved.</span>
+          <span className="site-footer-copy">© {new Date().getFullYear()} Shia Rishta. All rights reserved.</span>
           <div className="site-footer-legal">
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>

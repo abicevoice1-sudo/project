@@ -1,5 +1,5 @@
 <?php
-// ShiaRishta PHP API — front controller.
+// Shia Rishta PHP API — front controller.
 // Deploy: point the vhost document root here (or Apache Alias /api → this dir).
 
 declare(strict_types=1);

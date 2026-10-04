@@ -7,13 +7,13 @@ const sections = [
     id: 'acceptance',
     title: '1. Acceptance of Terms',
     icon: CheckCircle,
-    content: 'By accessing or using ShiaRishta ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Platform. These terms apply to all visitors, registered members, and guardians.'
+    content: 'By accessing or using Shia Rishta ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Platform. These terms apply to all visitors, registered members, and guardians.'
   },
   {
     id: 'eligibility',
     title: '2. Eligibility',
     icon: Users,
-    content: 'You must be at least 18 years old to use ShiaRishta. By registering, you confirm you are 18+, seeking a serious marriage prospect (not casual dating), and have the legal capacity to enter into these terms. Parents/guardians may create and manage profiles on behalf of minors aged 18+ with appropriate consent.'
+    content: 'You must be at least 18 years old to use Shia Rishta. By registering, you confirm you are 18+, seeking a serious marriage prospect (not casual dating), and have the legal capacity to enter into these terms. Parents/guardians may create and manage profiles on behalf of minors aged 18+ with appropriate consent.'
   },
   {
     id: 'accounts',
@@ -25,7 +25,7 @@ const sections = [
     id: 'acceptable-use',
     title: '4. Acceptable Use',
     icon: Heart,
-    content: 'ShiaRishta is a serious matrimonial platform. You agree to: provide truthful profile information; communicate respectfully; respect others\' privacy settings; use guardian/chaperone tools appropriately; report safety concerns promptly; not use the platform for harassment, fraud, impersonation, solicitation, or any unlawful purpose.'
+    content: 'Shia Rishta is a serious matrimonial platform. You agree to: provide truthful profile information; communicate respectfully; respect others\' privacy settings; use guardian/chaperone tools appropriately; report safety concerns promptly; not use the platform for harassment, fraud, impersonation, solicitation, or any unlawful purpose.'
   },
   {
     id: 'prohibited',
@@ -55,7 +55,7 @@ const sections = [
     id: 'liability',
     title: '9. Limitation of Liability',
     icon: Scale,
-    content: 'ShiaRishta provides the platform "as is." We do not guarantee specific match outcomes, continuous availability, or compatibility accuracy. We are not liable for user conduct, third-party actions, or indirect damages. Our total liability is limited to the amount you paid in the preceding 12 months.'
+    content: 'Shia Rishta provides the platform "as is." We do not guarantee specific match outcomes, continuous availability, or compatibility accuracy. We are not liable for user conduct, third-party actions, or indirect damages. Our total liability is limited to the amount you paid in the preceding 12 months.'
   },
   {
     id: 'changes',
@@ -80,7 +80,7 @@ export default function Terms() {
           <h1 className="text-3xl sm:text-4xl font-bold text-ink mt-2">Terms of Service</h1>
           <p className="text-muted mt-2">Last updated: August 2026</p>
           <p className="text-sm text-muted mt-4 max-w-2xl mx-auto">
-            Please read these terms carefully. They govern your use of ShiaRishta and outline our shared commitments.
+            Please read these terms carefully. They govern your use of Shia Rishta and outline our shared commitments.
           </p>
         </motion.div>
 

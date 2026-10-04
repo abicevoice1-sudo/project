@@ -18,60 +18,60 @@ const SITE = 'https://shiarishta.com';
 
 const PUBLIC_META = {
   '/': {
-    title: 'Shia Matrimony | Find Shia Rishta for Nikah – ShiaRishta',
-    desc: 'ShiaRishta is the nikah-first Shia matrimony platform. Browse verified Shia brides and grooms, keep your photos private, and involve family with dignity. Join free.',
+    title: 'Shia Matrimony | Find Shia Rishta for Nikah – Shia Rishta',
+    desc: 'Shia Rishta is the nikah-first Shia matrimony platform. Browse verified Shia brides and grooms, keep your photos private, and involve family with dignity. Join free.',
   },
   '/profiles': {
-    title: 'Browse Shia Brides & Grooms for Nikah | ShiaRishta',
+    title: 'Browse Shia Brides & Grooms for Nikah | Shia Rishta',
     desc: 'Search verified Shia profiles for nikah — filter by sect, marja, education and location. Serious Shia matrimony with privacy-first profiles. Join free.',
   },
   '/pricing': {
-    title: 'Pricing – Free Nikah Matchmaking, No Paywalls | ShiaRishta',
-    desc: 'ShiaRishta is free: profiles, browsing, interest and messaging with no paywalls. See exactly what is included and why privacy is never a premium feature.',
+    title: 'Pricing – Free Nikah Matchmaking, No Paywalls | Shia Rishta',
+    desc: 'Shia Rishta is free: profiles, browsing, interest and messaging with no paywalls. See exactly what is included and why privacy is never a premium feature.',
   },
   '/blog': {
-    title: 'Nikah & Marriage Guidance for Shia Muslims | ShiaRishta Blog',
+    title: 'Nikah & Marriage Guidance for Shia Muslims | Shia Rishta Blog',
     desc: 'Practical guidance on nikah, choosing a spouse, and married life for Shia Muslims — written for serious seekers and their families.',
   },
   '/success-stories': {
-    title: 'How ShiaRishta Works – Honest Nikah Matchmaking',
-    desc: 'How ShiaRishta actually works: verified profiles, mutual-interest messaging, privacy controls and family-supported introductions. No invented stories.',
+    title: 'How Shia Rishta Works – Honest Nikah Matchmaking',
+    desc: 'How Shia Rishta actually works: verified profiles, mutual-interest messaging, privacy controls and family-supported introductions. No invented stories.',
   },
   '/about': {
-    title: 'About ShiaRishta – Nikah-First Shia Matchmaking',
-    desc: 'Why ShiaRishta exists: a dignified, nikah-first alternative to swiping for Shia Muslims and their families.',
+    title: 'About Shia Rishta – Nikah-First Shia Matchmaking',
+    desc: 'Why Shia Rishta exists: a dignified, nikah-first alternative to swiping for Shia Muslims and their families.',
   },
   '/safety': {
-    title: 'Safety & Verification Standards | ShiaRishta',
-    desc: 'How ShiaRishta keeps members safe: identity verification, photo privacy tiers, mutual-interest messaging and human review.',
+    title: 'Safety & Verification Standards | Shia Rishta',
+    desc: 'How Shia Rishta keeps members safe: identity verification, photo privacy tiers, mutual-interest messaging and human review.',
   },
   '/support': {
-    title: 'Help & Support | ShiaRishta',
-    desc: 'Get help with your ShiaRishta account, verification, privacy settings and messaging.',
+    title: 'Help & Support | Shia Rishta',
+    desc: 'Get help with your Shia Rishta account, verification, privacy settings and messaging.',
   },
   '/contact': {
-    title: 'Contact ShiaRishta',
-    desc: 'Reach the ShiaRishta team with questions, feedback or partnership enquiries.',
+    title: 'Contact Shia Rishta',
+    desc: 'Reach the Shia Rishta team with questions, feedback or partnership enquiries.',
   },
   '/privacy': {
-    title: 'Privacy Policy | ShiaRishta',
-    desc: 'How ShiaRishta collects, encrypts and protects your personal data. Your photos and details stay under your control.',
+    title: 'Privacy Policy | Shia Rishta',
+    desc: 'How Shia Rishta collects, encrypts and protects your personal data. Your photos and details stay under your control.',
   },
   '/terms': {
-    title: 'Terms of Service | ShiaRishta',
-    desc: 'The terms governing your use of ShiaRishta, the nikah-first Shia matrimony platform.',
+    title: 'Terms of Service | Shia Rishta',
+    desc: 'The terms governing your use of Shia Rishta, the nikah-first Shia matrimony platform.',
   },
   '/agents': {
-    title: 'Matchmaking Agents & Family Introductions | ShiaRishta',
-    desc: 'Family members and matchmakers can create private, photo-free introductions on ShiaRishta — with the person concerned in control throughout.',
+    title: 'Matchmaking Agents & Family Introductions | Shia Rishta',
+    desc: 'Family members and matchmakers can create private, photo-free introductions on Shia Rishta — with the person concerned in control throughout.',
   },
   '/community': {
-    title: 'Shia Community, Guidance & Events | ShiaRishta',
+    title: 'Shia Community, Guidance & Events | Shia Rishta',
     desc: 'Community guidance and events for Shia Muslims preparing for nikah — beyond the profile.',
   },
   '/guardians': {
-    title: 'Wali & Guardian Workflow for Nikah | ShiaRishta',
-    desc: 'How walis and guardians stay involved on ShiaRishta: approvals, introductions and family-to-family communication.',
+    title: 'Wali & Guardian Workflow for Nikah | Shia Rishta',
+    desc: 'How walis and guardians stay involved on Shia Rishta: approvals, introductions and family-to-family communication.',
   },
 };
 
@@ -84,18 +84,18 @@ const NOINDEX_PREFIXES = [
 
 // Known private routes that deserve a real title (not the 404 one).
 const PRIVATE_TITLES = {
-  '/auth/login': 'Log in | ShiaRishta',
-  '/auth/register': 'Create Your Free Account | ShiaRishta',
-  '/auth/forgot': 'Reset Your Password | ShiaRishta',
-  '/auth/reset': 'Set a New Password | ShiaRishta',
-  '/verify-email': 'Verify Your Email | ShiaRishta',
-  '/login': 'Log in | ShiaRishta',
-  '/signup': 'Create Your Free Account | ShiaRishta',
-  '/signin': 'Log in | ShiaRishta',
-  '/dashboard': 'Your Dashboard | ShiaRishta',
-  '/messages': 'Your Messages | ShiaRishta',
-  '/onboard': 'Complete Your Profile | ShiaRishta',
-  '/settings': 'Settings | ShiaRishta',
+  '/auth/login': 'Log in | Shia Rishta',
+  '/auth/register': 'Create Your Free Account | Shia Rishta',
+  '/auth/forgot': 'Reset Your Password | Shia Rishta',
+  '/auth/reset': 'Set a New Password | Shia Rishta',
+  '/verify-email': 'Verify Your Email | Shia Rishta',
+  '/login': 'Log in | Shia Rishta',
+  '/signup': 'Create Your Free Account | Shia Rishta',
+  '/signin': 'Log in | Shia Rishta',
+  '/dashboard': 'Your Dashboard | Shia Rishta',
+  '/messages': 'Your Messages | Shia Rishta',
+  '/onboard': 'Complete Your Profile | Shia Rishta',
+  '/settings': 'Settings | Shia Rishta',
 };
 
 function upsertMeta(selector, attrs) {
@@ -128,24 +128,24 @@ function resolveMeta(pathname) {
     const article = ARTICLE_META.find((a) => `/blog/${a.slug}` === pathname);
     if (article) {
       return {
-        title: `${article.title} | ShiaRishta Blog`,
+        title: `${article.title} | Shia Rishta Blog`,
         desc: article.excerpt,
         index: true,
       };
     }
-    return { title: 'Page Not Found | ShiaRishta', desc: '', index: false };
+    return { title: 'Page Not Found | Shia Rishta', desc: '', index: false };
   }
   if (pathname.startsWith('/profiles/')) {
     return {
-      title: 'Shia Profile for Nikah | ShiaRishta',
-      desc: 'View this verified Shia profile on ShiaRishta — the nikah-first Shia matrimony platform.',
+      title: 'Shia Profile for Nikah | Shia Rishta',
+      desc: 'View this verified Shia profile on Shia Rishta — the nikah-first Shia matrimony platform.',
       index: false,
     };
   }
   if (pathname.startsWith('/community/')) {
     return {
-      title: 'Community Post | ShiaRishta',
-      desc: 'Community guidance for Shia Muslims on ShiaRishta.',
+      title: 'Community Post | Shia Rishta',
+      desc: 'Community guidance for Shia Muslims on Shia Rishta.',
       index: true,
     };
   }
@@ -153,10 +153,10 @@ function resolveMeta(pathname) {
     return { title: PRIVATE_TITLES[pathname], desc: '', index: false };
   }
   if (NOINDEX_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
-    return { title: 'ShiaRishta', desc: '', index: false };
+    return { title: 'Shia Rishta', desc: '', index: false };
   }
   // Unknown route → the NotFound page.
-  return { title: 'Page Not Found | ShiaRishta', desc: '', index: false };
+  return { title: 'Page Not Found | Shia Rishta', desc: '', index: false };
 }
 
 export default function Seo() {

@@ -1,6 +1,6 @@
 import BrandLogo from './BrandLogo';
 
-// ShiaRishta wordmark lockup (2026-09-26).
+// Shia Rishta wordmark lockup (2026-09-26).
 //
 // Silicon Valley-clean: the heart mark paired with a single-color
 // geometric sans wordmark — Inter 700, tight tracking, theme-aware ink.
@@ -31,7 +31,7 @@ export default function BrandLockup({
             whiteSpace: 'nowrap',
           }}
         >
-          ShiaRishta
+          Shia Rishta
         </span>
         {tagline && (
           <span

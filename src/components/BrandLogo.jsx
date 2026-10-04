@@ -1,4 +1,4 @@
-// ShiaRishta brand mark — the heart (2026-09-26).
+// Shia Rishta brand mark — the heart (2026-09-26).
 //
 // A layered heart on a near-black tile: fresh emerald at the lobes warming to
 // a golden green at the point, with a deep-green inner heart. Reads cleanly
@@ -11,7 +11,7 @@ export default function BrandLogo({ size = 34, detail: _detail, className = '', 
       viewBox="0 0 512 512"
       className={className}
       style={{ borderRadius: size * 0.23, display: 'block', flexShrink: 0, ...style }}
-      aria-label="ShiaRishta logo"
+      aria-label="Shia Rishta logo"
       role="img"
     >
       <defs>

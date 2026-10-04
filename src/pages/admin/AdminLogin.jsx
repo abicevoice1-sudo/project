@@ -126,7 +126,7 @@ export default function AdminLogin() {
         </div>
 
         <p className="text-xs text-muted text-center mt-6">
-          ShiaRishta Admin Panel
+          Shia Rishta Admin Panel
         </p>
       </motion.div>
     </div>

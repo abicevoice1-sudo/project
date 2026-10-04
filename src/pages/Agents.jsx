@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../layouts/LandingLayout';
 import { Sparkles, Brain, MessageCircle, UserCheck, Heart, Search, ArrowRight, CheckCircle, Shield } from 'lucide-react';
 
-// These are the real, working parts of ShiaRishta. Earlier versions of this
+// These are the real, working parts of Shia Rishta. Earlier versions of this
 // page advertised "AI agents" with invented accuracy/match/rating figures and a
 // button that only fired a toast. None of that exists. Everything below is
 // something you can actually use, and every card links to it.
@@ -104,7 +104,7 @@ export default function Agents() {
     <Layout>
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">What ShiaRishta actually does</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">What Shia Rishta actually does</span>
           <h1 className="text-3xl sm:text-4xl font-bold text-ink mt-2">Tools that work for you</h1>
           <p className="text-muted mt-2 max-w-xl mx-auto">No buzzwords — these are the real features behind your journey, from profile building to family introductions. Every card takes you straight to it.</p>
         </motion.div>

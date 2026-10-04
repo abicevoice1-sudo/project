@@ -44,7 +44,7 @@ const sections = [
     content: [
       { heading: 'We Never Sell Your Data', text: 'Your personal information is never sold, rented, or shared with third parties for marketing purposes. Period.' },
       { heading: 'Service Providers', text: 'We use trusted third-party services (cloud hosting, email delivery, payment processing) under strict data processing agreements. They access data only to provide services on our behalf.' },
-      { heading: 'Legal Requirements', text: 'We may disclose information if required by law, court order, or to protect the rights, property, or safety of ShiaRishta, our users, or the public.' },
+      { heading: 'Legal Requirements', text: 'We may disclose information if required by law, court order, or to protect the rights, property, or safety of Shia Rishta, our users, or the public.' },
     ]
   },
   {
@@ -78,7 +78,7 @@ export default function Privacy() {
           <h1 className="text-3xl sm:text-4xl font-bold text-ink mt-2">Privacy Policy</h1>
           <p className="text-muted mt-2">Last updated: August 2026</p>
           <p className="text-sm text-muted mt-4 max-w-2xl mx-auto">
-            At ShiaRishta, privacy is a right — not a premium feature. This policy explains what we collect, how we use it, and the controls you have.
+            At Shia Rishta, privacy is a right — not a premium feature. This policy explains what we collect, how we use it, and the controls you have.
           </p>
         </motion.div>
 

@@ -128,7 +128,7 @@ function userUpdateMe(): void
         if (mailEnabled()) {
             mailSend([
                 'to' => $email,
-                'subject' => 'Verify your new ShiaRishta email',
+                'subject' => 'Verify your new Shia Rishta email',
                 'text' => "Assalamu Alaikum {$displayName},\n\nYou changed your account email. Confirm it to keep your account fully active:\n{$verifyUrl}\n\nThis link expires in 24 hours.",
             ]);
         }

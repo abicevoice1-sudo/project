@@ -1,4 +1,4 @@
-// Real article content for the ShiaRishta blog. Every article has a unique
+// Real article content for the Shia Rishta blog. Every article has a unique
 // slug (=> /blog/:slug route), a full body, and a self-hosted WebP image.
 // Bodies are genuine guidance — never template filler.
 
@@ -57,7 +57,7 @@ export const articles = [
       { t: 'h2', x: 'Lead with deen, specifically' },
       { t: 'p', x: '\u201cReligious\u201d means nothing until you define it. Do you pray five times daily? Attend majalis in Muharram? Follow a particular marja? These specifics let the right person recognize you instantly — and let the wrong person self-select out, which is a gift to you both.' },
       { t: 'h2', x: 'Photos: honest and dignified' },
-      { t: 'p', x: 'Use recent, clear photos that show how you actually look day to day — not a five-year-old wedding photo. On ShiaRishta you control exactly who sees them: public, after mutual interest, or only after matching. Privacy settings are not for hiding; they are for revealing yourself to the right people at the right time.' },
+      { t: 'p', x: 'Use recent, clear photos that show how you actually look day to day — not a five-year-old wedding photo. On Shia Rishta you control exactly who sees them: public, after mutual interest, or only after matching. Privacy settings are not for hiding; they are for revealing yourself to the right people at the right time.' },
       { t: 'p', x: 'In your bio, trade clich\u00e9s for specifics. Not \u201cI love to travel\u201d but \u201cI take my mother to Ziyarat every few years and want a partner who\u2019d join.\u201d Specifics are memorable; clich\u00e9s are invisible. And keep it truthful — exaggeration unravels at the first family meeting, every time.' },
     ],
   },

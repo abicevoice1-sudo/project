@@ -40,7 +40,7 @@ function authRegister(): void
     if (mb_strlen($displayName) > 60) {
         je('Display name is too long.', 400);
     }
-    // Sect is required at registration — ShiaRishta is a Shia matrimonial platform.
+    // Sect is required at registration — Shia Rishta is a Shia matrimonial platform.
     $sect = trim((string)($payload['sect'] ?? ''));
     $validSects = ['Ithna Ashari (Twelver)', 'Ismaili', 'Bohra (Dawoodi)', 'Zaydi', 'Alevi', 'Other / Prefer not to say'];
     if (!in_array($sect, $validSects, true)) {
@@ -78,7 +78,7 @@ function authRegister(): void
 
     mailSend([
         'to' => $email,
-        'subject' => 'Verify your ShiaRishta email',
+        'subject' => 'Verify your Shia Rishta email',
         'text' => "Assalamu Alaikum {$displayName},\n\nConfirm your email to finish creating your account:\nhttps://shiarishta.com/verify/{$verifyToken}\n\nThis link expires in 24 hours.",
     ]);
 
@@ -169,7 +169,7 @@ function authVerifyRequest(): void
     if (mailEnabled()) {
         mailSend([
             'to' => $row['email'],
-            'subject' => 'Verify your ShiaRishta email',
+            'subject' => 'Verify your Shia Rishta email',
             'text' => "Assalamu Alaikum {$row['display_name']},\n\nConfirm your email to finish creating your account:\n{$verifyUrl}\n\nThis link expires in 24 hours.",
         ]);
         json(['ok' => true, 'message' => 'Verification email sent — check your inbox.']);
@@ -286,7 +286,7 @@ function authForgot(): void
 
             mailSend([
                 'to' => $email,
-                'subject' => 'Reset your ShiaRishta password',
+                'subject' => 'Reset your Shia Rishta password',
                 'text' => "Assalamu Alaikum,\n\nReset your password with this link (valid 1 hour):\n" . publicBase() . "/auth/reset?token={$token}\n\nIf you did not request this, ignore this email — your account is safe.",
             ]);
         }
@@ -343,7 +343,7 @@ function authResendVerification(): void
 
     mailSend([
         'to' => $row['email'],
-        'subject' => 'Verify your ShiaRishta email',
+        'subject' => 'Verify your Shia Rishta email',
         'text' => "Assalamu Alaikum {$row['display_name']},\n\nConfirm your email to finish creating your account:\n" . publicBase() . "/verify-email?token={$token}\n\nThis link expires in 24 hours.",
     ]);
 

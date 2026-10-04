@@ -98,7 +98,7 @@ export default function ClaimDraft() {
             </div>
             <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-ink)' }}>Declined and erased</h1>
             <p className="text-sm mb-6" style={{ color: 'var(--color-ink-secondary)' }}>
-              Nothing of yours remains on ShiaRishta — the draft is scrubbed and the link is dead. No account was created.
+              Nothing of yours remains on Shia Rishta — the draft is scrubbed and the link is dead. No account was created.
             </p>
             <Link to="/" className="button w-full py-3 inline-flex justify-center font-semibold" style={{ background: 'var(--color-elevated)', border: '1px solid var(--color-border)' }}>Go to homepage</Link>
           </>
@@ -111,7 +111,7 @@ export default function ClaimDraft() {
             </div>
             <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-ink)' }}>This profile is yours now</h1>
             <p className="text-sm" style={{ color: 'var(--color-ink-secondary)' }}>
-              Welcome to ShiaRishta. Taking you to your dashboard — from there you can edit everything, add your own photo, and set your own privacy.
+              Welcome to Shia Rishta. Taking you to your dashboard — from there you can edit everything, add your own photo, and set your own privacy.
             </p>
           </>
         )}
@@ -140,7 +140,7 @@ function ClaimReview({ preview, state, setState, claim, decline, email, setEmail
     <>
       <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--color-ink)' }}>A profile is waiting for you</h1>
       <p className="text-sm mb-6" style={{ color: 'var(--color-ink-secondary)' }}>
-        {preview.creatorName}, a verified {preview.creatorRole} on ShiaRishta, set this up with your details and confirmed they had your permission.{' '}
+        {preview.creatorName}, a verified {preview.creatorRole} on Shia Rishta, set this up with your details and confirmed they had your permission.{' '}
         <strong style={{ color: 'var(--color-ink)' }}>Nothing is public.</strong>{' '}
         If you claim it, the profile becomes yours — you edit every word and add your own photo.
       </p>

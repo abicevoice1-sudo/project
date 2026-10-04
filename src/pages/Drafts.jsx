@@ -73,7 +73,7 @@ export default function Drafts() {
   };
 
   const whatsapp = (d) => `https://wa.me/?text=${encodeURIComponent(
-    `Assalamu Alaikum — I have set up a private profile for you on ShiaRishta (nikah-first matchmaking). Review it and make it yours here: ${window.location.origin}/claim/${d.claim_token}\n\nShort code if the link expires: ${d.short_code}`,
+    `Assalamu Alaikum — I have set up a private profile for you on Shia Rishta (nikah-first matchmaking). Review it and make it yours here: ${window.location.origin}/claim/${d.claim_token}\n\nShort code if the link expires: ${d.short_code}`,
   )}`;
 
   const quota = caps?.quota || { open: 0, limit: 0, claimed: 0 };
@@ -226,7 +226,7 @@ function CreateForm({ form, set, submit, busy, role }) {
         <div>
           <strong>Consent attestation *</strong>
           <br />
-          <small>You confirm she agreed to share these contact details on ShiaRishta. Recorded with your name and timestamp, auditable.</small>
+          <small>You confirm she agreed to share these contact details on Shia Rishta. Recorded with your name and timestamp, auditable.</small>
         </div>
         <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
           <input type="checkbox" checked={form.consentAttested === true} onChange={(e) => set('consentAttested')({ target: { value: e.target.checked } })} style={{ width: 18, height: 18 }} />

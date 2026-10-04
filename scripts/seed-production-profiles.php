@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * seed-production-profiles.php — one-shot cPanel seeder for ShiaRishta.
+ * seed-production-profiles.php — one-shot cPanel seeder for Shia Rishta.
  *
  * WHY A CLI SEEDER INSTEAD OF HITTING /api/auth/register
  * ------------------------------------------------------
@@ -771,7 +771,7 @@ function seedOne(PDO $pdo, array $p, int $index, string $photoBase, bool $dryRun
 //  RUN
 // ═══════════════════════════════════════════════════════════════════════════
 
-echo "ShiaRishta production seeder\n";
+echo "Shia Rishta production seeder\n";
 echo "  photo base : {$photoBase}\n";
 echo ($dryRun ? "  MODE       : DRY RUN (no writes)\n\n" : "  MODE       : LIVE\n\n");
 

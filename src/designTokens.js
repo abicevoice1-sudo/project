@@ -1,4 +1,4 @@
-// Design tokens for the ShiaRishta redesign — Linear/Vercel-inspired.
+// Design tokens for the Shia Rishta redesign — Linear/Vercel-inspired.
 // The single source of truth lives in src/styles/globals.css (:root + .light).
 // This module mirrors those values for tooling/documentation.
 

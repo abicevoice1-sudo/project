@@ -153,7 +153,7 @@ export default function Register() {
                 <option value="Other / Prefer not to say">Other / Prefer not to say</option>
               </select>
               <p className="mt-1 text-xs" style={{ color: 'var(--color-ink-faint)' }}>
-                ShiaRishta is a Shia matrimonial platform.
+                Shia Rishta is a Shia matrimonial platform.
               </p>
             </div>
 
