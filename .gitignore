@@ -25,6 +25,10 @@ npm-debug.log*
 # The scripts themselves ARE tracked; this file is regenerated on every run.
 scripts/seed-created.json
 
+# One-off diagnostic/verification scripts written during an audit session.
+# Named tmp-* so they can never be committed by an over-eager `git add -A`.
+scripts/tmp-*
+
 # OS
 .DS_Store
 Thumbs.db
