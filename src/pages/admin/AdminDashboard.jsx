@@ -1,43 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, UserPlus, MessageCircle, Heart, ShieldCheck, Activity,
-  ArrowUpRight, ArrowDownRight
+  ArrowUpRight, ArrowDownRight, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import Layout from '@/layouts/MainLayout';
+import { http } from '@/lib/api/transport';
 
-const MOCK_STATS = {
-  totalMembers: 1247, activeToday: 89, newMembersWeek: 34,
-  messagesToday: 156, matchesThisWeek: 23, pendingVerifications: 12,
-  profileCompletenessAvg: 78, responseRate: 64
-};
-
-const MOCK_ACTIVITY = [
-  { id: 1, type: 'member_joined', description: 'Fatima N. completed her profile and joined', timestamp: '2026-09-04T10:30:00Z' },
-  { id: 2, type: 'message_sent', description: '156 messages exchanged in the last hour', timestamp: '2026-09-04T09:45:00Z' },
-  { id: 3, type: 'verification_completed', description: 'Yusuf K. passed identity verification', timestamp: '2026-09-04T08:15:00Z' },
-  { id: 4, type: 'match_made', description: 'New compatibility match: Maryam S. & Hassan M.', timestamp: '2026-09-04T07:20:00Z' },
-  { id: 5, type: 'guardian_invite', description: 'Wali invite sent to guardian of Zainab A.', timestamp: '2026-09-04T06:50:00Z' },
-  { id: 6, type: 'profile_flagged', description: 'Profile flagged for review — incomplete photos', timestamp: '2026-09-04T06:10:00Z' }
-];
-
-const MOCK_DAILY = Array.from({ length: 30 }, (_, i) => {
-  const d = new Date(); d.setDate(d.getDate() - 29 + i);
-  return {
-    date: d.toLocaleDateString('en', { month: 'short', day: 'numeric' }),
-    members: Math.floor(30 + Math.random() * 60 + i * 1.5),
-    messages: Math.floor(80 + Math.random() * 120 + i * 2),
-    matches: Math.floor(5 + Math.random() * 18)
-  };
-});
+// Every number below comes from /api/admin/overview and /api/admin/analytics.
+//
+// This dashboard previously rendered MOCK_STATS / MOCK_ACTIVITY / MOCK_DAILY:
+// a hardcoded "1,247 total members" and "156 messages today" on a site with 61
+// rows and no messages. The endpoints behind this screen already existed and
+// already returned correct COUNT(*) aggregates — they were simply never called.
+// Fabricated operational numbers are the same failure mode as fabricated member
+// profiles: an operator acting on them is acting on fiction.
 
 const STAT_CONFIG = [
-  { key: 'totalMembers', label: 'Total Members', icon: Users, color: 'primary', trend: 12.5 },
-  { key: 'activeToday', label: 'Active Today', icon: Activity, color: 'success', trend: 8.3 },
-  { key: 'newMembersWeek', label: 'New This Week', icon: UserPlus, color: 'accent', trend: -2.1 },
-  { key: 'messagesToday', label: 'Messages Today', icon: MessageCircle, color: 'info', trend: 15.7 },
-  { key: 'matchesThisWeek', label: 'Matches This Week', icon: Heart, color: 'danger', trend: 22.0 },
-  { key: 'pendingVerifications', label: 'Pending Verifications', icon: ShieldCheck, color: 'warning', trend: -5.0 }
+  { key: 'totalMembers', label: 'Total Members', icon: Users, color: 'primary' },
+  { key: 'activeProfiles', label: 'Active Profiles', icon: Activity, color: 'success' },
+  { key: 'messagesToday', label: 'Messages (24h)', icon: MessageCircle, color: 'info' },
+  { key: 'livePosts', label: 'Live Posts', icon: Heart, color: 'accent' },
+  { key: 'repliesThisWeek', label: 'Replies (7d)', icon: UserPlus, color: 'danger' },
+  { key: 'openReports', label: 'Open Reports', icon: ShieldCheck, color: 'warning' },
 ];
 
 const ACTIVITY_META = {
@@ -79,7 +64,7 @@ function Sparkline({ dataKey, data, color = 'primary', height = 80 }) {
   );
 }
 
-function StatCard({ stat, value, index }) {
+function StatCard({ stat, value, index, pending }) {
   const c = colorMap[stat.color] || colorMap.primary;
   const [display, setDisplay] = useState(0);
   const ref = useRef(null);
@@ -107,12 +92,13 @@ function StatCard({ stat, value, index }) {
         <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.bg}`}>
           <stat.icon className={`w-5 h-5 ${c.text}`} />
         </span>
-        <span className={`inline-flex items-center gap-0.5 text-xs font-bold ${stat.trend >= 0 ? 'text-success' : 'text-danger'}`}>
-          {stat.trend >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-          {Math.abs(stat.trend)}%
-        </span>
+        {/* The old badge printed a hardcoded +12.5% / -2.1% that was not derived
+            from anything. A trend needs two real samples, which the API does not
+            yet return — so the badge is omitted rather than invented. */}
       </div>
-      <p className="text-2xl font-bold text-ink">{display.toLocaleString()}</p>
+      <p className="text-2xl font-bold text-ink">
+        {pending ? <span className="text-muted/40">—</span> : display.toLocaleString()}
+      </p>
       <p className="text-xs text-muted mt-0.5">{stat.label}</p>
     </motion.div>
   );
@@ -123,9 +109,46 @@ function StatCard({ stat, value, index }) {
 export default function AdminDashboard() {
   const [timeRange, setTimeRange] = useState('30d');
   const [chartMetric, setChartMetric] = useState('members');
-  const stats = MOCK_STATS;
-  const activity = MOCK_ACTIVITY;
-  const daily = MOCK_DAILY;
+  const [stats, setStats] = useState(null);
+  const [daily, setDaily] = useState([]);
+  const [loadError, setLoadError] = useState(null);
+  const [pending, setPending] = useState(true);
+
+  // Live aggregates. /overview gives the six KPIs, /analytics gives the real
+  // day series. Both are already admin-guarded server-side.
+  const load = useCallback(async () => {
+    setPending(true);
+    setLoadError(null);
+    try {
+      const range = timeRange === '90d' ? '30d' : timeRange; // API supports 7d | 30d
+      const [overview, analytics] = await Promise.all([
+        http.get('/api/admin/overview'),
+        http.get(`/api/admin/analytics?range=${range}`),
+      ]);
+      setStats(overview);
+      const members = analytics?.charts?.find((c) => c.key === 'memberGrowth');
+      const messages = analytics?.charts?.find((c) => c.key === 'messageVolume');
+      setDaily(
+        (members?.labels || []).map((label, i) => ({
+          date: label,
+          members: members?.values?.[i] ?? 0,
+          messages: messages?.values?.[i] ?? 0,
+        })),
+      );
+    } catch (e) {
+      // An empty dashboard is better than a fabricated one, but it must be
+      // labelled rather than silently blank.
+      setLoadError(e?.message || 'Could not load dashboard data.');
+      setStats(null);
+      setDaily([]);
+    } finally {
+      setPending(false);
+    }
+  }, [timeRange]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const activity = []; // no activity feed endpoint exists; nothing is invented
 
   return (
     <Layout>
@@ -137,6 +160,10 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted mt-1">Platform overview, member analytics, and community health.</p>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={load} disabled={pending}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-elevated text-muted border border-line/20 hover:border-line/40 disabled:opacity-50 transition-all">
+              <RefreshCw className={`w-3.5 h-3.5 ${pending ? 'animate-spin' : ''}`} /> Refresh
+            </button>
             {['7d', '30d', '90d'].map(r => (
               <button key={r} onClick={() => setTimeRange(r)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${timeRange === r ? 'bg-primary text-white' : 'bg-elevated text-muted border border-line/20 hover:border-line/40'}`}>
@@ -146,10 +173,23 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Honest failure state. The dashboard used to render plausible numbers
+            whether or not any request succeeded; a red banner is the correct
+            response to a failed admin API call. */}
+        {loadError && (
+          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-danger/30 bg-danger/5 p-4">
+            <AlertTriangle className="w-4 h-4 text-danger flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-ink">Could not load live data</p>
+              <p className="text-xs text-muted mt-0.5">{loadError}</p>
+            </div>
+          </div>
+        )}
+
         {/* KPI Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {STAT_CONFIG.map((stat, i) => (
-            <StatCard key={stat.key} stat={stat} value={stats[stat.key]} index={i} />
+            <StatCard key={stat.key} stat={stat} value={stats?.[stat.key] ?? 0} index={i} pending={pending || !stats} />
           ))}
         </div>
 
@@ -182,11 +222,13 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 gap-4 mt-6 pt-5 border-t border-line/15">
               <div>
                 <p className="text-xs text-muted mb-0.5">Avg. Profile Completeness</p>
-                <p className="text-lg font-bold text-ink">{stats.profileCompletenessAvg}%</p>
+                {/* /api/admin/overview does not compute this yet. Showing the old
+                    hardcoded 78% would be a fabricated metric; omit until real. */}
+                <p className="text-lg font-bold text-muted/50">Not tracked</p>
               </div>
               <div>
                 <p className="text-xs text-muted mb-0.5">Response Rate</p>
-                <p className="text-lg font-bold text-ink">{stats.responseRate}%</p>
+                <p className="text-lg font-bold text-muted/50">Not tracked</p>
               </div>
             </div>
           </div>
@@ -195,7 +237,15 @@ export default function AdminDashboard() {
           <div className="bg-elevated rounded-2xl border border-line/20 shadow-sm p-6">
             <h2 className="text-base font-bold text-ink mb-4">Recent Activity</h2>
             <div className="space-y-3">
-              {activity.map(item => {
+              {activity.length === 0 ? (
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-hover/40">
+                  <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted leading-relaxed">
+                    No activity feed exists yet. This panel previously showed six
+                    invented events with fixed timestamps.
+                  </p>
+                </div>
+              ) : activity.map(item => {
                 const meta = ACTIVITY_META[item.type] || { color: 'primary', icon: '•' };
                 const c = colorMap[meta.color] || colorMap.primary;
                 const timeAgo = getTimeAgo(item.timestamp);

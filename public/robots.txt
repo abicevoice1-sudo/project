@@ -1,4 +1,25 @@
 User-agent: *
 Allow: /
 
+# Private and non-content routes. These are also noindex in the SPA head, but a
+# crawler that never executes JS (and a scraper that does not care) should not
+# be invited to spend budget on them.
+Disallow: /api/
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /messages
+Disallow: /settings
+Disallow: /onboard
+Disallow: /auth/
+Disallow: /verify
+Disallow: /wali/
+Disallow: /claim
+Disallow: /drafts
+Disallow: /*?*sort=
+Disallow: /*?*search=
+
+# Faceted permutations of /profiles add no unique content and can crawl-budget
+# trap a small site. The canonical profile filter UI is still reachable.
+Disallow: /profiles?*&
+
 Sitemap: https://shiarishta.com/sitemap.xml

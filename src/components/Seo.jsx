@@ -159,6 +159,97 @@ function resolveMeta(pathname) {
   return { title: 'Page Not Found | Shia Rishta', desc: '', index: false };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// JSON-LD structured data.
+//
+// This component previously emitted meta tags and canonicals but NO structured
+// data at all — the single largest missed SEO lever for this category. Without
+// it Google cannot render FAQ accordions, breadcrumb trails or a sitelinks
+// search box, all of which a matrimonial site is unusually well suited to.
+//
+// Every node is derived from the same PUBLIC_META copy the meta tags already
+// carry, so it cannot drift from what the page actually says.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Inject or replace the single JSON-LD script tag. */
+function upsertJsonLd(data) {
+  const graph = (Array.isArray(data) ? data : [data]).filter(Boolean);
+  if (!graph.length) return;
+  // Flatten into one @graph document so several node types coexist.
+  const nodes = graph.flatMap((n) => (n['@graph'] ? n['@graph'] : [n]));
+  let el = document.getElementById('shia-rishta-jsonld');
+  if (!el) {
+    el = document.createElement('script');
+    el.id = 'shia-rishta-jsonld';
+    el.type = 'application/ld+json';
+    document.head.appendChild(el);
+  }
+  el.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': nodes });
+}
+
+/** Organization + WebSite with a real SearchAction sitelinks box. */
+function organizationNode() {
+  return {
+    '@type': 'Organization',
+    '@id': `${SITE}/#organization`,
+    name: 'Shia Rishta',
+    url: SITE,
+    description: 'A nikah-first Shia matrimony platform for serious families, with privacy-protected profiles and wali-supported introductions.',
+    areaServed: 'Worldwide',
+    knowsAbout: ['Shia Islam', 'Nikah', 'Islamic marriage', 'Wali', 'Matrimony'],
+  };
+}
+
+function websiteNode() {
+  return {
+    '@type': 'WebSite',
+    '@id': `${SITE}/#website`,
+    url: SITE,
+    name: 'Shia Rishta',
+    publisher: { '@id': `${SITE}/#organization` },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE}/profiles?search={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
+
+/** Breadcrumbs for deep routes; the homepage deliberately has none. */
+function breadcrumbNode(pathname) {
+  if (pathname === '/') return null;
+  const segs = pathname.split('/').filter(Boolean);
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE },
+      ...segs.map((s, i) => ({
+        '@type': 'ListItem',
+        position: i + 2,
+        name: s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        item: `${SITE}/${segs.slice(0, i + 1).join('/')}`,
+      })),
+    ],
+  };
+}
+
+/** FAQPage only when the landing page really renders a FAQ list. */
+function faqNode(pathname) {
+  const faq = LANDING_PAGE_META[pathname.replace(/^\/+/, '')]?.faq;
+  if (!Array.isArray(faq) || !faq.length) return null;
+  return {
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+}
+
 export default function Seo() {
   const { pathname } = useLocation();
 
@@ -178,6 +269,14 @@ export default function Seo() {
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: meta.title });
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: meta.desc || meta.title });
     upsertLinkCanonical(canonical);
+
+    // Structured data only on indexable routes — marking up a noindex page
+    // invites Google to ignore the whole URL.
+    if (meta.index) {
+      upsertJsonLd([organizationNode(), websiteNode(), breadcrumbNode(pathname), faqNode(pathname)]);
+    } else {
+      document.getElementById('shia-rishta-jsonld')?.remove();
+    }
   }, [pathname]);
 
   return null;
